@@ -1,0 +1,135 @@
+:root {
+  color: #17352f;
+  background: #f4eddd;
+  font-family:
+    Inter, ui-rounded, "SF Pro Rounded", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 12%, rgb(255 255 255 / 75%), transparent 28rem),
+    #f4eddd;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+.app-shell {
+  width: min(100%, 430px);
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem
+    max(1rem, env(safe-area-inset-bottom));
+  display: grid;
+  align-items: center;
+}
+
+.panel {
+  width: 100%;
+  border: 2px solid #17352f;
+  border-radius: 1.5rem;
+  background: #fffaf0;
+  box-shadow: 8px 8px 0 #17352f;
+}
+
+.intro-panel {
+  padding: clamp(1.5rem, 7vw, 2.5rem);
+}
+
+.eyebrow {
+  margin: 0 0 1.5rem;
+  color: #a43e2b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 8ch;
+  margin: 0;
+  font-size: clamp(3rem, 14vw, 4.8rem);
+  line-height: 0.88;
+  letter-spacing: -0.065em;
+}
+
+.lede {
+  margin: 1.5rem 0;
+  font-size: clamp(1.05rem, 4vw, 1.25rem);
+  line-height: 1.55;
+}
+
+.primary-action {
+  width: 100%;
+  min-height: 52px;
+  border: 2px solid #17352f;
+  border-radius: 999px;
+  color: #fffaf0;
+  background: #e55536;
+  box-shadow: 0 5px 0 #17352f;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.primary-action:active {
+  translate: 0 3px;
+  box-shadow: 0 2px 0 #17352f;
+}
+
+.primary-action:focus-visible,
+canvas:focus-visible,
+a:focus-visible {
+  outline: 4px solid #f7b32b;
+  outline-offset: 4px;
+}
+
+.control-hint {
+  margin: 1rem 0 0;
+  color: #526b65;
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.game-panel {
+  overflow: hidden;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 390 / 700;
+  touch-action: manipulation;
+}
+
+.results-panel {
+  padding: 1.25rem;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

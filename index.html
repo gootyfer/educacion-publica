@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Una jornada docente: un juego breve para entender las reivindicaciones de la educación pública madrileña."
+    />
+    <title>Una jornada docente</title>
+  </head>
+  <body>
+    <main id="app" class="app-shell">
+      <section id="intro" class="panel intro-panel" aria-labelledby="page-title">
+        <p class="eyebrow">Educación pública · Comunidad de Madrid</p>
+        <h1 id="page-title">Una jornada docente</h1>
+        <p class="lede">
+          Corre, salta y trata de llegar al final mientras la ratio crece y
+          los recursos siguen igual.
+        </p>
+        <button id="start-button" class="primary-action" type="button">
+          Empezar la jornada
+        </button>
+        <p class="control-hint">Un toque para saltar · también funciona con espacio</p>
+      </section>
+
+      <section
+        id="game-region"
+        class="panel game-panel is-hidden"
+        aria-label="Juego de carrera sobre una jornada docente"
+      >
+        <canvas
+          id="game-canvas"
+          width="390"
+          height="700"
+          tabindex="0"
+          aria-label="El docente corre con su clase. Toca o pulsa espacio para saltar."
+        ></canvas>
+      </section>
+
+      <section
+        id="results"
+        class="panel results-panel is-hidden"
+        aria-labelledby="results-title"
+      ></section>
+
+      <p id="status-live" class="visually-hidden" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
