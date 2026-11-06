@@ -104,6 +104,7 @@ a:focus-visible {
 
 .game-panel {
   overflow: hidden;
+  background: #fff6df;
 }
 
 canvas {
@@ -112,6 +113,7 @@ canvas {
   height: auto;
   aspect-ratio: 390 / 700;
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 .results-panel {
