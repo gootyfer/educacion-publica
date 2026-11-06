@@ -94,6 +94,7 @@ function renderResults(viewModel: ResultViewModel) {
       <p><span>Has aguantado</span><strong>${viewModel.durationLabel}</strong></p>
       <p><span>Ratio máxima</span><strong>${viewModel.maxRatio}</strong></p>
     </div>
+    <p class="ratio-explanation">${viewModel.ratioExplanation}</p>
     <ul class="damage-list">${damageRows}</ul>
     <p class="result-message">${viewModel.message}</p>
     <section id="evidence" class="evidence-section" aria-labelledby="evidence-title">

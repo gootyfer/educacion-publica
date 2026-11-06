@@ -200,6 +200,13 @@ canvas {
   list-style: none;
 }
 
+.ratio-explanation {
+  margin: 0 0 0.75rem;
+  color: #3d5650;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
 .damage-list li {
   display: flex;
   justify-content: space-between;

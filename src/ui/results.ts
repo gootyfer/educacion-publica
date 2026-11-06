@@ -16,6 +16,7 @@ export interface ResultViewModel {
   durationLabel: string
   maxRatio: number
   damageRows: DamageRow[]
+  ratioExplanation: string
   message: string
   facts: readonly EvidenceFact[]
   isRecord: boolean
@@ -54,6 +55,8 @@ export function buildResultViewModel(
         hits: state.hitsByKind.infrastructure,
       },
     ],
+    ratioExplanation:
+      "Al aumentar la ratio, atender al grupo consumía más energía y tu salto se hacía más corto.",
     message:
       "No has jugado mal. Intentabas hacer un trabajo cada vez más exigente con tiempo y recursos insuficientes.",
     facts: EVIDENCE_FACTS,

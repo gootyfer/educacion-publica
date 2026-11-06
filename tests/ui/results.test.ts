@@ -35,6 +35,9 @@ describe("result view model", () => {
     expect(result.message).toBe(
       "No has jugado mal. Intentabas hacer un trabajo cada vez más exigente con tiempo y recursos insuficientes.",
     )
+    expect(result.ratioExplanation).toBe(
+      "Al aumentar la ratio, atender al grupo consumía más energía y tu salto se hacía más corto.",
+    )
     expect(result.facts).toHaveLength(4)
     expect(result.isRecord).toBe(true)
   })
