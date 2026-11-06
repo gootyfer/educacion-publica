@@ -1,5 +1,6 @@
 import "./styles.css"
 
+import { EVIDENCE_FACTS } from "./content/facts"
 import { createGameRuntime } from "./game/runtime"
 import type { GameState } from "./game/types"
 import {
@@ -23,6 +24,9 @@ const gameRegion = requiredElement<HTMLElement>("#game-region")
 const canvas = requiredElement<HTMLCanvasElement>("#game-canvas")
 const results = requiredElement<HTMLElement>("#results")
 const startButton = requiredElement<HTMLButtonElement>("#start-button")
+const readJourneyButton = requiredElement<HTMLButtonElement>(
+  "#read-journey-button",
+)
 const statusLive = requiredElement<HTMLElement>("#status-live")
 
 let previousState: GameState | null = null
@@ -52,6 +56,8 @@ startButton.addEventListener("click", () => {
   startJornada()
 })
 
+readJourneyButton.addEventListener("click", renderTextJourney)
+
 function startJornada() {
   intro.classList.add("is-hidden")
   results.classList.add("is-hidden")
@@ -75,19 +81,7 @@ function renderResults(viewModel: ResultViewModel) {
         </li>`,
     )
     .join("")
-  const factCards = viewModel.facts
-    .map(
-      (fact) => `
-        <article class="fact-card">
-          <p class="fact-kicker">${sourceLabel(fact.sourceKind)} · ${fact.period}</p>
-          <h3>${fact.title}</h3>
-          <p class="fact-value">${fact.value}</p>
-          <p>${fact.explanation}</p>
-          <p class="fact-caveat">${fact.caveat}</p>
-          <a href="${fact.sourceUrl}" target="_blank" rel="noreferrer">Ver fuente: ${fact.sourceName}</a>
-        </article>`,
-    )
-    .join("")
+  const factCards = renderFactCards(viewModel.facts)
 
   results.innerHTML = `
     <header class="results-header">
@@ -143,6 +137,56 @@ function renderResults(viewModel: ResultViewModel) {
             : "No se pudo compartir automáticamente. Puedes copiar la dirección de esta página."
     },
   )
+}
+
+function renderTextJourney() {
+  intro.classList.add("is-hidden")
+  gameRegion.classList.add("is-hidden")
+  results.classList.remove("is-hidden")
+  results.innerHTML = `
+    <header class="results-header">
+      <p class="eyebrow">Alternativa sin animación</p>
+      <h2 id="results-title" tabindex="-1">La jornada, explicada</h2>
+    </header>
+    <p class="result-message">La ratio aumenta. Atender bien a más personas consume más energía, el salto se hace más corto y los obstáculos del sistema siguen llegando.</p>
+    <ul class="text-journey-list">
+      <li><strong>Ratio:</strong> el grupo crece sin que aumenten los apoyos.</li>
+      <li><strong>Burocracia:</strong> formularios y tareas restan tiempo para enseñar.</li>
+      <li><strong>Climatización:</strong> el frío y el calor también condicionan el aula.</li>
+      <li><strong>Infraestructura:</strong> averías y recursos insuficientes consumen energía.</li>
+    </ul>
+    <section id="evidence" class="evidence-section" aria-labelledby="evidence-title">
+      <p class="eyebrow">La realidad detrás del juego</p>
+      <h2 id="evidence-title">Cuatro datos para entender la protesta</h2>
+      <div class="fact-grid">${renderFactCards(EVIDENCE_FACTS)}</div>
+    </section>
+    <button id="back-to-intro" class="secondary-action" type="button">Volver al inicio</button>
+  `
+  results.querySelector<HTMLElement>("#results-title")?.focus()
+  requiredElement<HTMLButtonElement>("#back-to-intro").addEventListener(
+    "click",
+    () => {
+      results.classList.add("is-hidden")
+      intro.classList.remove("is-hidden")
+      startButton.focus()
+    },
+  )
+}
+
+function renderFactCards(facts: ResultViewModel["facts"]): string {
+  return facts
+    .map(
+      (fact) => `
+        <article class="fact-card">
+          <p class="fact-kicker">${sourceLabel(fact.sourceKind)} · ${fact.period}</p>
+          <h3>${fact.title}</h3>
+          <p class="fact-value">${fact.value}</p>
+          <p>${fact.explanation}</p>
+          <p class="fact-caveat">${fact.caveat}</p>
+          <a href="${fact.sourceUrl}" target="_blank" rel="noreferrer">Ver fuente: ${fact.sourceName}</a>
+        </article>`,
+    )
+    .join("")
 }
 
 function sourceLabel(sourceKind: "official" | "union" | "press-reporting") {

@@ -15,12 +15,17 @@
         <p class="eyebrow">Educación pública · Comunidad de Madrid</p>
         <h1 id="page-title">Una jornada docente</h1>
         <p class="lede">
-          Corre, salta y trata de llegar al final mientras la ratio crece y
-          los recursos siguen igual.
+          Un juego breve para entender las reivindicaciones del profesorado:
+          corre y salta mientras la ratio crece y los recursos siguen igual.
         </p>
-        <button id="start-button" class="primary-action" type="button">
-          Empezar la jornada
-        </button>
+        <div class="intro-actions">
+          <button id="start-button" class="primary-action" type="button">
+            Empezar la jornada
+          </button>
+          <button id="read-journey-button" class="read-action" type="button">
+            Leer la jornada
+          </button>
+        </div>
         <p class="control-hint">Un toque para saltar · también funciona con espacio</p>
       </section>
 
@@ -46,6 +51,23 @@
 
       <p id="status-live" class="visually-hidden" aria-live="polite"></p>
     </main>
+    <noscript>
+      <section class="noscript-panel">
+        <h2>La jornada, explicada</h2>
+        <p>
+          Esta experiencia ayuda a entender las reivindicaciones del
+          profesorado de la educación pública madrileña mediante ratio,
+          cansancio, burocracia y condiciones de las aulas.
+        </p>
+        <h3>Fuentes</h3>
+        <ul>
+          <li><a data-fallback-source href="https://www.comunidad.madrid/sites/default/files/informe_-_capitulo_b_-_2025.pdf">Consejo Escolar de la Comunidad de Madrid: ratios</a></li>
+          <li><a data-fallback-source href="https://www.ine.es/dyngs/Prensa/EPF2025.htm">INE: gasto medio por persona</a></li>
+          <li><a data-fallback-source href="https://ugt-sp.es/wp-content/uploads/boletin-retribuciones-profesorado-comparativa-europa-2026_web-1.pdf">UGT: comparativa de retribuciones docentes</a></li>
+          <li><a data-fallback-source href="https://cadenaser.com/cmadrid/2026/02/02/una-veintena-de-centros-educativos-de-madrid-con-aulas-a-menos-de-17-grados-en-pleno-invierno-radio-madrid/">Cadena SER: centros con problemas de climatización</a></li>
+        </ul>
+      </section>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -16,6 +16,7 @@ body {
   min-width: 320px;
   min-height: 100dvh;
   margin: 0;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 20% 12%, rgb(255 255 255 / 75%), transparent 28rem),
     #f4eddd;
@@ -77,9 +78,24 @@ h1 {
   border: 2px solid #17352f;
   border-radius: 999px;
   color: #fffaf0;
-  background: #e55536;
+  background: #b83b27;
   box-shadow: 0 5px 0 #17352f;
   font-weight: 850;
+  cursor: pointer;
+}
+
+.intro-actions {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.read-action {
+  min-height: 48px;
+  border: 2px solid #17352f;
+  border-radius: 999px;
+  color: #17352f;
+  background: transparent;
+  font-weight: 800;
   cursor: pointer;
 }
 
@@ -88,7 +104,7 @@ h1 {
   box-shadow: 0 2px 0 #17352f;
 }
 
-.primary-action:focus-visible,
+button:focus-visible,
 canvas:focus-visible,
 a:focus-visible {
   outline: 4px solid #f7b32b;
@@ -258,6 +274,62 @@ canvas {
   font-weight: 800;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
+}
+
+.text-journey-list {
+  padding-left: 1.25rem;
+  line-height: 1.55;
+}
+
+.text-journey-list li + li {
+  margin-top: 0.65rem;
+}
+
+.noscript-panel {
+  width: min(calc(100% - 2rem), 700px);
+  margin: 1rem auto;
+  padding: 1.25rem;
+  border: 2px solid #17352f;
+  border-radius: 1.25rem;
+  background: #fffaf0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .read-action {
+    background: #f7c85b;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .app-shell {
+    align-items: start;
+  }
+
+  .intro-panel {
+    padding: 1rem 1.25rem;
+  }
+
+  h1 {
+    max-width: none;
+    font-size: clamp(2.5rem, 9vw, 4rem);
+  }
+
+  .eyebrow {
+    margin-bottom: 0.65rem;
+  }
+
+  .lede {
+    margin: 0.8rem 0;
+  }
 }
 
 .support-section p {

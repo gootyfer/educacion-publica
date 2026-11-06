@@ -65,8 +65,19 @@ export function createGameRuntime({
     }
   }
 
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      window.cancelAnimationFrame(animationFrame)
+      lastTimestamp = null
+    } else if (running) {
+      lastTimestamp = null
+      animationFrame = window.requestAnimationFrame(frame)
+    }
+  }
+
   canvas.addEventListener("pointerdown", handlePointer)
   window.addEventListener("keydown", handleKey)
+  document.addEventListener("visibilitychange", handleVisibilityChange)
 
   return {
     start() {
