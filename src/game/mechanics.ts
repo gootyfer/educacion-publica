@@ -1,5 +1,6 @@
 import { GAME_CONFIG } from "./config"
-import type { GameInput, GameState } from "./types"
+import { intersectsPlayer, SeededRandom, spawnObstacle } from "./obstacles"
+import type { GameInput, GameState, Obstacle } from "./types"
 
 export function createGameState(): GameState {
   return {
@@ -17,6 +18,12 @@ export function createGameState(): GameState {
       heat: 0,
       infrastructure: 0,
     },
+    obstacles: [],
+    distanceTravelled: 0,
+    distanceSinceLastSpawn: 0,
+    nextObstacleGap: 300,
+    spawnCount: 0,
+    randomSeed: 42,
   }
 }
 
@@ -51,7 +58,7 @@ export function advanceGame(
   const ratio =
     GAME_CONFIG.initialRatio +
     Math.floor(elapsedMs / GAME_CONFIG.ratioIntervalMs) * GAME_CONFIG.ratioStep
-  const energy = Math.max(
+  let energy = Math.max(
     0,
     Math.min(
       GAME_CONFIG.initialEnergy,
@@ -79,6 +86,60 @@ export function advanceGame(
     }
   }
 
+  const travelledThisFrame = GAME_CONFIG.obstacleSpeed * deltaSeconds
+  let obstacles: Obstacle[] = state.obstacles
+    .map((obstacle) => ({
+      ...obstacle,
+      x: obstacle.x - travelledThisFrame,
+    }))
+    .filter((obstacle) => obstacle.x + obstacle.width > -20)
+  let distanceSinceLastSpawn =
+    state.distanceSinceLastSpawn + travelledThisFrame
+  let nextObstacleGap = state.nextObstacleGap
+  let spawnCount = state.spawnCount
+  let randomSeed = state.randomSeed
+
+  const stateForSpawn: GameState = {
+    ...state,
+    elapsedMs,
+    distanceSinceLastSpawn,
+  }
+  const random = new SeededRandom(randomSeed)
+  const spawned = spawnObstacle(stateForSpawn, random)
+  if (spawned) {
+    obstacles = [...obstacles, spawned.obstacle]
+    distanceSinceLastSpawn = 0
+    nextObstacleGap = spawned.nextGap
+    spawnCount += 1
+    randomSeed = random.seed
+  }
+
+  let invulnerabilityMs = Math.max(
+    0,
+    state.invulnerabilityMs - safeDeltaMs,
+  )
+  let hitsByKind = state.hitsByKind
+
+  if (invulnerabilityMs === 0) {
+    const collided = obstacles.find((obstacle) =>
+      intersectsPlayer(obstacle, {
+        ...state,
+        playerY,
+        playerVelocityY,
+        grounded,
+      }),
+    )
+
+    if (collided) {
+      energy = Math.max(0, energy - GAME_CONFIG.collisionDamage)
+      invulnerabilityMs = GAME_CONFIG.invulnerabilityMs
+      hitsByKind = {
+        ...hitsByKind,
+        [collided.kind]: hitsByKind[collided.kind] + 1,
+      }
+    }
+  }
+
   return {
     ...state,
     phase: energy === 0 ? "finished" : "running",
@@ -89,6 +150,13 @@ export function advanceGame(
     playerY,
     playerVelocityY,
     grounded,
-    invulnerabilityMs: Math.max(0, state.invulnerabilityMs - safeDeltaMs),
+    invulnerabilityMs,
+    hitsByKind,
+    obstacles,
+    distanceTravelled: state.distanceTravelled + travelledThisFrame,
+    distanceSinceLastSpawn,
+    nextObstacleGap,
+    spawnCount,
+    randomSeed,
   }
 }

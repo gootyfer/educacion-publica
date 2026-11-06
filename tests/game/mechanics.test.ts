@@ -10,7 +10,7 @@ import {
 const NO_INPUT = { jumpPressed: false }
 
 function advanceFor(totalMs: number) {
-  let state = createGameState()
+  let state = { ...createGameState(), nextObstacleGap: Number.POSITIVE_INFINITY }
 
   for (let elapsed = 0; elapsed < totalMs; elapsed += 50) {
     state = advanceGame(state, NO_INPUT, 50)

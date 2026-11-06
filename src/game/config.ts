@@ -13,4 +13,12 @@ export const GAME_CONFIG = {
   maxStepMs: 50,
   collisionDamage: 14,
   invulnerabilityMs: 750,
+  playerX: 72,
+  playerWidth: 32,
+  playerHeight: 54,
+  worldWidth: 390,
+  obstacleSpeed: 180,
+  obstacleGapMin: 260,
+  obstacleGapMax: 420,
+  spawnGraceMs: 1_500,
 } as const
