@@ -118,6 +118,178 @@ canvas {
 
 .results-panel {
   padding: 1.25rem;
+  box-shadow: 6px 6px 0 #17352f;
+}
+
+.results-header {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.results-header h2,
+.evidence-section h2,
+.support-section h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 8vw, 2.7rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.record-badge {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.35rem 0.65rem;
+  border: 2px solid #17352f;
+  border-radius: 999px;
+  background: #f7c85b;
+  font-size: 0.78rem;
+  font-weight: 850;
+  transform: rotate(-2deg);
+}
+
+.result-score {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.result-score p {
+  margin: 0;
+  padding: 0.9rem;
+  border: 2px solid #17352f;
+  border-radius: 1rem;
+  background: #d8eef0;
+}
+
+.result-score span,
+.result-score strong {
+  display: block;
+}
+
+.result-score span {
+  margin-bottom: 0.3rem;
+  font-size: 0.76rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.result-score strong {
+  font-size: 1.35rem;
+}
+
+.damage-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.damage-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px dashed #879b97;
+}
+
+.result-message {
+  margin: 1.25rem 0 0;
+  padding: 1rem;
+  border-left: 5px solid #e55536;
+  background: #f4eddd;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.evidence-section,
+.support-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 3px solid #17352f;
+}
+
+.fact-grid {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}
+
+.fact-card {
+  padding: 1rem;
+  border: 2px solid #17352f;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.fact-card:nth-child(2n) {
+  background: #fef2c9;
+}
+
+.fact-card h3,
+.fact-card p {
+  margin-top: 0;
+}
+
+.fact-kicker {
+  color: #a43e2b;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fact-value {
+  margin-bottom: 0.5rem;
+  font-size: 1.65rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.fact-caveat {
+  color: #526b65;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.fact-card a,
+.text-action {
+  color: #17352f;
+  font-weight: 800;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.support-section p {
+  line-height: 1.55;
+}
+
+.result-actions {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.secondary-action,
+.text-action {
+  min-height: 48px;
+  padding: 0.8rem 1rem;
+  border: 2px solid #17352f;
+  border-radius: 999px;
+  text-align: center;
+}
+
+.secondary-action {
+  color: #17352f;
+  background: #f7c85b;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.text-action {
+  display: grid;
+  place-items: center;
+  background: #fffaf0;
 }
 
 .is-hidden {

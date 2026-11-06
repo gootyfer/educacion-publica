@@ -38,4 +38,42 @@ test.describe("runner controls", () => {
       "El docente ha saltado",
     )
   })
+
+  test("explains a finished jornada and supports an immediate replay", async ({
+    page,
+  }) => {
+    await page.clock.install()
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    await page.clock.runFor(120_000)
+
+    await expect(
+      page.getByRole("heading", { name: "Fin de la jornada" }),
+    ).toBeVisible()
+    await expect(page.locator("#results .fact-card a")).toHaveCount(4)
+    await expect(
+      page.getByRole("button", { name: "Volver a intentarlo" }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("link", { name: "Informarme y apoyar" }),
+    ).toBeVisible()
+
+    const storedRecord = await page.evaluate(() =>
+      localStorage.getItem("jornada-docente-record-seconds"),
+    )
+    expect(Number(storedRecord)).toBeGreaterThan(0)
+
+    await page.getByRole("button", { name: "Volver a intentarlo" }).click()
+    await expect(page.locator("#status-live")).toContainText(
+      "Energía 100. Ratio 20",
+    )
+
+    await page.reload()
+    expect(
+      await page.evaluate(() =>
+        localStorage.getItem("jornada-docente-record-seconds"),
+      ),
+    ).toBe(storedRecord)
+  })
 })
