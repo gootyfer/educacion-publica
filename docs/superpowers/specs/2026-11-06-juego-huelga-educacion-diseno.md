@@ -167,6 +167,13 @@ Antes de ampliar contenido se probará con personas ajenas a la comunidad educat
 
 ## Fuentes iniciales
 
+**Auditoría editorial:** consultadas y contrastadas el 6 de noviembre de 2026.
+
+- **Ratio:** confirmado 11,7 alumnos por profesor en centros públicos madrileños frente a 9,8 en los centros públicos de España, curso 2023-2024. La cifra es una media alumno/profesor, no el tamaño de un aula concreta.
+- **Gasto:** confirmado un gasto medio de 16.124 € por persona en Madrid durante 2025, segundo resultado autonómico más alto. Se presenta como gasto observado y no como índice de coste de vida.
+- **Retribución:** confirmados 2.797,37 € brutos mensuales ordinarios para maestros con diez años de antigüedad en Madrid, tabla 4 de UGT 2026. No incluye pagas extraordinarias y no se generaliza a otros cuerpos o antigüedades.
+- **Climatización:** confirmada la información de hasta veinte centros públicos con aulas por debajo de 17 °C, atribuida por Cadena SER a una detección de CCOO en invierno de 2026. No se presenta como censo regional.
+
 - RTVE, “Huelga 14 octubre: qué piden los profesores y servicios mínimos”: https://www.rtve.es/noticias/20261014/docentes-madrid-inician-huelga-indefinida-para-exigir-mejoras-laborales-educacion-publica-calidad/17264967.shtml
 - La Vanguardia, continuidad de las movilizaciones del 4 y 5 de noviembre: https://www.lavanguardia.com/local/madrid/20261102/11673865/profesores-retoman-huelga-suman-universidades-publicas-4-5-noviembre.html
 - Consejo Escolar de la Comunidad de Madrid, *Informe 2025*, capítulo B: https://www.comunidad.madrid/sites/default/files/informe_-_capitulo_b_-_2025.pdf
