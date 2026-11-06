@@ -99,4 +99,41 @@ describe("obstacles", () => {
     expect(MAX_OBSTACLE_HEIGHT).toBe(48)
     expect(highestPoint).toBeGreaterThan(MAX_OBSTACLE_HEIGHT)
   })
+
+  it.each(["paperwork", "heat", "infrastructure"] as const)(
+    "allows a complete low-energy crossing of %s",
+    (kind) => {
+      const canCross = Array.from({ length: 46 }, (_, index) => 110 + index * 4)
+        .some((startingX) => {
+          let state: GameState = {
+            ...createGameState(),
+            phase: "running",
+            energy: 10,
+            nextObstacleGap: Number.POSITIVE_INFINITY,
+            obstacles: [
+              {
+                id: 1,
+                kind,
+                x: startingX,
+                width: kind === "infrastructure" ? 42 : kind === "paperwork" ? 34 : 30,
+                height: kind === "heat" ? 48 : kind === "infrastructure" ? 44 : 38,
+              },
+            ],
+          }
+
+          state = advanceGame(state, { jumpPressed: true }, 16)
+          for (let frame = 0; frame < 100; frame += 1) {
+            state = advanceGame(state, NO_INPUT, 16)
+            if (state.hitsByKind[kind] > 0) return false
+            const obstacle = state.obstacles[0]
+            if (!obstacle || obstacle.x + obstacle.width < GAME_CONFIG.playerX) {
+              return true
+            }
+          }
+          return false
+        })
+
+      expect(canCross).toBe(true)
+    },
+  )
 })

@@ -44,9 +44,10 @@ const runtime = createGameRuntime({
   onFinish(state) {
     gameRegion.classList.add("is-hidden")
     results.classList.remove("is-hidden")
-    const previousRecord = readRecord(window.localStorage)
+    const storage = getOptionalStorage()
+    const previousRecord = readRecord(storage)
     const viewModel = buildResultViewModel(state, previousRecord)
-    writeRecord(window.localStorage, viewModel.durationSeconds)
+    writeRecord(storage, viewModel.durationSeconds)
     renderResults(viewModel)
     results.querySelector<HTMLElement>("#results-title")?.focus()
   },
@@ -194,6 +195,14 @@ function sourceLabel(sourceKind: "official" | "union" | "press-reporting") {
   if (sourceKind === "official") return "Fuente oficial"
   if (sourceKind === "union") return "Fuente sindical"
   return "Información de prensa"
+}
+
+function getOptionalStorage(): Storage | null {
+  try {
+    return window.localStorage
+  } catch {
+    return null
+  }
 }
 
 function requiredElement<T extends Element>(selector: string): T {

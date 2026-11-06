@@ -10,8 +10,7 @@ export const EVIDENCE_FACTS = [
     period: "Curso 2023-2024",
     scope: "Enseñanzas de Régimen General, centros públicos",
     sourceName: "Consejo Escolar de la Comunidad de Madrid",
-    sourceUrl:
-      "https://www.comunidad.madrid/sites/default/files/informe_-_capitulo_b_-_2025.pdf",
+    sourceUrl: "https://www.comunidad.madrid/publicacion/ref/51717",
     sourceKind: "official",
     caveat:
       "Es una ratio media de alumnado por profesor, no el tamaño concreto de cada aula.",

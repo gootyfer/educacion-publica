@@ -59,6 +59,7 @@ export function createGameRuntime({
   }
 
   function handleKey(event: KeyboardEvent) {
+    if (!running) return
     if (event.code === "Space" || event.code === "ArrowUp") {
       event.preventDefault()
       jump()

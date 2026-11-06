@@ -52,8 +52,8 @@ describe("game mechanics", () => {
 
   it("reduces jump impulse linearly with energy", () => {
     expect(jumpImpulseForEnergy(100)).toBe(-700)
-    expect(jumpImpulseForEnergy(50)).toBe(-565)
-    expect(jumpImpulseForEnergy(0)).toBe(-430)
+    expect(jumpImpulseForEnergy(50)).toBe(-610)
+    expect(jumpImpulseForEnergy(0)).toBe(-520)
   })
 
   it("does not allow another jump while the teacher is airborne", () => {

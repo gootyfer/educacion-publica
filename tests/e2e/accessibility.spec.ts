@@ -117,6 +117,14 @@ test.describe("accessible journey", () => {
       expect((startBox?.x ?? 0) + (startBox?.width ?? 0)).toBeLessThanOrEqual(
         viewport.width,
       )
+
+      await page.getByRole("button", { name: "Empezar la jornada" }).click()
+      const canvasBox = await page.locator("#game-canvas").boundingBox()
+      expect(canvasBox).not.toBeNull()
+      expect(canvasBox?.y).toBeGreaterThanOrEqual(0)
+      expect((canvasBox?.y ?? 0) + (canvasBox?.height ?? 0)).toBeLessThanOrEqual(
+        viewport.height,
+      )
       await context.close()
     })
   }

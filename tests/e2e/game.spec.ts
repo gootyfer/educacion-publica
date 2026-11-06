@@ -39,6 +39,16 @@ test.describe("runner controls", () => {
     )
   })
 
+  test("keeps native Space activation on controls outside gameplay", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    const start = page.getByRole("button", { name: "Empezar la jornada" })
+    await start.focus()
+    await page.keyboard.press("Space")
+    await expect(page.locator("#game-canvas")).toBeVisible()
+  })
+
   test("explains a finished jornada and supports an immediate replay", async ({
     page,
   }) => {
@@ -75,5 +85,27 @@ test.describe("runner controls", () => {
         localStorage.getItem("jornada-docente-record-seconds"),
       ),
     ).toBe(storedRecord)
+  })
+
+  test("still renders results when access to localStorage is blocked", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "localStorage", {
+        configurable: true,
+        get() {
+          throw new DOMException("Blocked", "SecurityError")
+        },
+      })
+    })
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    await expect(
+      page.getByRole("heading", { name: "Fin de la jornada" }),
+    ).toBeVisible({ timeout: 20_000 })
+    await expect(
+      page.getByRole("button", { name: "Volver a intentarlo" }),
+    ).toBeVisible()
   })
 })

@@ -8,7 +8,7 @@ export const GAME_CONFIG = {
   extraDrainPerPupil: 0.025,
   gravity: 1600,
   maxJumpImpulse: -700,
-  minJumpImpulse: -430,
+  minJumpImpulse: -520,
   groundY: 0,
   maxStepMs: 50,
   collisionDamage: 14,

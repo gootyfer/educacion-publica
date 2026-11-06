@@ -64,7 +64,8 @@ export function buildResultViewModel(
   }
 }
 
-export function readRecord(storage: RecordStorage): number | null {
+export function readRecord(storage: RecordStorage | null): number | null {
+  if (!storage) return null
   try {
     const stored = storage.getItem(RECORD_KEY)
     if (stored === null) return null
@@ -76,9 +77,10 @@ export function readRecord(storage: RecordStorage): number | null {
 }
 
 export function writeRecord(
-  storage: RecordStorage,
+  storage: RecordStorage | null,
   seconds: number,
 ): boolean {
+  if (!storage) return false
   try {
     const previous = readRecord(storage)
     if (previous !== null && seconds <= previous) return false

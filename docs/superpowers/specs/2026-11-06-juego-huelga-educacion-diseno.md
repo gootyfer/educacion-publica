@@ -176,7 +176,7 @@ Antes de ampliar contenido se probará con personas ajenas a la comunidad educat
 
 - RTVE, “Huelga 14 octubre: qué piden los profesores y servicios mínimos”: https://www.rtve.es/noticias/20261014/docentes-madrid-inician-huelga-indefinida-para-exigir-mejoras-laborales-educacion-publica-calidad/17264967.shtml
 - La Vanguardia, continuidad de las movilizaciones del 4 y 5 de noviembre: https://www.lavanguardia.com/local/madrid/20261102/11673865/profesores-retoman-huelga-suman-universidades-publicas-4-5-noviembre.html
-- Consejo Escolar de la Comunidad de Madrid, *Informe 2025*, capítulo B: https://www.comunidad.madrid/sites/default/files/informe_-_capitulo_b_-_2025.pdf
+- Consejo Escolar de la Comunidad de Madrid, *Informe 2025*, capítulo B (ficha estable de la publicación): https://www.comunidad.madrid/publicacion/ref/51717
 - INE, Encuesta de Presupuestos Familiares 2025: https://www.ine.es/dyngs/Prensa/en/EPF2025.htm?print=1
 - UGT, *Boletín de Enseñanza Pública. Retribuciones 2026*: https://ugt-sp.es/wp-content/uploads/boletin-retribuciones-profesorado-comparativa-europa-2026_web.pdf
 - Comunidad de Madrid, recursos para necesidades específicas y nuevas aulas TEA: https://www.comunidad.madrid/noticias/2026/09/02/comunidad-madrid-aumenta-todos-recursos-publicos-necesidades-especificas-alumnos-e-incorpora-40-nuevas-aula-tea
