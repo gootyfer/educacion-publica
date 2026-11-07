@@ -1,19 +1,21 @@
 import { GAME_CONFIG } from "./config"
-import type { GameState, Obstacle, ObstacleKind } from "./types"
+import type {
+  DamageKind,
+  GameState,
+  Obstacle,
+  ObstacleVariant,
+} from "./types"
 
-const OBSTACLE_KINDS: readonly ObstacleKind[] = [
-  "paperwork",
-  "heat",
-  "infrastructure",
-]
-
-const OBSTACLE_DIMENSIONS: Record<
-  ObstacleKind,
+export const OBSTACLE_DIMENSIONS: Record<
+  ObstacleVariant,
   { width: number; height: number }
 > = {
-  paperwork: { width: 34, height: 38 },
-  heat: { width: 30, height: 48 },
-  infrastructure: { width: 42, height: 44 },
+  "paper-stack": { width: 34, height: 38 },
+  "filing-cart": { width: 44, height: 42 },
+  "cold-climate": { width: 30, height: 48 },
+  "heat-climate": { width: 34, height: 46 },
+  leak: { width: 38, height: 34 },
+  wall: { width: 42, height: 44 },
 }
 
 export const MAX_OBSTACLE_HEIGHT = Math.max(
@@ -42,6 +44,49 @@ export interface SpawnResult {
   nextGap: number
 }
 
+export function damageKindForObstacle(
+  variant: ObstacleVariant,
+): DamageKind {
+  if (variant === "paper-stack" || variant === "filing-cart") {
+    return "paperwork"
+  }
+  if (variant === "cold-climate" || variant === "heat-climate") {
+    return "heat"
+  }
+  return "infrastructure"
+}
+
+export function availableObstaclesFor(
+  state: Pick<GameState, "term" | "elapsedMs">,
+): readonly ObstacleVariant[] {
+  if (state.term === 1) {
+    const opening: ObstacleVariant[] = [
+      "paper-stack",
+      "filing-cart",
+      "cold-climate",
+    ]
+    return state.elapsedMs >= 30_000 ? [...opening, "wall"] : opening
+  }
+
+  if (state.term === 2) {
+    return [
+      "paper-stack",
+      "filing-cart",
+      "cold-climate",
+      "wall",
+      "leak",
+    ]
+  }
+
+  return [
+    "paper-stack",
+    "filing-cart",
+    "heat-climate",
+    "wall",
+    "leak",
+  ]
+}
+
 export function spawnObstacle(
   state: GameState,
   random: SeededRandom,
@@ -53,19 +98,21 @@ export function spawnObstacle(
     return null
   }
 
-  const kind = OBSTACLE_KINDS[state.spawnCount % OBSTACLE_KINDS.length]
-  if (!kind) {
+  const available = availableObstaclesFor(state)
+  const variant = available[state.spawnCount % available.length]
+  if (!variant) {
     return null
   }
 
-  const dimensions = OBSTACLE_DIMENSIONS[kind]
+  const dimensions = OBSTACLE_DIMENSIONS[variant]
   const gapRange = GAME_CONFIG.obstacleGapMax - GAME_CONFIG.obstacleGapMin
   const nextGap = GAME_CONFIG.obstacleGapMin + random.next() * gapRange
 
   return {
     obstacle: {
       id: state.spawnCount + 1,
-      kind,
+      kind: damageKindForObstacle(variant),
+      variant,
       x: GAME_CONFIG.worldWidth + 12,
       width: dimensions.width,
       height: dimensions.height,

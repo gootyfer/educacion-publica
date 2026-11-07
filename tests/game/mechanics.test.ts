@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import { GAME_CONFIG } from "../../src/game/config"
+import type { GameState } from "../../src/game/types"
 import {
   advanceGame,
   createGameState,
@@ -7,6 +9,7 @@ import {
   energyDrainPerSecond,
   jumpImpulseForEnergy,
   startNextTerm,
+  worldSpeedFor,
 } from "../../src/game/mechanics"
 
 const NO_INPUT = { jumpPressed: false }
@@ -138,6 +141,7 @@ describe("game mechanics", () => {
         {
           id: 1,
           kind: "paperwork",
+          variant: "paper-stack",
           x: 180,
           width: 34,
           height: 38,
@@ -174,6 +178,74 @@ describe("game mechanics", () => {
     expect(ended.elapsedMs).toBe(50)
     expect(ended.courseElapsedMs).toBe(50)
     expect(ended.completedTerms).toHaveLength(1)
+  })
+
+  it("ramps world speed within each term and caps it before the next start", () => {
+    const term1Start = createGameState()
+    const term1Mid = { ...term1Start, elapsedMs: 30_000 }
+    const term1End = { ...term1Start, elapsedMs: 120_000 }
+    const term2Start = { ...term1Start, term: 2 as const }
+    const term2End = { ...term2Start, elapsedMs: 120_000 }
+    const term3Start = { ...term1Start, term: 3 as const }
+    const term3End = { ...term3Start, elapsedMs: 120_000 }
+
+    expect(worldSpeedFor(term1Start)).toBe(GAME_CONFIG.obstacleSpeed)
+    expect(worldSpeedFor(term1Mid)).toBeGreaterThan(
+      worldSpeedFor(term1Start),
+    )
+    expect(worldSpeedFor(term1End)).toBeCloseTo(
+      GAME_CONFIG.obstacleSpeed * 1.15,
+    )
+    expect(worldSpeedFor(term2Start)).toBeCloseTo(
+      GAME_CONFIG.obstacleSpeed * 1.09,
+    )
+    expect(worldSpeedFor(term2Start)).toBeLessThan(worldSpeedFor(term1End))
+    expect(worldSpeedFor(term3Start)).toBeCloseTo(
+      GAME_CONFIG.obstacleSpeed * 1.18,
+    )
+    expect(worldSpeedFor(term3Start)).toBeLessThan(worldSpeedFor(term2End))
+    expect(worldSpeedFor(term3End)).toBeCloseTo(
+      GAME_CONFIG.obstacleSpeed * 1.18 * 1.15,
+    )
+  })
+
+  it("ends a typical two-collision first term within the target duration", () => {
+    let state: GameState = {
+      ...createGameState(),
+      phase: "running" as const,
+      nextObstacleGap: Number.POSITIVE_INFINITY,
+    }
+    const collisionTimes = [20_000, 45_000]
+    let collisionIndex = 0
+
+    while (state.phase === "running" && state.elapsedMs < 120_000) {
+      if (
+        collisionIndex < collisionTimes.length &&
+        state.elapsedMs >= (collisionTimes[collisionIndex] ?? Infinity)
+      ) {
+        state = {
+          ...state,
+          invulnerabilityMs: 0,
+          obstacles: [
+            {
+              id: collisionIndex + 1,
+              kind: "paperwork",
+              variant: "paper-stack",
+              x: GAME_CONFIG.playerX,
+              width: 34,
+              height: 38,
+            },
+          ],
+        }
+        collisionIndex += 1
+      }
+      state = advanceGame(state, NO_INPUT, 50)
+    }
+
+    expect(state.phase).toBe("between-terms")
+    expect(state.elapsedMs).toBeGreaterThanOrEqual(55_000)
+    expect(state.elapsedMs).toBeLessThanOrEqual(75_000)
+    expect(state.hitsByKind.paperwork).toBe(2)
   })
 })
 

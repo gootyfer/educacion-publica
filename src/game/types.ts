@@ -6,9 +6,18 @@ export type DamageKind = "paperwork" | "heat" | "infrastructure"
 
 export type ObstacleKind = DamageKind
 
+export type ObstacleVariant =
+  | "paper-stack"
+  | "filing-cart"
+  | "cold-climate"
+  | "heat-climate"
+  | "leak"
+  | "wall"
+
 export interface Obstacle {
   id: number
   kind: ObstacleKind
+  variant: ObstacleVariant
   x: number
   width: number
   height: number
@@ -41,6 +50,7 @@ export interface GameState {
   invulnerabilityMs: number
   hitsByKind: Record<DamageKind, number>
   obstacles: Obstacle[]
+  introducedObstacleVariants: ObstacleVariant[]
   distanceTravelled: number
   distanceSinceLastSpawn: number
   nextObstacleGap: number

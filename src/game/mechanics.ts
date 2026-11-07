@@ -24,6 +24,7 @@ export function createGameState(): GameState {
     invulnerabilityMs: 0,
     hitsByKind: { ...EMPTY_HITS },
     obstacles: [],
+    introducedObstacleVariants: [],
     distanceTravelled: 0,
     distanceSinceLastSpawn: 0,
     nextObstacleGap: 300,
@@ -46,6 +47,18 @@ export function jumpImpulseForEnergy(energy: number): number {
     GAME_CONFIG.minJumpImpulse +
     (GAME_CONFIG.maxJumpImpulse - GAME_CONFIG.minJumpImpulse) * normalizedEnergy
   )
+}
+
+export function worldSpeedFor(
+  state: Pick<GameState, "term" | "elapsedMs">,
+): number {
+  const termMultiplier = GAME_CONFIG.termInitialSpeedMultipliers[state.term]
+  const rampProgress = Math.min(
+    1,
+    Math.max(0, state.elapsedMs) / GAME_CONFIG.speedRampDurationMs,
+  )
+  const rampMultiplier = 1 + rampProgress * GAME_CONFIG.maxSpeedRamp
+  return GAME_CONFIG.obstacleSpeed * termMultiplier * rampMultiplier
 }
 
 export function advanceGame(
@@ -93,7 +106,7 @@ export function advanceGame(
     }
   }
 
-  const travelledThisFrame = GAME_CONFIG.obstacleSpeed * deltaSeconds
+  const travelledThisFrame = worldSpeedFor(state) * deltaSeconds
   let obstacles: Obstacle[] = state.obstacles
     .map((obstacle) => ({
       ...obstacle,
@@ -105,6 +118,7 @@ export function advanceGame(
   let nextObstacleGap = state.nextObstacleGap
   let spawnCount = state.spawnCount
   let randomSeed = state.randomSeed
+  let introducedObstacleVariants = state.introducedObstacleVariants
 
   const stateForSpawn: GameState = {
     ...state,
@@ -115,6 +129,12 @@ export function advanceGame(
   const spawned = spawnObstacle(stateForSpawn, random)
   if (spawned) {
     obstacles = [...obstacles, spawned.obstacle]
+    if (!introducedObstacleVariants.includes(spawned.obstacle.variant)) {
+      introducedObstacleVariants = [
+        ...introducedObstacleVariants,
+        spawned.obstacle.variant,
+      ]
+    }
     distanceSinceLastSpawn = 0
     nextObstacleGap = spawned.nextGap
     spawnCount += 1
@@ -161,6 +181,7 @@ export function advanceGame(
     invulnerabilityMs,
     hitsByKind,
     obstacles,
+    introducedObstacleVariants,
     distanceTravelled: state.distanceTravelled + travelledThisFrame,
     distanceSinceLastSpawn,
     nextObstacleGap,

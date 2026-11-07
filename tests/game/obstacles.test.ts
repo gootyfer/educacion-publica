@@ -5,10 +5,16 @@ import { advanceGame, createGameState } from "../../src/game/mechanics"
 import {
   MAX_OBSTACLE_HEIGHT,
   SeededRandom,
+  availableObstaclesFor,
+  damageKindForObstacle,
   intersectsPlayer,
   spawnObstacle,
 } from "../../src/game/obstacles"
-import type { GameState, Obstacle } from "../../src/game/types"
+import type {
+  GameState,
+  Obstacle,
+  ObstacleVariant,
+} from "../../src/game/types"
 
 const NO_INPUT = { jumpPressed: false }
 
@@ -24,9 +30,9 @@ describe("obstacles", () => {
     expect(spawnObstacle(state, new SeededRandom(42))).toBeNull()
   })
 
-  it("rotates systemic obstacle kinds and chooses fair gaps", () => {
+  it("rotates the three opening silhouettes and chooses fair gaps", () => {
     const random = new SeededRandom(42)
-    const kinds = []
+    const variants = []
 
     for (let spawnCount = 0; spawnCount < 6; spawnCount += 1) {
       const state = {
@@ -41,16 +47,69 @@ describe("obstacles", () => {
       expect(result).not.toBeNull()
       expect(result?.nextGap).toBeGreaterThanOrEqual(260)
       expect(result?.nextGap).toBeLessThanOrEqual(420)
-      kinds.push(result?.obstacle.kind)
+      variants.push(result?.obstacle.variant)
     }
 
-    expect(kinds).toEqual([
-      "paperwork",
-      "heat",
-      "infrastructure",
-      "paperwork",
-      "heat",
-      "infrastructure",
+    expect(variants).toEqual([
+      "paper-stack",
+      "filing-cart",
+      "cold-climate",
+      "paper-stack",
+      "filing-cart",
+      "cold-climate",
+    ])
+  })
+
+  it("uses seasonal pools and introduces the wall late in term one", () => {
+    const term1Start = createGameState()
+    const term1Late = { ...term1Start, elapsedMs: 30_000 }
+    const term2 = { ...term1Start, term: 2 as const }
+    const term3 = { ...term1Start, term: 3 as const }
+
+    expect(availableObstaclesFor(term1Start)).toEqual([
+      "paper-stack",
+      "filing-cart",
+      "cold-climate",
+    ])
+    expect(availableObstaclesFor(term1Late)).toContain("wall")
+    expect(availableObstaclesFor(term2)).toContain("leak")
+    expect(availableObstaclesFor(term3)).toContain("heat-climate")
+    expect(availableObstaclesFor(term3)).not.toContain("cold-climate")
+  })
+
+  it("maps every silhouette to a systemic damage family", () => {
+    expect(damageKindForObstacle("paper-stack")).toBe("paperwork")
+    expect(damageKindForObstacle("filing-cart")).toBe("paperwork")
+    expect(damageKindForObstacle("cold-climate")).toBe("heat")
+    expect(damageKindForObstacle("heat-climate")).toBe("heat")
+    expect(damageKindForObstacle("leak")).toBe("infrastructure")
+    expect(damageKindForObstacle("wall")).toBe("infrastructure")
+  })
+
+  it("records a newly spawned silhouette only once", () => {
+    const readyToSpawn = {
+      ...createGameState(),
+      phase: "running" as const,
+      elapsedMs: 2_000,
+      distanceSinceLastSpawn: 500,
+      nextObstacleGap: 260,
+    }
+
+    const firstSpawn = advanceGame(readyToSpawn, NO_INPUT, 0)
+    const repeatedVariant = advanceGame(
+      {
+        ...firstSpawn,
+        distanceSinceLastSpawn: 500,
+        nextObstacleGap: 260,
+        spawnCount: 3,
+      },
+      NO_INPUT,
+      0,
+    )
+
+    expect(firstSpawn.introducedObstacleVariants).toEqual(["paper-stack"])
+    expect(repeatedVariant.introducedObstacleVariants).toEqual([
+      "paper-stack",
     ])
   })
 
@@ -58,6 +117,7 @@ describe("obstacles", () => {
     const obstacle: Obstacle = {
       id: 1,
       kind: "paperwork",
+      variant: "paper-stack",
       x: GAME_CONFIG.playerX,
       width: 32,
       height: 38,
@@ -100,23 +160,33 @@ describe("obstacles", () => {
     expect(highestPoint).toBeGreaterThan(MAX_OBSTACLE_HEIGHT)
   })
 
-  it.each(["paperwork", "heat", "infrastructure"] as const)(
-    "allows a complete low-energy crossing of %s",
-    (kind) => {
+  it.each([
+    "paper-stack",
+    "filing-cart",
+    "cold-climate",
+    "heat-climate",
+    "leak",
+    "wall",
+  ] as const)(
+    "allows a complete low-energy maximum-speed crossing of %s",
+    (variant) => {
+      const kind = damageKindForObstacle(variant)
       const canCross = Array.from({ length: 46 }, (_, index) => 110 + index * 4)
         .some((startingX) => {
           let state: GameState = {
             ...createGameState(),
             phase: "running",
+            term: 3,
+            elapsedMs: 120_000,
             energy: 10,
             nextObstacleGap: Number.POSITIVE_INFINITY,
             obstacles: [
               {
                 id: 1,
                 kind,
+                variant,
                 x: startingX,
-                width: kind === "infrastructure" ? 42 : kind === "paperwork" ? 34 : 30,
-                height: kind === "heat" ? 48 : kind === "infrastructure" ? 44 : 38,
+                ...dimensionsFor(variant),
               },
             ],
           }
@@ -137,3 +207,12 @@ describe("obstacles", () => {
     },
   )
 })
+
+function dimensionsFor(variant: ObstacleVariant) {
+  if (variant === "paper-stack") return { width: 34, height: 38 }
+  if (variant === "filing-cart") return { width: 44, height: 42 }
+  if (variant === "cold-climate") return { width: 30, height: 48 }
+  if (variant === "heat-climate") return { width: 34, height: 46 }
+  if (variant === "leak") return { width: 38, height: 34 }
+  return { width: 42, height: 44 }
+}
