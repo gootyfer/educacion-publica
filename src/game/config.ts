@@ -2,6 +2,16 @@
 export const GAME_CONFIG = {
   initialEnergy: 100,
   initialRatio: 20,
+  termInitialRatios: {
+    1: 20,
+    2: 24,
+    3: 28,
+  },
+  termInitialSpeedMultipliers: {
+    1: 1,
+    2: 1.09,
+    3: 1.18,
+  },
   ratioStep: 4,
   ratioIntervalMs: 15_000,
   baseDrainPerSecond: 0.5,

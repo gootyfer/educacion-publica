@@ -1,4 +1,6 @@
-export type GamePhase = "ready" | "running" | "finished"
+export type Term = 1 | 2 | 3
+
+export type GamePhase = "ready" | "running" | "between-terms" | "finished"
 
 export type DamageKind = "paperwork" | "heat" | "infrastructure"
 
@@ -16,9 +18,20 @@ export interface GameInput {
   jumpPressed: boolean
 }
 
+export interface TermResult {
+  term: Term
+  durationMs: number
+  distanceTravelled: number
+  maxRatio: number
+  hitsByKind: Record<DamageKind, number>
+}
+
 export interface GameState {
   phase: GamePhase
+  term: Term
   elapsedMs: number
+  courseElapsedMs: number
+  completedTerms: TermResult[]
   energy: number
   ratio: number
   maxRatio: number
