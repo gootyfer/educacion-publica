@@ -4,7 +4,11 @@ import {
   OBSTACLE_ART,
   obstacleArtFor,
 } from "../../src/game/art/obstacles"
-import { pupilBottomForRow } from "../../src/game/art/characters"
+import {
+  hiddenPupilCount,
+  pupilBottomForRow,
+  VISIBLE_PUPIL_COUNT,
+} from "../../src/game/art/characters"
 import { sceneVisualFor } from "../../src/game/art/scene"
 import { OBSTACLE_DIMENSIONS } from "../../src/game/obstacles"
 import type { ObstacleVariant, Term } from "../../src/game/types"
@@ -19,11 +23,16 @@ const VARIANTS: readonly ObstacleVariant[] = [
 ]
 
 describe("seasonal visual model", () => {
-  it("keeps pupils grounded independently of the teacher jump", () => {
-    expect(pupilBottomForRow(0, -90)).toBe(pupilBottomForRow(0, 0))
-    expect(pupilBottomForRow(1, -90)).toBeLessThan(
-      pupilBottomForRow(0, 0),
-    )
+  it("keeps six representative pupils and makes their remainder equal the ratio", () => {
+    expect(VISIBLE_PUPIL_COUNT).toBe(6)
+    expect(hiddenPupilCount(20)).toBe(14)
+    expect(hiddenPupilCount(24)).toBe(18)
+    expect(hiddenPupilCount(6)).toBe(0)
+  })
+
+  it("moves both pupil rows with the teacher jump", () => {
+    expect(pupilBottomForRow(0, -90)).toBe(pupilBottomForRow(0, 0) - 90)
+    expect(pupilBottomForRow(1, -90)).toBe(pupilBottomForRow(1, 0) - 90)
   })
 
   it("uses distinct term labels and a non-decreasing green-ribbon presence", () => {

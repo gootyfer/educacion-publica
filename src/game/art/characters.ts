@@ -4,6 +4,7 @@ import { GROUND_Y } from "./scene"
 import { roundedRect } from "./primitives"
 
 const PROTEST_GREEN = "#008f5a"
+export const VISIBLE_PUPIL_COUNT = 6
 
 export function drawTeacherAndPupils(
   context: CanvasRenderingContext2D,
@@ -66,13 +67,9 @@ function drawTeacher(context: CanvasRenderingContext2D, state: GameState) {
 }
 
 function drawPupils(context: CanvasRenderingContext2D, state: GameState) {
-  const addedGroups = Math.floor(
-    (state.ratio - GAME_CONFIG.initialRatio) / GAME_CONFIG.ratioStep,
-  )
-  const visible = Math.min(12, 6 + Math.max(0, addedGroups))
   const colors = ["#f7c85b", "#78b6b1", "#e88967", "#8b78b5"]
 
-  for (let index = 0; index < visible; index += 1) {
+  for (let index = 0; index < VISIBLE_PUPIL_COUNT; index += 1) {
     const row = index % 2
     const column = Math.floor(index / 2)
     const x = 57 - column * 8 - row * 3
@@ -90,13 +87,18 @@ function drawPupils(context: CanvasRenderingContext2D, state: GameState) {
     context.stroke()
   }
 
-  if (state.ratio > visible) {
+  const hidden = hiddenPupilCount(state.ratio)
+  if (hidden > 0) {
     context.fillStyle = "#17352f"
     context.font = "800 12px system-ui"
-    context.fillText(`+${state.ratio - visible}`, 8, GROUND_Y - 8)
+    context.fillText(`+${hidden}`, 8, GROUND_Y + state.playerY - 8)
   }
 }
 
-export function pupilBottomForRow(row: number, _teacherY: number): number {
-  return GROUND_Y - row * 16
+export function hiddenPupilCount(ratio: number): number {
+  return Math.max(0, ratio - VISIBLE_PUPIL_COUNT)
+}
+
+export function pupilBottomForRow(row: number, teacherY: number): number {
+  return GROUND_Y + teacherY - row * 16
 }
