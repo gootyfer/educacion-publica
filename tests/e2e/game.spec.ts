@@ -3,6 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test"
 declare global {
   interface Window {
     __audioEvents: string[]
+    __themeRates: number[]
   }
 }
 
@@ -79,6 +80,58 @@ test.describe("runner controls", () => {
     await page.getByRole("button", { name: "Silenciar sonido" }).click()
     await expect(
       page.getByRole("button", { name: "Activar sonido" }),
+    ).toBeVisible()
+  })
+
+  test("increases the theme tempo with world speed without exceeding its cap", async ({
+    page,
+  }) => {
+    await page.clock.install()
+    await page.addInitScript(() => {
+      const themeRates: number[] = []
+      Object.defineProperty(window, "__themeRates", {
+        value: themeRates,
+        configurable: true,
+      })
+      const rateDescriptor = Object.getOwnPropertyDescriptor(
+        HTMLMediaElement.prototype,
+        "playbackRate",
+      )
+      if (rateDescriptor?.get && rateDescriptor.set) {
+        Object.defineProperty(HTMLMediaElement.prototype, "playbackRate", {
+          configurable: true,
+          get() {
+            return rateDescriptor.get?.call(this)
+          },
+          set(value: number) {
+            rateDescriptor.set?.call(this, value)
+            if ((this as HTMLMediaElement).src.includes("main-theme.mp3")) {
+              themeRates.push(value)
+            }
+          },
+        })
+      }
+      HTMLMediaElement.prototype.play = function () {
+        if (this.src.includes("main-theme.mp3")) {
+          themeRates.push(this.playbackRate)
+        }
+        return Promise.resolve()
+      }
+      HTMLMediaElement.prototype.pause = function () {}
+    })
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    await page.clock.runFor(10_000)
+    const rates = await page.evaluate(() => window.__themeRates.slice())
+    expect(rates[0]).toBe(1)
+    expect(Math.max(...rates)).toBeGreaterThan(1)
+    expect(Math.max(...rates)).toBeLessThanOrEqual(1.24)
+
+    await page.getByRole("button", { name: "Silenciar sonido" }).click()
+    await page.getByRole("button", { name: "Activar sonido" }).click()
+    await expect(
+      page.getByRole("button", { name: "Silenciar sonido" }),
     ).toBeVisible()
   })
 

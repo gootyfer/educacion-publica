@@ -1,12 +1,17 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { createAudioController } from "../../src/audio/controller"
+import {
+  createAudioController,
+  playbackRateForWorldSpeed,
+} from "../../src/audio/controller"
 import { APPROVED_AUDIO } from "../../src/audio/types"
+import { GAME_CONFIG } from "../../src/game/config"
 
 class FakeAudio {
   loop = false
   volume = 1
-  playbackRate = 1
+  private themeRate = 1
+  playbackRateWrites = 0
   currentTime = 0
   preservesPitch = false
   playCount = 0
@@ -16,6 +21,15 @@ class FakeAudio {
     readonly src: string,
     private readonly rejectPlay = false,
   ) {}
+
+  get playbackRate() {
+    return this.themeRate
+  }
+
+  set playbackRate(value: number) {
+    this.themeRate = value
+    this.playbackRateWrites += 1
+  }
 
   play() {
     this.playCount += 1
@@ -66,18 +80,34 @@ describe("audio controller", () => {
     )
   })
 
-  it("uses three discrete intensities and caps playback speed at 1.15", async () => {
-    const { controller, audio } = setup()
-    await controller.unlock()
-    controller.startTerm(1)
+  it("maps world speed continuously into the approved musical range", () => {
+    const maxCourseSpeed = 276.12
 
-    controller.setIntensity(0)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1)
-    controller.setIntensity(1)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.075)
-    controller.setIntensity(2)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.15)
-    expect(audio(APPROVED_AUDIO.theme).preservesPitch).toBe(true)
+    expect(playbackRateForWorldSpeed(GAME_CONFIG.obstacleSpeed)).toBe(1)
+    expect(playbackRateForWorldSpeed((180 + maxCourseSpeed) / 2)).toBe(1.12)
+    expect(playbackRateForWorldSpeed(maxCourseSpeed)).toBe(1.24)
+    expect(playbackRateForWorldSpeed(0)).toBe(1)
+    expect(playbackRateForWorldSpeed(Number.POSITIVE_INFINITY)).toBe(1.24)
+  })
+
+  it("updates tempo only when its hundredth changes without starting playback", () => {
+    const { controller, audio } = setup()
+    controller.startTerm(1)
+    const theme = audio(APPROVED_AUDIO.theme)
+    const writesAfterStart = theme.playbackRateWrites
+
+    controller.setWorldSpeed(181)
+    expect(theme.playbackRateWrites).toBe(writesAfterStart)
+    controller.setWorldSpeed(228.06)
+    expect(theme.playbackRate).toBe(1.12)
+    expect(theme.playbackRateWrites).toBe(writesAfterStart + 1)
+    expect(theme.preservesPitch).toBe(true)
+    expect(theme.playCount).toBe(0)
+
+    controller.setMuted(true)
+    controller.setWorldSpeed(276.12)
+    expect(theme.playbackRate).toBe(1.24)
+    expect(theme.playCount).toBe(0)
   })
 
   it("starts later terms at a higher musical intensity", async () => {
@@ -87,9 +117,9 @@ describe("audio controller", () => {
     controller.startTerm(1)
     expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1)
     controller.startTerm(2)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.075)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.04)
     controller.startTerm(3)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.15)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.08)
   })
 
   it("plays one term signature and pauses the theme during holidays", async () => {
@@ -182,6 +212,7 @@ describe("audio controller", () => {
 
     await expect(controller.unlock()).resolves.toBeUndefined()
     expect(() => controller.startTerm(1)).not.toThrow()
+    expect(() => controller.setWorldSpeed(240)).not.toThrow()
     expect(() => controller.playJump()).not.toThrow()
     expect(() => controller.setMuted(true)).not.toThrow()
     await Promise.resolve()

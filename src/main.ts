@@ -3,9 +3,10 @@ import "./styles.css"
 
 import { createAudioController } from "./audio/controller"
 import { EVIDENCE_FACTS } from "./content/facts"
+import { worldSpeedFor } from "./game/mechanics"
 import { intersectsPlayer } from "./game/obstacles"
 import { createGameRuntime } from "./game/runtime"
-import type { DamageKind, GameState, Term, TermResult } from "./game/types"
+import type { DamageKind, GameState, TermResult } from "./game/types"
 import {
   buildResultViewModel,
   readRecord,
@@ -42,7 +43,6 @@ updateSoundButton()
 
 let previousState: GameState | null = null
 let transitionTimers: number[] = []
-let audioIntensity: 0 | 1 | 2 = 0
 
 const runtime = createGameRuntime({
   canvas,
@@ -62,11 +62,7 @@ const runtime = createGameRuntime({
         audioController.playNewObstacle()
       }
     }
-    const nextIntensity = intensityFor(state.term, state.elapsedMs)
-    if (nextIntensity !== audioIntensity) {
-      audioIntensity = nextIntensity
-      audioController.setIntensity(nextIntensity)
-    }
+    audioController.setWorldSpeed(worldSpeedFor(state))
     previousState = state
   },
   onTermEnd(_state, result) {
@@ -105,7 +101,6 @@ function startJornada() {
   results.classList.add("is-hidden")
   gameRegion.classList.remove("is-hidden")
   previousState = null
-  audioIntensity = 0
   audioController.startTerm(1)
   void audioController.unlock()
   statusLive.textContent =
@@ -231,7 +226,6 @@ function renderTransition(result: TermResult) {
     results.classList.add("is-hidden")
     gameRegion.classList.remove("is-hidden")
     previousState = null
-    audioIntensity = (viewModel.nextTerm - 1) as 1 | 2
     audioController.startTerm(viewModel.nextTerm)
     statusLive.textContent = `${termName(viewModel.nextTerm)} trimestre. Energía 100. Ratio en aumento.`
     runtime.resumeNextTerm()
@@ -311,11 +305,6 @@ function playNewCollisions(previous: GameState, current: GameState) {
     )
     audioController.playCollision(kind, collided?.variant)
   }
-}
-
-function intensityFor(term: Term, elapsedMs: number): 0 | 1 | 2 {
-  const withinTerm = elapsedMs >= 40_000 ? 2 : elapsedMs >= 20_000 ? 1 : 0
-  return Math.min(2, term - 1 + withinTerm) as 0 | 1 | 2
 }
 
 function updateSoundButton() {

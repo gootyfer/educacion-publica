@@ -1,4 +1,5 @@
 import type { ObstacleVariant, Term } from "../game/types"
+import { GAME_CONFIG } from "../game/config"
 import {
   APPROVED_AUDIO,
   type AudioController,
@@ -7,7 +8,24 @@ import {
 } from "./types"
 
 const MUTE_STORAGE_KEY = "curso-docente-audio-muted-v1"
-const INTENSITY_RATES = [1, 1.075, 1.15] as const
+const MIN_PLAYBACK_RATE = 1
+const MAX_PLAYBACK_RATE = 1.24
+
+export function playbackRateForWorldSpeed(worldSpeed: number): number {
+  if (Number.isNaN(worldSpeed)) return MIN_PLAYBACK_RATE
+  const minWorldSpeed = GAME_CONFIG.obstacleSpeed
+  const maxWorldSpeed =
+    GAME_CONFIG.obstacleSpeed *
+    GAME_CONFIG.termInitialSpeedMultipliers[3] *
+    (1 + GAME_CONFIG.termMaxSpeedRamps[3])
+  const progress = Math.min(
+    1,
+    Math.max(0, (worldSpeed - minWorldSpeed) / (maxWorldSpeed - minWorldSpeed)),
+  )
+  const rate =
+    MIN_PLAYBACK_RATE + progress * (MAX_PLAYBACK_RATE - MIN_PLAYBACK_RATE)
+  return Math.round(rate * 100) / 100
+}
 
 export function createAudioController({
   createAudio = (src) => new Audio(src),
@@ -57,12 +75,14 @@ export function createAudioController({
       suspendedForTransition = false
       pauseEffects(effects)
       audio.theme.currentTime = 0
-      audio.theme.playbackRate = INTENSITY_RATES[term - 1] ?? 1
+      applyWorldSpeed(
+        GAME_CONFIG.obstacleSpeed *
+          GAME_CONFIG.termInitialSpeedMultipliers[term],
+      )
       if (unlocked && !muted) void safePlay(audio.theme)
     },
-    setIntensity(level) {
-      audio.theme.playbackRate = INTENSITY_RATES[level]
-      if ("preservesPitch" in audio.theme) audio.theme.preservesPitch = true
+    setWorldSpeed(worldSpeed) {
+      applyWorldSpeed(worldSpeed)
     },
     playJump() {
       playEffect(audio.jump)
@@ -112,6 +132,13 @@ export function createAudioController({
       suspendedForTransition = true
       pauseAll(allAudio)
     },
+  }
+
+  function applyWorldSpeed(worldSpeed: number) {
+    const nextRate = playbackRateForWorldSpeed(worldSpeed)
+    if (audio.theme.playbackRate === nextRate) return
+    audio.theme.playbackRate = nextRate
+    if ("preservesPitch" in audio.theme) audio.theme.preservesPitch = true
   }
 
   function playEffect(effect: AudioLike) {

@@ -28,7 +28,7 @@ export interface AudioLike {
 export interface AudioController {
   unlock(): Promise<void>
   startTerm(term: Term): void
-  setIntensity(level: 0 | 1 | 2): void
+  setWorldSpeed(worldSpeed: number): void
   playJump(): void
   playCollision(kind: DamageKind, variant?: ObstacleVariant): void
   playNewObstacle(): void

@@ -57,7 +57,8 @@ export function worldSpeedFor(
     1,
     Math.max(0, state.elapsedMs) / GAME_CONFIG.speedRampDurationMs,
   )
-  const rampMultiplier = 1 + rampProgress * GAME_CONFIG.maxSpeedRamp
+  const rampMultiplier =
+    1 + rampProgress * GAME_CONFIG.termMaxSpeedRamps[state.term]
   return GAME_CONFIG.obstacleSpeed * termMultiplier * rampMultiplier
 }
 

@@ -183,6 +183,7 @@ describe("game mechanics", () => {
   it("ramps world speed within each term and caps it before the next start", () => {
     const term1Start = createGameState()
     const term1Mid = { ...term1Start, elapsedMs: 30_000 }
+    const term1Cap = { ...term1Start, elapsedMs: 60_000 }
     const term1End = { ...term1Start, elapsedMs: 120_000 }
     const term2Start = { ...term1Start, term: 2 as const }
     const term2End = { ...term2Start, elapsedMs: 120_000 }
@@ -193,8 +194,11 @@ describe("game mechanics", () => {
     expect(worldSpeedFor(term1Mid)).toBeGreaterThan(
       worldSpeedFor(term1Start),
     )
+    expect(worldSpeedFor(term1Cap)).toBeCloseTo(
+      GAME_CONFIG.obstacleSpeed * 1.2,
+    )
     expect(worldSpeedFor(term1End)).toBeCloseTo(
-      GAME_CONFIG.obstacleSpeed * 1.15,
+      GAME_CONFIG.obstacleSpeed * 1.2,
     )
     expect(worldSpeedFor(term2Start)).toBeCloseTo(
       GAME_CONFIG.obstacleSpeed * 1.09,
@@ -205,7 +209,10 @@ describe("game mechanics", () => {
     )
     expect(worldSpeedFor(term3Start)).toBeLessThan(worldSpeedFor(term2End))
     expect(worldSpeedFor(term3End)).toBeCloseTo(
-      GAME_CONFIG.obstacleSpeed * 1.18 * 1.15,
+      GAME_CONFIG.obstacleSpeed * 1.18 * 1.3,
+    )
+    expect(worldSpeedFor(term2End)).toBeCloseTo(
+      GAME_CONFIG.obstacleSpeed * 1.09 * 1.25,
     )
   })
 

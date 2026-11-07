@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import { GAME_CONFIG } from "../../src/game/config"
-import { advanceGame, createGameState } from "../../src/game/mechanics"
+import {
+  advanceGame,
+  createGameState,
+  worldSpeedFor,
+} from "../../src/game/mechanics"
 import {
   MAX_OBSTACLE_HEIGHT,
   SeededRandom,
@@ -190,6 +194,10 @@ describe("obstacles", () => {
               },
             ],
           }
+
+          expect(worldSpeedFor(state)).toBeCloseTo(
+            GAME_CONFIG.obstacleSpeed * 1.18 * 1.3,
+          )
 
           state = advanceGame(state, { jumpPressed: true }, 16)
           for (let frame = 0; frame < 100; frame += 1) {

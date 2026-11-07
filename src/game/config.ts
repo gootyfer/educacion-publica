@@ -29,7 +29,11 @@ export const GAME_CONFIG = {
   worldWidth: 390,
   obstacleSpeed: 180,
   speedRampDurationMs: 60_000,
-  maxSpeedRamp: 0.15,
+  termMaxSpeedRamps: {
+    1: 0.2,
+    2: 0.25,
+    3: 0.3,
+  },
   obstacleGapMin: 260,
   obstacleGapMax: 420,
   spawnGraceMs: 1_500,
