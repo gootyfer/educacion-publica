@@ -9,7 +9,11 @@ import {
   pupilBottomForRow,
   VISIBLE_PUPIL_COUNT,
 } from "../../src/game/art/characters"
-import { sceneVisualFor } from "../../src/game/art/scene"
+import {
+  fenceLayoutFor,
+  ribbonCountFor,
+  sceneVisualFor,
+} from "../../src/game/art/scene"
 import { OBSTACLE_DIMENSIONS } from "../../src/game/obstacles"
 import type { ObstacleVariant, Term } from "../../src/game/types"
 
@@ -35,15 +39,44 @@ describe("seasonal visual model", () => {
     expect(pupilBottomForRow(1, -90)).toBe(pupilBottomForRow(1, 0) - 90)
   })
 
-  it("uses distinct term labels and a non-decreasing green-ribbon presence", () => {
+  it("uses distinct term labels and the approved text color", () => {
     const visuals = ([1, 2, 3] as const).map(sceneVisualFor)
 
     expect(new Set(visuals.map(({ label }) => label)).size).toBe(3)
-    expect(visuals.map(({ ribbonCount }) => ribbonCount)).toEqual([1, 2, 3])
     expect(visuals.every(({ textColor }) => textColor === "#17352f")).toBe(
       true,
     )
   })
+
+  it("adds two ribbons during every term without dropping between terms", () => {
+    expect([0, 20_000, 40_000].map((ms) => ribbonCountFor(1, ms))).toEqual([
+      1, 2, 3,
+    ])
+    expect([0, 20_000, 40_000].map((ms) => ribbonCountFor(2, ms))).toEqual([
+      3, 4, 5,
+    ])
+    expect([0, 20_000, 40_000].map((ms) => ribbonCountFor(3, ms))).toEqual([
+      5, 6, 7,
+    ])
+    expect(ribbonCountFor(2, 0)).toBeGreaterThanOrEqual(
+      ribbonCountFor(1, 40_000),
+    )
+    expect(ribbonCountFor(3, 0)).toBeGreaterThanOrEqual(
+      ribbonCountFor(2, 40_000),
+    )
+  })
+
+  it.each([0, 17, 149])(
+    "anchors every ribbon to a fence post at parallax %s",
+    (parallax) => {
+      const layout = fenceLayoutFor(3, 40_000, parallax)
+
+      expect(layout.ribbonXs).toHaveLength(7)
+      expect(
+        layout.ribbonXs.every((ribbonX) => layout.postXs.includes(ribbonX)),
+      ).toBe(true)
+    },
+  )
 
   it.each([1, 2, 3] as const)(
     "returns a complete high-contrast palette for term %s",

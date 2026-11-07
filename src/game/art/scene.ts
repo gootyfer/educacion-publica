@@ -8,7 +8,6 @@ export const GROUND_Y = 584
 export interface SceneVisual {
   term: Term
   label: string
-  ribbonCount: number
   wallColor: `#${string}`
   windowColor: `#${string}`
   floorColor: `#${string}`
@@ -19,7 +18,6 @@ const TERM_VISUALS: Record<Term, SceneVisual> = {
   1: {
     term: 1,
     label: "Septiembre · diciembre",
-    ribbonCount: 1,
     wallColor: "#e7e0cf",
     windowColor: "#cfe4e8",
     floorColor: "#d26b47",
@@ -28,7 +26,6 @@ const TERM_VISUALS: Record<Term, SceneVisual> = {
   2: {
     term: 2,
     label: "Enero · abril",
-    ribbonCount: 2,
     wallColor: "#dde5df",
     windowColor: "#b9d0d7",
     floorColor: "#bd684d",
@@ -37,7 +34,6 @@ const TERM_VISUALS: Record<Term, SceneVisual> = {
   3: {
     term: 3,
     label: "Abril · junio",
-    ribbonCount: 3,
     wallColor: "#f2dfbb",
     windowColor: "#f5c967",
     floorColor: "#c86642",
@@ -76,7 +72,7 @@ export function drawScene(
     context.stroke()
   }
 
-  drawFenceAndRibbons(context, visual, parallax)
+  drawFenceAndRibbons(context, state.term, state.elapsedMs, parallax)
 
   context.fillStyle = visual.textColor
   context.fillRect(0, GROUND_Y, WORLD_WIDTH, 5)
@@ -149,24 +145,48 @@ function drawWindow(
 
 function drawFenceAndRibbons(
   context: CanvasRenderingContext2D,
-  visual: SceneVisual,
+  term: Term,
+  elapsedMs: number,
   parallax: number,
 ) {
-  const offset = (parallax * 0.35) % 110
+  const layout = fenceLayoutFor(term, elapsedMs, parallax)
   context.save()
   context.strokeStyle = "rgb(23 53 47 / 46%)"
   context.lineWidth = 3
   context.beginPath()
   context.moveTo(0, 420)
   context.lineTo(WORLD_WIDTH, 420)
-  for (let x = -offset; x < WORLD_WIDTH + 30; x += 55) {
+  for (const x of layout.postXs) {
     context.moveTo(x, 382)
     context.lineTo(x, 458)
   }
   context.stroke()
 
-  for (let index = 0; index < visual.ribbonCount; index += 1) {
-    drawRibbon(context, 62 + index * 116 - offset * 0.15, 410, 13)
+  for (const x of layout.ribbonXs) {
+    drawRibbon(context, x, 410, 13)
   }
   context.restore()
+}
+
+export function ribbonCountFor(term: Term, elapsedMs: number): number {
+  const base = 1 + (term - 1) * 2
+  const progress = Math.max(0, elapsedMs)
+  const additions = Number(progress >= 20_000) + Number(progress >= 40_000)
+  return Math.min(7, base + additions)
+}
+
+export function fenceLayoutFor(
+  term: Term,
+  elapsedMs: number,
+  parallax: number,
+): { postXs: number[]; ribbonXs: number[] } {
+  const offset = (Math.max(0, parallax) * 0.35) % 110
+  const postXs: number[] = []
+  for (let x = -offset; x < WORLD_WIDTH + 30; x += 55) postXs.push(x)
+
+  const visiblePostXs = postXs.filter((x) => x >= 0 && x <= WORLD_WIDTH)
+  return {
+    postXs,
+    ribbonXs: visiblePostXs.slice(0, ribbonCountFor(term, elapsedMs)),
+  }
 }
