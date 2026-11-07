@@ -26,7 +26,7 @@ describe("holiday transitions", () => {
       title: "Vacaciones de Navidad",
       durationLabel: "1 min 4 s",
       message:
-        "Recuperas la energía. Al volver, la ratio y la velocidad empiezan un poco más altas.",
+        "El descanso recupera tu energía, pero no elimina las condiciones. Al volver, la ratio y la velocidad empiezan un poco más altas.",
       accessibleSummary:
         "Vacaciones de Navidad. Energía recuperada. A continuación comienza el segundo trimestre.",
     })

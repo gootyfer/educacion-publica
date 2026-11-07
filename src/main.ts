@@ -1,3 +1,4 @@
+import "@fontsource/schoolbell/400.css"
 import "./styles.css"
 
 import { EVIDENCE_FACTS } from "./content/facts"
@@ -102,7 +103,8 @@ function renderResults(viewModel: ResultViewModel) {
     .join("")
 
   results.innerHTML = `
-    <header class="results-header">
+    <header class="results-header panel-masthead">
+      <span class="screen-mark" aria-hidden="true">@</span>
       <p class="eyebrow">Tu resultado</p>
       <h2 id="results-title" tabindex="-1">${viewModel.title}</h2>
       ${recordBadge}
@@ -168,13 +170,18 @@ function renderTransition(result: TermResult) {
   results.classList.remove("is-hidden")
   results.innerHTML = `
     <section class="holiday-transition" aria-labelledby="results-title">
-      <p class="eyebrow">${viewModel.eyebrow}</p>
-      <h2 id="results-title" tabindex="-1">${viewModel.title}</h2>
-      <p class="holiday-duration">Has aguantado ${viewModel.durationLabel}</p>
-      <p class="result-message">${viewModel.message}</p>
-      <button id="continue-course" class="primary-action" type="button" disabled>
-        Continuar el curso
-      </button>
+      <header class="panel-masthead">
+        <span class="screen-mark" aria-hidden="true">@</span>
+        <p class="eyebrow">${viewModel.eyebrow}</p>
+        <h2 id="results-title" tabindex="-1">${viewModel.title}</h2>
+      </header>
+      <div class="panel-body">
+        <p class="holiday-duration">Has aguantado ${viewModel.durationLabel}</p>
+        <p class="result-message">${viewModel.message}</p>
+        <button id="continue-course" class="primary-action" type="button" disabled>
+          Continuar el curso
+        </button>
+      </div>
     </section>
   `
   results.querySelector<HTMLElement>("#results-title")?.focus()
@@ -216,17 +223,29 @@ function renderTextJourney() {
   gameRegion.classList.add("is-hidden")
   results.classList.remove("is-hidden")
   results.innerHTML = `
-    <header class="results-header">
+    <header class="results-header panel-masthead">
+      <span class="screen-mark" aria-hidden="true">@</span>
       <p class="eyebrow">Alternativa sin animación</p>
       <h2 id="results-title" tabindex="-1">La jornada, explicada</h2>
     </header>
-    <p class="result-message">La ratio aumenta. Atender bien a más personas consume más energía, el salto se hace más corto y los obstáculos del sistema siguen llegando.</p>
-    <ul class="text-journey-list">
-      <li><strong>Ratio:</strong> el grupo crece sin que aumenten los apoyos.</li>
-      <li><strong>Burocracia:</strong> formularios y tareas restan tiempo para enseñar.</li>
-      <li><strong>Climatización:</strong> el frío y el calor también condicionan el aula.</li>
-      <li><strong>Infraestructura:</strong> averías y recursos insuficientes consumen energía.</li>
-    </ul>
+    <section id="text-journey" class="text-journey" aria-labelledby="course-summary-title">
+      <h2 id="course-summary-title">Un curso en tres trimestres</h2>
+      <p class="result-message">La ratio aumenta. Atender bien a más personas consume más energía, el salto se hace más corto y los obstáculos del sistema siguen llegando. En vacaciones recuperas energía, pero las condiciones no desaparecen.</p>
+      <ol class="term-summary-list">
+        <li data-term-summary><strong>Primer trimestre · septiembre a diciembre.</strong> Empiezan el papeleo, los archivadores y el frío; al final llegan las vacaciones de Navidad.</li>
+        <li data-term-summary><strong>Segundo trimestre · enero a abril.</strong> El curso vuelve algo más rápido; continúan los trámites y aparecen goteras antes de Semana Santa.</li>
+        <li data-term-summary><strong>Tercer trimestre · abril a junio.</strong> La exigencia inicial es mayor y se suman el calor y el papeleo de cierre de curso.</li>
+      </ol>
+      <h3>Los seis obstáculos</h3>
+      <ul class="obstacle-summary-list">
+        <li data-obstacle>Pila de formularios</li>
+        <li data-obstacle>Carro archivador desbordado</li>
+        <li data-obstacle>Climatización averiada por frío</li>
+        <li data-obstacle>Gotera con cubo</li>
+        <li data-obstacle>Ventilador averiado por calor</li>
+        <li data-obstacle>Pared agrietada y obra</li>
+      </ul>
+    </section>
     <section id="evidence" class="evidence-section" aria-labelledby="evidence-title">
       <p class="eyebrow">La realidad detrás del juego</p>
       <h2 id="evidence-title">Cuatro datos para entender la protesta</h2>

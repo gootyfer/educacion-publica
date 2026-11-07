@@ -1,6 +1,6 @@
 # Validación del prototipo
 
-**Revisión interna:** 6 de noviembre de 2026  
+**Revisión interna:** 7 de noviembre de 2026
 **Entorno:** Chromium, viewport móvil y escritorio
 
 ## Comprobado
@@ -11,6 +11,12 @@
 - La pantalla final permite recordar al menos dos motivos de la protesta y explica explícitamente la relación entre ratio, energía y salto.
 - El tono se dirige a situaciones y carencias, sin caricaturas de figuras políticas ni lenguaje partidista.
 - Las cuatro cifras distinguen fuentes oficiales, sindicales e información de prensa, con cautelas visibles.
+- La portada, las vacaciones y el resultado se revisaron visualmente en 390×844 y 844×390: no hay recortes ni solapamientos y la jerarquía se mantiene legible.
+- La portada panorámica usa dos columnas para conservar instrucciones y controles dentro de la primera pantalla.
+- La @ aparece una sola vez por menú como marca secundaria; no compite con la información ni se usa como control.
+- La fuente manual Schoolbell se empaqueta con la aplicación y el cuerpo conserva una tipografía de sistema redondeada y legible.
+- Axe no detecta problemas serios o críticos en portada, ambas vacaciones ni resultado; el recorrido completo funciona con teclado.
+- Se añadió una regresión específica para asegurar que la portada permanezca oculta al jugar en 844×390.
 
 ## Validación pendiente con público general
 

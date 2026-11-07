@@ -27,7 +27,7 @@ export function buildTransitionViewModel(
       : "Vacaciones de Semana Santa",
     durationLabel: formatDuration(Math.floor(result.durationMs / 1000)),
     message:
-      "Recuperas la energía. Al volver, la ratio y la velocidad empiezan un poco más altas.",
+      "El descanso recupera tu energía, pero no elimina las condiciones. Al volver, la ratio y la velocidad empiezan un poco más altas.",
     accessibleSummary: christmas
       ? "Vacaciones de Navidad. Energía recuperada. A continuación comienza el segundo trimestre."
       : "Vacaciones de Semana Santa. Energía recuperada. A continuación comienza el tercer trimestre.",

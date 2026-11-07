@@ -22,7 +22,7 @@ async function advanceUntilVisible(
 }
 
 async function continueHolidayWithKeyboard(page: Page, title: string) {
-  await advanceUntilVisible(page, page.getByRole("heading", { name: title }))
+  await reachHoliday(page, title)
   await page.clock.runFor(1_000)
   const continueButton = page.getByRole("button", {
     name: "Continuar el curso",
@@ -32,26 +32,31 @@ async function continueHolidayWithKeyboard(page: Page, title: string) {
   await expect(page.locator("#game-canvas")).toBeFocused()
 }
 
-async function finishCourse(page: Page) {
-  await page.clock.install()
-  await page.goto("/")
-  await page.getByRole("button", { name: "Empezar la jornada" }).click()
-  await continueHolidayWithKeyboard(page, "Vacaciones de Navidad")
-  await continueHolidayWithKeyboard(page, "Vacaciones de Semana Santa")
-  await advanceUntilVisible(
-    page,
-    page.getByRole("heading", { name: "Fin de curso" }),
-  )
+async function reachHoliday(page: Page, title: string) {
+  await advanceUntilVisible(page, page.getByRole("heading", { name: title }))
 }
 
 test.describe("accessible journey", () => {
-  test("has no serious axe violations on the intro or results", async ({
+  test("has no serious axe violations on the intro, holidays or results", async ({
     page,
   }) => {
     await page.goto("/")
     await expectNoSeriousAxeViolations(page)
 
-    await finishCourse(page)
+    await page.clock.install()
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await reachHoliday(page, "Vacaciones de Navidad")
+    await expectNoSeriousAxeViolations(page)
+    await page.clock.runFor(1_000)
+    await page.getByRole("button", { name: "Continuar el curso" }).click()
+    await reachHoliday(page, "Vacaciones de Semana Santa")
+    await expectNoSeriousAxeViolations(page)
+    await page.clock.runFor(1_000)
+    await page.getByRole("button", { name: "Continuar el curso" }).click()
+    await advanceUntilVisible(
+      page,
+      page.getByRole("heading", { name: "Fin de curso" }),
+    )
     await expectNoSeriousAxeViolations(page)
   })
 
@@ -93,6 +98,10 @@ test.describe("accessible journey", () => {
     await page.goto("/")
 
     await expect(
+      page.locator(".noscript-panel").getByText(/un curso en tres trimestres/i),
+    ).toBeVisible()
+
+    await expect(
       page.getByRole("heading", { name: "Una jornada docente" }),
     ).toBeVisible()
     await expect(
@@ -114,6 +123,13 @@ test.describe("accessible journey", () => {
     await expect(
       page.getByRole("heading", { name: "La jornada, explicada" }),
     ).toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "Un curso en tres trimestres" }),
+    ).toBeVisible()
+    await expect(page.locator("[data-term-summary]")).toHaveCount(3)
+    await expect(page.locator("[data-obstacle]")).toHaveCount(6)
+    await expect(page.locator("#text-journey")).toContainText("energía")
+    await expect(page.locator("#text-journey")).toContainText("vacaciones")
     await expect(page.locator("#results .fact-card a")).toHaveCount(4)
   })
 
@@ -149,6 +165,7 @@ test.describe("accessible journey", () => {
       )
 
       await page.getByRole("button", { name: "Empezar la jornada" }).click()
+      await expect(page.locator("#intro")).toBeHidden()
       const canvasBox = await page.locator("#game-canvas").boundingBox()
       expect(canvasBox).not.toBeNull()
       expect(canvasBox?.y).toBeGreaterThanOrEqual(0)
