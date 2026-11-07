@@ -117,7 +117,9 @@ test.describe("accessible journey", () => {
     ).toBeVisible()
 
     await expect(
-      page.getByRole("heading", { name: "Una jornada docente" }),
+      page
+        .locator(".noscript-panel")
+        .getByRole("heading", { name: "Una jornada decente" }),
     ).toBeVisible()
     await expect(
       page.getByText(/entender las reivindicaciones/i).first(),
@@ -132,19 +134,53 @@ test.describe("accessible journey", () => {
     await page.emulateMedia({ reducedMotion: "reduce" })
     await page.goto("/")
 
-    const readJourney = page.getByRole("button", { name: "Leer la jornada" })
+    await expect(
+      page.getByText("Educación pública y de calidad", { exact: true }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "Una jornada decente" }),
+    ).toBeVisible()
+    await expect(
+      page.getByText(
+        "Un curso en tres trimestres para entender las reivindicaciones del profesorado: corre y salta mientras la ratio crece.",
+        { exact: true },
+      ),
+    ).toBeVisible()
+
+    const readJourney = page.getByRole("button", { name: "Cómo funciona" })
     await expect(readJourney).toBeVisible()
     await readJourney.click()
     await expect(
-      page.getByRole("heading", { name: "La jornada, explicada" }),
+      page.locator("#results .eyebrow").getByText("Cómo funciona", {
+        exact: true,
+      }),
+    ).toBeVisible()
+    await expect(
+      page.getByRole("heading", { name: "Una jornada docente" }),
     ).toBeVisible()
     await expect(
       page.getByRole("heading", { name: "Un curso en tres trimestres" }),
     ).toBeVisible()
     await expect(page.locator("[data-term-summary]")).toHaveCount(3)
     await expect(page.locator("[data-obstacle]")).toHaveCount(6)
-    await expect(page.locator("#text-journey")).toContainText("energía")
-    await expect(page.locator("#text-journey")).toContainText("vacaciones")
+    await expect(page.locator("#text-journey")).toContainText(
+      "Atender a más alumn@s consume más energía.",
+    )
+    await expect(page.locator("#text-journey")).toContainText(
+      "El salto se hace más corto y los obstáculos siguen llegando.",
+    )
+    await expect(page.locator("#text-journey")).toContainText(
+      "En vacaciones recuperas energía, pero los obstáculos siguen.",
+    )
+    await expect(page.locator("#text-journey")).not.toContainText(
+      "septiembre a diciembre",
+    )
+    await expect(page.locator("#text-journey")).not.toContainText(
+      "enero a abril",
+    )
+    await expect(page.locator("#text-journey")).not.toContainText(
+      "abril a junio",
+    )
     await expect(page.locator("#results .fact-card a")).toHaveCount(4)
   })
 

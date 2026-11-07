@@ -169,7 +169,7 @@ test.describe("runner controls", () => {
       page.getByRole("heading", { name: "Fin de curso" }),
     )
     await expect(page.locator(".term-result")).toHaveCount(3)
-    await expect(page.locator("[data-discovered-obstacle]").first()).toBeVisible()
+    await expect(page.locator("[data-discovered-obstacle]")).toHaveCount(0)
   })
 
   test("does not skip a holiday while the page is hidden", async ({ page }) => {
@@ -220,9 +220,15 @@ test.describe("runner controls", () => {
     await expect(
       page.getByRole("button", { name: "Volver a intentarlo" }),
     ).toBeVisible()
+    const supportLink = page.getByRole("link", { name: "Informarme y apoyar" })
+    await expect(supportLink).toBeVisible()
+    await expect(supportLink).toHaveAttribute("href", "https://menoslectivas.org/")
     await expect(
-      page.getByRole("link", { name: "Informarme y apoyar" }),
-    ).toBeVisible()
+      page.getByRole("heading", { name: "Lo que apareció durante el curso" }),
+    ).toHaveCount(0)
+    await expect(page.locator("#results")).not.toContainText(
+      "Al aumentar la ratio, atender al grupo consumía más energía y tu salto se hacía más corto.",
+    )
 
     const storedRecord = await page.evaluate(() =>
       localStorage.getItem("curso-docente-record-seconds-v2"),

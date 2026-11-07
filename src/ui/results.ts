@@ -1,7 +1,5 @@
 import { EVIDENCE_FACTS } from "../content/facts"
 import type { EvidenceFact } from "../content/types"
-import { obstacleArtFor } from "../game/art/obstacles"
-import { sceneVisualFor } from "../game/art/scene"
 import type { DamageKind, GameState, Term } from "../game/types"
 
 const RECORD_KEY = "curso-docente-record-seconds-v2"
@@ -20,9 +18,6 @@ export interface ResultViewModel {
   termRows: TermRow[]
   maxRatio: number
   damageRows: DamageRow[]
-  discoveredObstacles: string[]
-  discoveredSeasons: string[]
-  ratioExplanation: string
   message: string
   facts: readonly EvidenceFact[]
   isRecord: boolean
@@ -96,16 +91,6 @@ export function buildResultViewModel(
         hits: combinedHits.infrastructure,
       },
     ],
-    discoveredObstacles: state.introducedObstacleVariants.map(
-      (variant) => obstacleArtFor(variant).label,
-    ),
-    discoveredSeasons: [
-      ...new Set(
-        state.completedTerms.map(({ term }) => sceneVisualFor(term).label),
-      ),
-    ],
-    ratioExplanation:
-      "Al aumentar la ratio, atender al grupo consumía más energía y tu salto se hacía más corto.",
     message:
       "No has jugado mal. Intentabas hacer un trabajo cada vez más exigente con tiempo y recursos insuficientes.",
     facts: EVIDENCE_FACTS,

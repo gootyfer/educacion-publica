@@ -138,10 +138,6 @@ function renderResults(viewModel: ResultViewModel) {
         </li>`,
     )
     .join("")
-  const discoveredObstacles = viewModel.discoveredObstacles
-    .map((label) => `<li data-discovered-obstacle>${label}</li>`)
-    .join("")
-
   results.innerHTML = `
     <header class="results-header panel-masthead">
       <span class="screen-mark" aria-hidden="true">@</span>
@@ -155,12 +151,6 @@ function renderResults(viewModel: ResultViewModel) {
       <p><span>Ratio máxima</span><strong>${viewModel.maxRatio}</strong></p>
     </div>
     <ol class="term-results" aria-label="Resultado por trimestre">${termRows}</ol>
-    <section class="discovery-summary" aria-labelledby="discovery-title">
-      <h3 id="discovery-title">Lo que apareció durante el curso</h3>
-      <p><strong>Etapas:</strong> ${viewModel.discoveredSeasons.join(" · ")}</p>
-      <ul>${discoveredObstacles}</ul>
-    </section>
-    <p class="ratio-explanation">${viewModel.ratioExplanation}</p>
     <ul class="damage-list">${damageRows}</ul>
     <p class="result-message">${viewModel.message}</p>
     <section id="evidence" class="evidence-section" aria-labelledby="evidence-title">
@@ -173,7 +163,7 @@ function renderResults(viewModel: ResultViewModel) {
       <p>Consulta las reivindicaciones completas, contrasta las fuentes y comparte la experiencia si te ha ayudado a entenderlas.</p>
       <div class="result-actions">
         <button id="share-button" class="secondary-action" type="button">Compartir resultado</button>
-        <a class="text-action" href="https://www.rtve.es/noticias/20261014/docentes-madrid-inician-huelga-indefinida-para-exigir-mejoras-laborales-educacion-publica-calidad/17264967.shtml" target="_blank" rel="noreferrer">Informarme y apoyar</a>
+        <a class="text-action" href="https://menoslectivas.org/" target="_blank" rel="noreferrer">Informarme y apoyar</a>
       </div>
     </section>
   `
@@ -187,7 +177,7 @@ function renderResults(viewModel: ResultViewModel) {
     async () => {
       const outcome = await shareResult(
         {
-          title: "Una jornada docente",
+          title: "Una jornada decente",
           text: `Completé el curso en ${viewModel.durationLabel} con una ratio máxima de ${viewModel.maxRatio}. ¿Tú cuánto aguantarías?`,
           url: window.location.href,
         },
@@ -289,16 +279,16 @@ function renderTextJourney() {
   results.innerHTML = `
     <header class="results-header panel-masthead">
       <span class="screen-mark" aria-hidden="true">@</span>
-      <p class="eyebrow">Alternativa sin animación</p>
-      <h2 id="results-title" tabindex="-1">La jornada, explicada</h2>
+      <p class="eyebrow">Cómo funciona</p>
+      <h2 id="results-title" tabindex="-1">Una jornada docente</h2>
     </header>
     <section id="text-journey" class="text-journey" aria-labelledby="course-summary-title">
       <h2 id="course-summary-title">Un curso en tres trimestres</h2>
-      <p class="result-message">La ratio aumenta. Atender bien a más personas consume más energía, el salto se hace más corto y los obstáculos del sistema siguen llegando. En vacaciones recuperas energía, pero las condiciones no desaparecen.</p>
+      <p class="result-message">Atender a más alumn@s consume más energía. El salto se hace más corto y los obstáculos siguen llegando. En vacaciones recuperas energía, pero los obstáculos siguen.</p>
       <ol class="term-summary-list">
-        <li data-term-summary><strong>Primer trimestre · septiembre a diciembre.</strong> Empiezan el papeleo, los archivadores y el frío; al final llegan las vacaciones de Navidad.</li>
-        <li data-term-summary><strong>Segundo trimestre · enero a abril.</strong> El curso vuelve algo más rápido; continúan los trámites y aparecen goteras antes de Semana Santa.</li>
-        <li data-term-summary><strong>Tercer trimestre · abril a junio.</strong> La exigencia inicial es mayor y se suman el calor y el papeleo de cierre de curso.</li>
+        <li data-term-summary><strong>Primer trimestre.</strong> Empiezan el papeleo, los archivadores y el frío; al final llegan las vacaciones de Navidad.</li>
+        <li data-term-summary><strong>Segundo trimestre.</strong> El curso vuelve algo más rápido; continúan los trámites y aparecen goteras antes de Semana Santa.</li>
+        <li data-term-summary><strong>Tercer trimestre.</strong> La exigencia inicial es mayor y se suman el calor y el papeleo de cierre de curso.</li>
       </ol>
       <h3>Los seis obstáculos</h3>
       <ul class="obstacle-summary-list">

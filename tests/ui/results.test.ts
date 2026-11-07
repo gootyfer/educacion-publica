@@ -53,23 +53,10 @@ describe("result view model", () => {
     expect(result.message).toBe(
       "No has jugado mal. Intentabas hacer un trabajo cada vez más exigente con tiempo y recursos insuficientes.",
     )
-    expect(result.ratioExplanation).toBe(
-      "Al aumentar la ratio, atender al grupo consumía más energía y tu salto se hacía más corto.",
-    )
+    expect(result).not.toHaveProperty("ratioExplanation")
     expect(result.facts).toHaveLength(4)
-    expect(result.discoveredSeasons).toEqual([
-      "Septiembre · diciembre",
-      "Enero · abril",
-      "Abril · junio",
-    ])
-    expect(result.discoveredObstacles).toEqual([
-      "Pila de formularios",
-      "Carro archivador desbordado",
-      "Climatización averiada por frío",
-      "Pared agrietada y obra",
-      "Gotera con cubo",
-      "Ventilador averiado por calor",
-    ])
+    expect(result).not.toHaveProperty("discoveredSeasons")
+    expect(result).not.toHaveProperty("discoveredObstacles")
     expect(result.isRecord).toBe(true)
   })
 })
@@ -125,7 +112,7 @@ describe("record storage", () => {
 
 describe("share result", () => {
   const payload = {
-    title: "Una jornada docente",
+    title: "Una jornada decente",
     text: "Aguanté 74 segundos con una ratio máxima de 36.",
     url: "https://example.test",
   }
