@@ -21,7 +21,6 @@ async function advanceUntilVisible(
 async function continueHoliday(page: Page, title: string) {
   const heading = page.getByRole("heading", { name: title })
   await advanceUntilVisible(page, heading)
-  await page.clock.runFor(1_000)
   const continueButton = page.getByRole("button", {
     name: "Continuar el curso",
   })
@@ -172,6 +171,38 @@ test.describe("runner controls", () => {
     await expect(page.locator("[data-discovered-obstacle]")).toHaveCount(0)
   })
 
+  test("waits indefinitely for the player before starting the next term", async ({
+    page,
+  }) => {
+    await page.clock.install()
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    const christmas = page.getByRole("heading", {
+      name: "Vacaciones de Navidad",
+    })
+    await advanceUntilVisible(page, christmas)
+    const continueButton = page.getByRole("button", {
+      name: "Continuar el curso",
+    })
+    await expect(continueButton).toBeEnabled()
+
+    await page.clock.runFor(60_000)
+    await expect(christmas).toBeVisible()
+    await expect(page.locator("#status-live")).not.toContainText(
+      "Segundo trimestre",
+    )
+
+    await continueButton.evaluate((button: HTMLButtonElement) => {
+      button.click()
+      button.click()
+    })
+    await expect(page.locator("#status-live")).toContainText(
+      "Segundo trimestre",
+    )
+    await expect(page.locator("#game-canvas")).toBeFocused()
+  })
+
   test("does not skip a holiday while the page is hidden", async ({ page }) => {
     await page.clock.install()
     await page.goto("/")
@@ -188,7 +219,7 @@ test.describe("runner controls", () => {
       })
       document.dispatchEvent(new Event("visibilitychange"))
     })
-    await page.clock.runFor(20_000)
+    await page.clock.runFor(60_000)
     await expect(christmas).toBeVisible()
 
     await page.evaluate(() => {
@@ -198,7 +229,6 @@ test.describe("runner controls", () => {
       })
       document.dispatchEvent(new Event("visibilitychange"))
     })
-    await page.clock.runFor(1_000)
     await expect(
       page.getByRole("button", { name: "Continuar el curso" }),
     ).toBeEnabled()

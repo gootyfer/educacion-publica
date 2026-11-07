@@ -213,7 +213,7 @@ function renderTransition(result: TermResult) {
       <div class="panel-body">
         <p class="holiday-duration">Has aguantado ${viewModel.durationLabel}</p>
         <p class="result-message">${viewModel.message}</p>
-        <button id="continue-course" class="primary-action" type="button" disabled>
+        <button id="continue-course" class="primary-action" type="button">
           Continuar el curso
         </button>
       </div>
@@ -235,31 +235,15 @@ function renderTransition(result: TermResult) {
     audioController.startTerm(viewModel.nextTerm)
     statusLive.textContent = `${termName(viewModel.nextTerm)} trimestre. Energía 100. Ratio en aumento.`
     runtime.resumeNextTerm()
+    canvas.focus()
   }
 
   continueButton.addEventListener("click", continueOnce)
-  let visibleElapsedMs = 0
-  let lastTick = performance.now()
-  let holidayPlayed = false
-  const tick = () => {
-    const now = performance.now()
-    if (!document.hidden) visibleElapsedMs += Math.max(0, now - lastTick)
-    lastTick = now
-
-    if (visibleElapsedMs >= 1_000) {
-      continueButton.disabled = false
-    }
-    if (!holidayPlayed && visibleElapsedMs >= 3_000) {
-      holidayPlayed = true
+  transitionTimers.push(
+    window.setTimeout(() => {
       audioController.playHoliday(result.term as 1 | 2)
-    }
-    if (visibleElapsedMs >= 8_000) {
-      continueOnce()
-      return
-    }
-    transitionTimers.push(window.setTimeout(tick, 100))
-  }
-  transitionTimers.push(window.setTimeout(tick, 100))
+    }, 3_000),
+  )
 }
 
 function clearTransitionTimers() {

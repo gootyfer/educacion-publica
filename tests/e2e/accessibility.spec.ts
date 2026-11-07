@@ -23,7 +23,6 @@ async function advanceUntilVisible(
 
 async function continueHolidayWithKeyboard(page: Page, title: string) {
   await reachHoliday(page, title)
-  await page.clock.runFor(1_000)
   const continueButton = page.getByRole("button", {
     name: "Continuar el curso",
   })
@@ -47,11 +46,9 @@ test.describe("accessible journey", () => {
     await page.getByRole("button", { name: "Empezar la jornada" }).click()
     await reachHoliday(page, "Vacaciones de Navidad")
     await expectNoSeriousAxeViolations(page)
-    await page.clock.runFor(1_000)
     await page.getByRole("button", { name: "Continuar el curso" }).click()
     await reachHoliday(page, "Vacaciones de Semana Santa")
     await expectNoSeriousAxeViolations(page)
-    await page.clock.runFor(1_000)
     await page.getByRole("button", { name: "Continuar el curso" }).click()
     await advanceUntilVisible(
       page,
