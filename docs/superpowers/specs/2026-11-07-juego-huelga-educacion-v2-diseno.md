@@ -1,7 +1,7 @@
 # Diseño V2: un curso docente en tres trimestres
 
 **Fecha:** 7 de noviembre de 2026
-**Estado:** borrador para aprobación
+**Estado:** aprobado
 **Parte de:** `2026-11-06-juego-huelga-educacion-diseno.md`
 
 ## Intención
@@ -235,7 +235,10 @@ Todos comparten la paleta de charanga arcade. La música permanece por debajo de
 - efectos puntuales mediante ElevenLabs Sound Effects, preferentemente el modelo vigente no obsoleto;
 - la clave de API nunca se incluye en el cliente, repositorio ni sitio publicado;
 - la generación se realiza durante desarrollo y los archivos finales optimizados se sirven de forma estática;
-- antes de integrar se escuchan y aprueban el bucle, la firma y los efectos;
+- primero se generan varias candidatas de la música principal y se presentan fuera del juego para escucha;
+- después de elegir la música principal se generan la firma de fin de trimestre, los acentos vacacionales y los efectos relacionados;
+- **ningún archivo de audio se integra, referencia o publica con el juego hasta recibir aprobación explícita del usuario**;
+- la generación de candidatas y la integración son fases separadas por una parada obligatoria de validación;
 - si la salida no enlaza limpiamente, se edita con un fundido cruzado; no se genera música en tiempo real durante la partida.
 
 ## Accesibilidad y preferencias
