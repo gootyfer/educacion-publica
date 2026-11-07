@@ -30,8 +30,17 @@ const variants = [
 
 const mode = process.argv[2]
 if (mode !== "main") {
-  fail("Uso: node scripts/generate-audio-candidates.mjs main")
+  fail("Uso: node scripts/generate-audio-candidates.mjs main [a|b|c|all]")
 }
+
+const requestedVariant = (process.argv[3] ?? "all").toLowerCase()
+if (!["a", "b", "c", "all"].includes(requestedVariant)) {
+  fail("La variante debe ser a, b, c o all.")
+}
+const selectedVariants =
+  requestedVariant === "all"
+    ? variants
+    : variants.filter(({ id }) => id === requestedVariant)
 
 const apiKey = process.env.ELEVENLABS_API_KEY
 if (!apiKey) {
@@ -50,7 +59,7 @@ const manifest = {
   candidates: [],
 }
 
-for (const variant of variants) {
+for (const variant of selectedVariants) {
   console.log(`Generando ${variant.id.toUpperCase()}: ${variant.label}…`)
   const response = await fetch(API_URL, {
     method: "POST",
@@ -69,8 +78,9 @@ for (const variant of variants) {
   })
 
   if (!response.ok) {
+    const apiDetail = await readSafeErrorDetail(response)
     fail(
-      `ElevenLabs no pudo generar ${variant.id.toUpperCase()} (${response.status} ${response.statusText}).`,
+      `ElevenLabs no pudo generar ${variant.id.toUpperCase()} (${response.status} ${response.statusText})${apiDetail ? `: ${apiDetail}` : "."}`,
     )
   }
 
@@ -100,4 +110,26 @@ console.log(`Candidatas guardadas en ${OUTPUT_DIR}`)
 function fail(message) {
   console.error(message)
   process.exit(1)
+}
+
+async function readSafeErrorDetail(response) {
+  try {
+    const payload = await response.json()
+    const detail = payload?.detail
+    if (typeof detail === "string") return detail.slice(0, 300)
+    if (Array.isArray(detail)) {
+      return detail
+        .map((item) => item?.msg)
+        .filter((message) => typeof message === "string")
+        .join("; ")
+        .slice(0, 300)
+    }
+    const status =
+      typeof detail?.status === "string" ? detail.status : undefined
+    const message =
+      typeof detail?.message === "string" ? detail.message : undefined
+    return [status, message].filter(Boolean).join(": ").slice(0, 300)
+  } catch {
+    return ""
+  }
 }
