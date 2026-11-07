@@ -90,6 +90,22 @@ test.describe("accessible journey", () => {
     await expect(page.locator("#game-canvas")).toBeFocused()
   })
 
+  test("exposes and persists an accessible sound preference", async ({ page }) => {
+    await page.goto("/")
+    const mute = page.getByRole("button", { name: "Silenciar sonido" })
+    await expect(mute).toBeVisible()
+    await expect(mute).toHaveAttribute("aria-pressed", "false")
+
+    await mute.click()
+    const unmute = page.getByRole("button", { name: "Activar sonido" })
+    await expect(unmute).toHaveAttribute("aria-pressed", "true")
+
+    await page.reload()
+    await expect(
+      page.getByRole("button", { name: "Activar sonido" }),
+    ).toBeVisible()
+  })
+
   test("keeps the purpose and four source links without JavaScript", async ({
     browser,
   }) => {

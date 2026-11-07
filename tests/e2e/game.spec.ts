@@ -1,5 +1,11 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+declare global {
+  interface Window {
+    __audioEvents: string[]
+  }
+}
+
 async function advanceUntilVisible(
   page: Page,
   locator: Locator,
@@ -37,6 +43,64 @@ async function completeCourse(page: Page) {
 }
 
 test.describe("runner controls", () => {
+  test("starts approved audio only after interaction and lets the player mute it", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const audioEvents: string[] = []
+      Object.defineProperty(window, "__audioEvents", {
+        value: audioEvents,
+        configurable: true,
+      })
+      HTMLMediaElement.prototype.play = function () {
+        audioEvents.push(this.getAttribute("src") ?? this.currentSrc)
+        return Promise.resolve()
+      }
+      HTMLMediaElement.prototype.pause = function () {}
+    })
+    await page.goto("/")
+
+    expect(
+      await page.evaluate(() =>
+        window.__audioEvents.slice(),
+      ),
+    ).toEqual([])
+
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          window.__audioEvents.some(
+            (src) => src.includes("/audio/approved/main-theme.mp3"),
+          ),
+        ),
+      )
+      .toBe(true)
+
+    await page.getByRole("button", { name: "Silenciar sonido" }).click()
+    await expect(
+      page.getByRole("button", { name: "Activar sonido" }),
+    ).toBeVisible()
+  })
+
+  test("keeps the game responsive when every audio file is unavailable", async ({
+    page,
+  }) => {
+    await page.route("**/audio/approved/**", (route) => route.abort())
+    await page.addInitScript(() => {
+      HTMLMediaElement.prototype.play = () =>
+        Promise.reject(new DOMException("Missing media", "NotSupportedError"))
+    })
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await page.keyboard.press("Space")
+
+    await expect(page.locator("#status-live")).toContainText(
+      "El docente ha saltado",
+    )
+    await expect(page.locator("#game-canvas")).toBeVisible()
+  })
+
   test("starts and jumps with one touch on a phone", async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },

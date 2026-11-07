@@ -180,6 +180,25 @@ a:focus-visible,
   text-align: center;
 }
 
+.sound-toggle {
+  position: fixed;
+  z-index: 10;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: max(0.75rem, env(safe-area-inset-right));
+  display: grid;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  place-items: center;
+  border: 2px solid var(--green-dark);
+  border-radius: 50%;
+  color: var(--green-dark);
+  background: var(--paper);
+  box-shadow: 0 3px 10px rgb(21 63 53 / 16%);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
 .game-panel {
   width: auto;
   max-width: 100%;

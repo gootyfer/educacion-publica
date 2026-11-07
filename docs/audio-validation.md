@@ -111,3 +111,14 @@ seleccionados para producción:
 
 Las demás variantes quedan rechazadas o sin seleccionar y no deben copiarse a
 producción.
+
+### Integración de producción
+
+Los once archivos aprobados se copiaron a `public/audio/approved/` con nombres
+estables. La integración incluye música en bucle con tres intensidades
+(`1×`, `1,075×`, `1,15×`), firma de xilófono, transiciones, fin de curso y
+efectos diferenciados. El control de silencio es persistente y cualquier fallo
+de reproducción o almacenamiento se trata como opcional: nunca detiene el juego.
+
+Ninguna variante rechazada, pista de metales ni primera versión de vacaciones
+forma parte del directorio público.

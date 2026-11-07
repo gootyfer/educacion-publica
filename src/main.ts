@@ -1,9 +1,11 @@
 import "@fontsource/schoolbell/400.css"
 import "./styles.css"
 
+import { createAudioController } from "./audio/controller"
 import { EVIDENCE_FACTS } from "./content/facts"
+import { intersectsPlayer } from "./game/obstacles"
 import { createGameRuntime } from "./game/runtime"
-import type { GameState, TermResult } from "./game/types"
+import type { DamageKind, GameState, TermResult } from "./game/types"
 import {
   buildResultViewModel,
   readRecord,
@@ -30,24 +32,49 @@ const readJourneyButton = requiredElement<HTMLButtonElement>(
   "#read-journey-button",
 )
 const statusLive = requiredElement<HTMLElement>("#status-live")
+const audioController = createAudioController({ storage: getOptionalStorage() })
+const soundButton = document.createElement("button")
+soundButton.id = "sound-toggle"
+soundButton.className = "sound-toggle"
+soundButton.type = "button"
+app.append(soundButton)
+updateSoundButton()
 
 let previousState: GameState | null = null
 let transitionTimers: number[] = []
+let audioIntensity: 0 | 1 | 2 = 0
 
 const runtime = createGameRuntime({
   canvas,
   onStateChange(state) {
     if (previousState?.grounded && !state.grounded) {
       statusLive.textContent = "El docente ha saltado."
+      audioController.playJump()
     } else if (previousState && state.ratio > previousState.ratio) {
       statusLive.textContent = `Se incorporan ${state.ratio - previousState.ratio} alumnos. Ratio ${state.ratio}; apoyos adicionales: cero.`
+    }
+    if (previousState) {
+      playNewCollisions(previousState, state)
+      if (
+        state.introducedObstacleVariants.length >
+        previousState.introducedObstacleVariants.length
+      ) {
+        audioController.playNewObstacle()
+      }
+    }
+    const nextIntensity = intensityFor(state.elapsedMs)
+    if (nextIntensity !== audioIntensity) {
+      audioIntensity = nextIntensity
+      audioController.setIntensity(nextIntensity)
     }
     previousState = state
   },
   onTermEnd(_state, result) {
+    audioController.playTermEnd(result.term)
     renderTransition(result)
   },
   onCourseFinish(state) {
+    audioController.playCourseEnd()
     gameRegion.classList.add("is-hidden")
     results.classList.remove("is-hidden")
     const storage = getOptionalStorage()
@@ -64,6 +91,13 @@ startButton.addEventListener("click", () => {
 })
 
 readJourneyButton.addEventListener("click", renderTextJourney)
+soundButton.addEventListener("click", () => {
+  const nextMuted = !audioController.isMuted()
+  audioController.setMuted(nextMuted)
+  if (!nextMuted) void audioController.unlock()
+  updateSoundButton()
+  statusLive.textContent = nextMuted ? "Sonido desactivado." : "Sonido activado."
+})
 
 function startJornada() {
   clearTransitionTimers()
@@ -71,6 +105,10 @@ function startJornada() {
   results.classList.add("is-hidden")
   gameRegion.classList.remove("is-hidden")
   previousState = null
+  audioIntensity = 0
+  audioController.setIntensity(0)
+  audioController.startTerm(1)
+  void audioController.unlock()
   statusLive.textContent =
     "Curso en marcha. Primer trimestre. Energía 100. Ratio 20."
   runtime.start()
@@ -196,6 +234,9 @@ function renderTransition(result: TermResult) {
     results.classList.add("is-hidden")
     gameRegion.classList.remove("is-hidden")
     previousState = null
+    audioIntensity = 0
+    audioController.setIntensity(0)
+    audioController.startTerm(viewModel.nextTerm)
     statusLive.textContent = `${termName(viewModel.nextTerm)} trimestre. Energía 100. Ratio en aumento.`
     runtime.resumeNextTerm()
   }
@@ -205,7 +246,10 @@ function renderTransition(result: TermResult) {
     window.setTimeout(() => {
       continueButton.disabled = false
     }, 1_000),
-    window.setTimeout(continueOnce, 3_000),
+    window.setTimeout(() => {
+      audioController.playHoliday(result.term as 1 | 2)
+    }, 3_000),
+    window.setTimeout(continueOnce, 8_000),
   )
 }
 
@@ -219,6 +263,7 @@ function termName(term: 2 | 3) {
 }
 
 function renderTextJourney() {
+  audioController.stop()
   intro.classList.add("is-hidden")
   gameRegion.classList.add("is-hidden")
   results.classList.remove("is-hidden")
@@ -262,6 +307,34 @@ function renderTextJourney() {
       startButton.focus()
     },
   )
+}
+
+function playNewCollisions(previous: GameState, current: GameState) {
+  const kinds: DamageKind[] = ["paperwork", "heat", "infrastructure"]
+  for (const kind of kinds) {
+    if (current.hitsByKind[kind] <= previous.hitsByKind[kind]) continue
+    const collided = current.obstacles.find(
+      (obstacle) => obstacle.kind === kind && intersectsPlayer(obstacle, current),
+    )
+    audioController.playCollision(kind, collided?.variant)
+  }
+}
+
+function intensityFor(elapsedMs: number): 0 | 1 | 2 {
+  if (elapsedMs >= 40_000) return 2
+  if (elapsedMs >= 20_000) return 1
+  return 0
+}
+
+function updateSoundButton() {
+  const muted = audioController.isMuted()
+  soundButton.setAttribute(
+    "aria-label",
+    muted ? "Activar sonido" : "Silenciar sonido",
+  )
+  soundButton.setAttribute("aria-pressed", String(muted))
+  soundButton.title = muted ? "Activar sonido" : "Silenciar sonido"
+  soundButton.innerHTML = `<span aria-hidden="true">${muted ? "🔇" : "🔊"}</span>`
 }
 
 function renderFactCards(facts: ResultViewModel["facts"]): string {
