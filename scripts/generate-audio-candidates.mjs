@@ -47,18 +47,18 @@ const soundPack = [
       "Three-second original instrumental game cue in a cheerful Spanish charanga and playful arcade identity: a descending four-note xylophone motif answered by one short brass chord and a soft comic percussion finish. Clear one-shot ending, friendly and witty. No voice, lyrics, speech, or references to existing music.",
   },
   {
-    id: "holiday-christmas",
-    label: "Vacaciones de Navidad",
-    durationSeconds: 3.5,
+    id: "holiday-christmas-v2",
+    label: "Vacaciones de Navidad · versión 2",
+    durationSeconds: 5,
     prompt:
-      "Short original instrumental holiday transition in the approved playful charanga identity: the same kind of compact four-note motif on bright clarinet and tiny sleigh bells, with light brass and a warm final chime. Festive winter feeling but absolutely no carol melody. No voice, lyrics, speech, or references to existing music.",
+      "Five-second original instrumental holiday transition in the approved playful charanga identity: compact four-note clarinet phrase, tiny sleigh bells and light brass. Build toward a deliberate final 1.5-second warm major chord with one clean xylophone sparkle and soft percussion punctuation; no awkward cutoff or fade. Festive winter feeling but absolutely no carol melody. No voice, lyrics, speech, or music references.",
   },
   {
-    id: "holiday-spring",
-    label: "Vacaciones de primavera",
-    durationSeconds: 3.5,
+    id: "holiday-spring-v2",
+    label: "Vacaciones de primavera · versión 2",
+    durationSeconds: 5,
     prompt:
-      "Short original instrumental spring-break transition in the approved playful charanga identity: compact four-note clarinet and xylophone phrase, light hand percussion, airy birdlike woodwind flourish, and a bright final chord. Fresh and non-religious. No voice, lyrics, speech, or references to existing music.",
+      "Five-second original instrumental spring-break transition in the approved playful charanga identity: compact four-note clarinet and xylophone phrase, light hand percussion and an airy woodwind flourish. Finish with a deliberate 1.5-second warm resolved brass-and-xylophone chord and one soft final tap; no awkward cutoff or fade. Fresh, cheerful and non-religious. No voice, lyrics, speech, or music references.",
   },
   {
     id: "course-end",
@@ -114,7 +114,7 @@ const soundPack = [
 const mode = process.argv[2]
 if (!["main", "pack"].includes(mode)) {
   fail(
-    "Uso: node scripts/generate-audio-candidates.mjs main [a|b|c|all] | pack",
+    "Uso: node scripts/generate-audio-candidates.mjs main [a|b|c|all] | pack [all|holidays]",
   )
 }
 
@@ -182,13 +182,21 @@ async function generateMainTheme(key) {
 }
 
 async function generateSoundPack(key) {
+  const requestedPack = (process.argv[3] ?? "all").toLowerCase()
+  if (!["all", "holidays"].includes(requestedPack)) {
+    fail("El paquete debe ser all o holidays.")
+  }
+  const selectedCues =
+    requestedPack === "holidays"
+      ? soundPack.filter(({ id }) => id.startsWith("holiday-"))
+      : soundPack
   const manifest = {
     generatedAt: new Date().toISOString(),
     modelId: SOUND_EFFECTS_MODEL_ID,
     candidates: [],
   }
 
-  for (const cue of soundPack) {
+  for (const cue of selectedCues) {
     if (cue.prompt.length > 450) {
       fail(`El prompt de ${cue.id} supera los 450 caracteres.`)
     }
@@ -224,7 +232,11 @@ async function generateSoundPack(key) {
     })
   }
 
-  await writeManifest("sound-pack-manifest.json", manifest)
+  const manifestName =
+    requestedPack === "holidays"
+      ? "sound-pack-holidays-manifest.json"
+      : "sound-pack-manifest.json"
+  await writeManifest(manifestName, manifest)
   console.log(`Paquete sonoro guardado en ${OUTPUT_DIR}`)
 }
 

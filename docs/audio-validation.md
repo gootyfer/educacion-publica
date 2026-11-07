@@ -56,17 +56,17 @@ archivos siguen en `artifacts/audio-review/` y están pendientes de aprobación.
 
 | Archivo | Uso propuesto | Duración | Nivel medio / pico |
 | --- | --- | ---: | ---: |
-| `term-end-brass.mp3` | Fin de trimestre, opción de metales | 3,00 s | −25,4 / −7,2 dB |
-| `term-end-xylophone.mp3` | Fin de trimestre, opción de xilófono | 3,00 s | −23,7 / −6,6 dB |
-| `holiday-christmas.mp3` | Vacaciones de Navidad | 3,48 s | −23,3 / −5,8 dB |
-| `holiday-spring.mp3` | Vacaciones de primavera | 3,48 s | −18,6 / −3,7 dB |
-| `course-end.mp3` | Fin de curso | 5,00 s | −20,2 / −5,3 dB |
-| `sfx-jump.mp3` | Salto | 0,68 s | −19,0 / −3,4 dB |
-| `sfx-paper-stamp.mp3` | Papel y sello | 0,88 s | −39,5 / −23,2 dB |
-| `sfx-fan-fault.mp3` | Ventilador averiado | 1,36 s | −23,6 / −13,8 dB |
-| `sfx-leak-bucket.mp3` | Gotera y cubo | 1,00 s | −27,1 / −1,2 dB |
-| `sfx-rubble.mp3` | Cascote ligero | 1,08 s | −31,7 / −8,0 dB |
-| `sfx-new-obstacle.mp3` | Aviso de obstáculo nuevo | 0,80 s | −20,7 / −4,1 dB |
+| `term-end-brass.mp3` | Fin de trimestre, opción de metales | 3,00 s | No elegida |
+| `term-end-xylophone.mp3` | Fin de trimestre, opción de xilófono | 3,00 s | Aprobada |
+| `holiday-christmas.mp3` | Vacaciones de Navidad | 3,48 s | Rechazada; regenerar final |
+| `holiday-spring.mp3` | Vacaciones de primavera | 3,48 s | Rechazada; regenerar final |
+| `course-end.mp3` | Fin de curso | 5,00 s | Aprobada |
+| `sfx-jump.mp3` | Salto | 0,68 s | Aprobado |
+| `sfx-paper-stamp.mp3` | Papel y sello | 0,88 s | Carácter aprobado; volumen insuficiente |
+| `sfx-fan-fault.mp3` | Ventilador averiado | 1,36 s | Carácter aprobado; volumen insuficiente |
+| `sfx-leak-bucket.mp3` | Gotera y cubo | 1,00 s | Aprobado |
+| `sfx-rubble.mp3` | Cascote ligero | 1,08 s | Aprobado |
+| `sfx-new-obstacle.mp3` | Aviso de obstáculo nuevo | 0,80 s | Aprobado |
 
 Comprobaciones:
 
@@ -77,3 +77,17 @@ Comprobaciones:
   aprueba su carácter, necesitará ganancia o una regeneración antes de entrar
   en producción.
 - Las dos firmas de trimestre son alternativas: solo una debería incorporarse.
+
+### Segunda revisión solicitada
+
+Tras el feedback del usuario se prepararon cuatro archivos de sustitución:
+
+| Archivo | Cambio | Duración | Nivel medio / pico |
+| --- | --- | ---: | ---: |
+| `holiday-christmas-v2.mp3` | Nueva composición y nuevo final | 5,00 s | −14,0 / −2,3 dB |
+| `holiday-spring-v2-louder.mp3` | Nueva composición, nuevo final y +10 dB | 5,00 s | −24,5 / −4,0 dB |
+| `sfx-paper-stamp-louder-v2.mp3` | Mismo efecto original con +18 dB | 0,88 s | −22,0 / −5,6 dB |
+| `sfx-fan-fault-louder.mp3` | Mismo efecto original con +6 dB | 1,36 s | −17,9 / −8,1 dB |
+
+Estos cuatro archivos quedan pendientes de una última escucha. Las versiones
+originales rechazadas o con volumen insuficiente permanecen fuera de producción.
