@@ -17,6 +17,21 @@
 - La fuente manual Schoolbell se empaqueta con la aplicación y el cuerpo conserva una tipografía de sistema redondeada y legible.
 - Axe no detecta problemas serios o críticos en portada, ambas vacaciones ni resultado; el recorrido completo funciona con teclado.
 - Se añadió una regresión específica para asegurar que la portada permanezca oculta al jugar en 844×390.
+- El curso completo enlaza los tres trimestres, las dos vacaciones y el resultado acumulado; cada trimestre empieza algo más rápido que el anterior.
+- Las seis siluetas aparecen progresivamente y la alternativa textual las enumera junto con su estacionalidad.
+- Solo los once audios aprobados están en `public/audio/approved/`; las versiones rechazadas no forman parte del build.
+- La música usa tres velocidades hasta 1,15×, se pausa en vacaciones y convive con firma de trimestre, finales y efectos sin controlar el estado del juego.
+- El botón de sonido tiene nombre accesible, conserva la preferencia y mantiene la partida operativa con reproducción rechazada, archivos ausentes o `localStorage` bloqueado.
+- `npm run ci` completa 48 pruebas unitarias, build de producción y 17 recorridos Playwright.
+- El build funciona con recursos locales: fuente, código, cifras y audio no requieren peticiones de red durante la partida.
+
+## Recorrido de QA interno
+
+- 390×844: portada, partida, HUD, tres estaciones, vacaciones, resultado, repetición y control de sonido.
+- 844×390: portada en dos columnas, Canvas contenido en viewport, resultado sin reaparición de la portada y botón de sonido separado del contenido.
+- Teclado: foco de inicio, salto con espacio, continuación de vacaciones, resultado enfocado y repetición.
+- Sonido activado y silenciado: la preferencia cambia de forma accesible; las pruebas instrumentadas confirman que no hay reproducción antes de interactuar y que el silencio impide los eventos posteriores.
+- Degradación: la partida continúa cuando todos los `play()` se rechazan y cuando las rutas de audio se abortan.
 
 ## Validación pendiente con público general
 
@@ -25,3 +40,17 @@
 3. Ajustar frecuencia de obstáculos y desgaste tras observar partidas reales; no cambiar simultáneamente más de un parámetro.
 4. Comprobar rendimiento táctil en un móvil físico antiguo, además de los viewports emulados.
 5. Revisar el texto compartido con organizaciones convocantes antes de una difusión pública amplia.
+
+### Guion mínimo de prueba
+
+Después de una sola partida, sin explicar previamente las metáforas, preguntar:
+
+1. ¿Qué crees que representa que el salto se haga más corto?
+2. ¿Por qué aumenta el número de alumnos y qué efecto tiene?
+3. ¿Qué obstáculos recuerdas y cuáles relacionas con cada trimestre?
+4. ¿Interpretaste al alumnado como una carga o como una responsabilidad que exige más energía y apoyos?
+5. ¿Qué dos reivindicaciones explicarías a otra persona?
+
+Registrar respuestas literales y el dispositivo utilizado. Si se ajusta el
+equilibrio, cambiar un único parámetro por iteración para poder atribuir el
+resultado observado.
