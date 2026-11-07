@@ -91,3 +91,23 @@ Tras el feedback del usuario se prepararon cuatro archivos de sustitución:
 
 Estos cuatro archivos quedan pendientes de una última escucha. Las versiones
 originales rechazadas o con volumen insuficiente permanecen fuera de producción.
+
+### Aprobación del paquete
+
+Paquete aprobado por el usuario el 7 de noviembre de 2026. Archivos exactos
+seleccionados para producción:
+
+- `main-theme-a.mp3`
+- `term-end-xylophone.mp3`
+- `holiday-christmas-v2.mp3`
+- `holiday-spring-v2-louder.mp3`
+- `course-end.mp3`
+- `sfx-jump.mp3`
+- `sfx-paper-stamp-louder-v2.mp3`
+- `sfx-fan-fault-louder.mp3`
+- `sfx-leak-bucket.mp3`
+- `sfx-rubble.mp3`
+- `sfx-new-obstacle.mp3`
+
+Las demás variantes quedan rechazadas o sin seleccionar y no deben copiarse a
+producción.
