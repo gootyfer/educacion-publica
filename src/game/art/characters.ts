@@ -70,14 +70,13 @@ function drawPupils(context: CanvasRenderingContext2D, state: GameState) {
     (state.ratio - GAME_CONFIG.initialRatio) / GAME_CONFIG.ratioStep,
   )
   const visible = Math.min(12, 6 + Math.max(0, addedGroups))
-  const airborneOffset = state.playerY * 0.82
   const colors = ["#f7c85b", "#78b6b1", "#e88967", "#8b78b5"]
 
   for (let index = 0; index < visible; index += 1) {
     const row = index % 2
     const column = Math.floor(index / 2)
     const x = 57 - column * 8 - row * 3
-    const bottom = GROUND_Y + airborneOffset - row * 16
+    const bottom = pupilBottomForRow(row, state.playerY)
     context.fillStyle = colors[index % colors.length] ?? "#f7c85b"
     context.strokeStyle = "#17352f"
     context.lineWidth = 2
@@ -96,4 +95,8 @@ function drawPupils(context: CanvasRenderingContext2D, state: GameState) {
     context.font = "800 12px system-ui"
     context.fillText(`+${state.ratio - visible}`, 8, GROUND_Y - 8)
   }
+}
+
+export function pupilBottomForRow(row: number, _teacherY: number): number {
+  return GROUND_Y - row * 16
 }

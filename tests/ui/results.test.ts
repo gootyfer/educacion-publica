@@ -24,6 +24,14 @@ describe("result view model", () => {
       courseElapsedMs: 210_000,
       completedTerms,
       maxRatio: 36,
+      introducedObstacleVariants: [
+        "paper-stack" as const,
+        "filing-cart" as const,
+        "cold-climate" as const,
+        "wall" as const,
+        "leak" as const,
+        "heat-climate" as const,
+      ],
     }
 
     const result = buildResultViewModel(state, 200)
@@ -49,6 +57,19 @@ describe("result view model", () => {
       "Al aumentar la ratio, atender al grupo consumía más energía y tu salto se hacía más corto.",
     )
     expect(result.facts).toHaveLength(4)
+    expect(result.discoveredSeasons).toEqual([
+      "Septiembre · diciembre",
+      "Enero · abril",
+      "Abril · junio",
+    ])
+    expect(result.discoveredObstacles).toEqual([
+      "Pila de formularios",
+      "Carro archivador desbordado",
+      "Climatización averiada por frío",
+      "Pared agrietada y obra",
+      "Gotera con cubo",
+      "Ventilador averiado por calor",
+    ])
     expect(result.isRecord).toBe(true)
   })
 })

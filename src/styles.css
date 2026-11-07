@@ -229,6 +229,7 @@ canvas {
 .results-panel > .primary-action,
 .results-panel > .result-score,
 .results-panel > .term-results,
+.results-panel > .discovery-summary,
 .results-panel > .ratio-explanation,
 .results-panel > .damage-list,
 .results-panel > .result-message,
@@ -313,6 +314,25 @@ canvas {
 .term-result small {
   grid-column: 1 / -1;
   color: #536e67;
+}
+
+.discovery-summary {
+  padding: 0.9rem 1rem;
+  border-radius: 0.8rem;
+  background: var(--green-soft);
+}
+
+.discovery-summary h3,
+.discovery-summary p {
+  margin-top: 0;
+}
+
+.discovery-summary ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 1rem;
+  margin-bottom: 0;
+  padding-left: 1.1rem;
 }
 
 .ratio-explanation {

@@ -5,7 +5,7 @@ import { createAudioController } from "./audio/controller"
 import { EVIDENCE_FACTS } from "./content/facts"
 import { intersectsPlayer } from "./game/obstacles"
 import { createGameRuntime } from "./game/runtime"
-import type { DamageKind, GameState, TermResult } from "./game/types"
+import type { DamageKind, GameState, Term, TermResult } from "./game/types"
 import {
   buildResultViewModel,
   readRecord,
@@ -62,7 +62,7 @@ const runtime = createGameRuntime({
         audioController.playNewObstacle()
       }
     }
-    const nextIntensity = intensityFor(state.elapsedMs)
+    const nextIntensity = intensityFor(state.term, state.elapsedMs)
     if (nextIntensity !== audioIntensity) {
       audioIntensity = nextIntensity
       audioController.setIntensity(nextIntensity)
@@ -106,7 +106,6 @@ function startJornada() {
   gameRegion.classList.remove("is-hidden")
   previousState = null
   audioIntensity = 0
-  audioController.setIntensity(0)
   audioController.startTerm(1)
   void audioController.unlock()
   statusLive.textContent =
@@ -139,6 +138,9 @@ function renderResults(viewModel: ResultViewModel) {
         </li>`,
     )
     .join("")
+  const discoveredObstacles = viewModel.discoveredObstacles
+    .map((label) => `<li data-discovered-obstacle>${label}</li>`)
+    .join("")
 
   results.innerHTML = `
     <header class="results-header panel-masthead">
@@ -153,6 +155,11 @@ function renderResults(viewModel: ResultViewModel) {
       <p><span>Ratio máxima</span><strong>${viewModel.maxRatio}</strong></p>
     </div>
     <ol class="term-results" aria-label="Resultado por trimestre">${termRows}</ol>
+    <section class="discovery-summary" aria-labelledby="discovery-title">
+      <h3 id="discovery-title">Lo que apareció durante el curso</h3>
+      <p><strong>Etapas:</strong> ${viewModel.discoveredSeasons.join(" · ")}</p>
+      <ul>${discoveredObstacles}</ul>
+    </section>
     <p class="ratio-explanation">${viewModel.ratioExplanation}</p>
     <ul class="damage-list">${damageRows}</ul>
     <p class="result-message">${viewModel.message}</p>
@@ -234,23 +241,35 @@ function renderTransition(result: TermResult) {
     results.classList.add("is-hidden")
     gameRegion.classList.remove("is-hidden")
     previousState = null
-    audioIntensity = 0
-    audioController.setIntensity(0)
+    audioIntensity = (viewModel.nextTerm - 1) as 1 | 2
     audioController.startTerm(viewModel.nextTerm)
     statusLive.textContent = `${termName(viewModel.nextTerm)} trimestre. Energía 100. Ratio en aumento.`
     runtime.resumeNextTerm()
   }
 
   continueButton.addEventListener("click", continueOnce)
-  transitionTimers.push(
-    window.setTimeout(() => {
+  let visibleElapsedMs = 0
+  let lastTick = performance.now()
+  let holidayPlayed = false
+  const tick = () => {
+    const now = performance.now()
+    if (!document.hidden) visibleElapsedMs += Math.max(0, now - lastTick)
+    lastTick = now
+
+    if (visibleElapsedMs >= 1_000) {
       continueButton.disabled = false
-    }, 1_000),
-    window.setTimeout(() => {
+    }
+    if (!holidayPlayed && visibleElapsedMs >= 3_000) {
+      holidayPlayed = true
       audioController.playHoliday(result.term as 1 | 2)
-    }, 3_000),
-    window.setTimeout(continueOnce, 8_000),
-  )
+    }
+    if (visibleElapsedMs >= 8_000) {
+      continueOnce()
+      return
+    }
+    transitionTimers.push(window.setTimeout(tick, 100))
+  }
+  transitionTimers.push(window.setTimeout(tick, 100))
 }
 
 function clearTransitionTimers() {
@@ -320,10 +339,9 @@ function playNewCollisions(previous: GameState, current: GameState) {
   }
 }
 
-function intensityFor(elapsedMs: number): 0 | 1 | 2 {
-  if (elapsedMs >= 40_000) return 2
-  if (elapsedMs >= 20_000) return 1
-  return 0
+function intensityFor(term: Term, elapsedMs: number): 0 | 1 | 2 {
+  const withinTerm = elapsedMs >= 40_000 ? 2 : elapsedMs >= 20_000 ? 1 : 0
+  return Math.min(2, term - 1 + withinTerm) as 0 | 1 | 2
 }
 
 function updateSoundButton() {
@@ -332,7 +350,6 @@ function updateSoundButton() {
     "aria-label",
     muted ? "Activar sonido" : "Silenciar sonido",
   )
-  soundButton.setAttribute("aria-pressed", String(muted))
   soundButton.title = muted ? "Activar sonido" : "Silenciar sonido"
   soundButton.innerHTML = `<span aria-hidden="true">${muted ? "🔇" : "🔊"}</span>`
 }

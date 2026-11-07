@@ -22,7 +22,9 @@
 - Solo los once audios aprobados están en `public/audio/approved/`; las versiones rechazadas no forman parte del build.
 - La música usa tres velocidades hasta 1,15×, se pausa en vacaciones y convive con firma de trimestre, finales y efectos sin controlar el estado del juego.
 - El botón de sonido tiene nombre accesible, conserva la preferencia y mantiene la partida operativa con reproducción rechazada, archivos ausentes o `localStorage` bloqueado.
-- `npm run ci` completa 48 pruebas unitarias, build de producción y 17 recorridos Playwright.
+- `npm run ci` completa 51 pruebas unitarias, build de producción y 18 recorridos Playwright.
+- Una pestaña oculta congela el tiempo visible de vacaciones y no puede saltarse una transición al volver.
+- El alumnado permanece apoyado en el suelo cuando salta el docente; el resultado acumulado enumera etapas y obstáculos descubiertos.
 - El build funciona con recursos locales: fuente, código, cifras y audio no requieren peticiones de red durante la partida.
 
 ## Recorrido de QA interno

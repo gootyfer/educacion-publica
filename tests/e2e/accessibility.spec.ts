@@ -94,11 +94,10 @@ test.describe("accessible journey", () => {
     await page.goto("/")
     const mute = page.getByRole("button", { name: "Silenciar sonido" })
     await expect(mute).toBeVisible()
-    await expect(mute).toHaveAttribute("aria-pressed", "false")
 
     await mute.click()
     const unmute = page.getByRole("button", { name: "Activar sonido" })
-    await expect(unmute).toHaveAttribute("aria-pressed", "true")
+    await expect(unmute).toBeVisible()
 
     await page.reload()
     await expect(

@@ -24,8 +24,8 @@ Vite mostrará la dirección local. El juego no necesita backend ni llamadas de 
 npm run ci
 ```
 
-El comando ejecuta TypeScript, 48 pruebas unitarias, el build de producción y
-17 recorridos Playwright. La primera ejecución de Playwright puede necesitar:
+El comando ejecuta TypeScript, 51 pruebas unitarias, el build de producción y
+18 recorridos Playwright. La primera ejecución de Playwright puede necesitar:
 
 ```bash
 npx playwright install chromium

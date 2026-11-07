@@ -169,6 +169,39 @@ test.describe("runner controls", () => {
       page.getByRole("heading", { name: "Fin de curso" }),
     )
     await expect(page.locator(".term-result")).toHaveCount(3)
+    await expect(page.locator("[data-discovered-obstacle]").first()).toBeVisible()
+  })
+
+  test("does not skip a holiday while the page is hidden", async ({ page }) => {
+    await page.clock.install()
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    const christmas = page.getByRole("heading", {
+      name: "Vacaciones de Navidad",
+    })
+    await advanceUntilVisible(page, christmas)
+    await page.evaluate(() => {
+      Object.defineProperty(document, "hidden", {
+        configurable: true,
+        value: true,
+      })
+      document.dispatchEvent(new Event("visibilitychange"))
+    })
+    await page.clock.runFor(20_000)
+    await expect(christmas).toBeVisible()
+
+    await page.evaluate(() => {
+      Object.defineProperty(document, "hidden", {
+        configurable: true,
+        value: false,
+      })
+      document.dispatchEvent(new Event("visibilitychange"))
+    })
+    await page.clock.runFor(1_000)
+    await expect(
+      page.getByRole("button", { name: "Continuar el curso" }),
+    ).toBeEnabled()
   })
 
   test("explains a finished course and supports an immediate replay", async ({

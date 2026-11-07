@@ -80,6 +80,18 @@ describe("audio controller", () => {
     expect(audio(APPROVED_AUDIO.theme).preservesPitch).toBe(true)
   })
 
+  it("starts later terms at a higher musical intensity", async () => {
+    const { controller, audio } = setup()
+    await controller.unlock()
+
+    controller.startTerm(1)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1)
+    controller.startTerm(2)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.075)
+    controller.startTerm(3)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.15)
+  })
+
   it("plays one term signature and pauses the theme during holidays", async () => {
     const { controller, audio } = setup()
     await controller.unlock()
@@ -142,6 +154,19 @@ describe("audio controller", () => {
     expect(audio(APPROVED_AUDIO.jump).playCount).toBe(0)
     expect(audio(APPROVED_AUDIO.termEnd).playCount).toBe(0)
     expect(audio(APPROVED_AUDIO.courseEnd).playCount).toBe(0)
+  })
+
+  it("does not restart the theme when unmuted during a holiday", async () => {
+    const { controller, audio } = setup()
+    await controller.unlock()
+    controller.startTerm(1)
+    expect(audio(APPROVED_AUDIO.theme).playCount).toBe(1)
+
+    controller.playTermEnd(1)
+    controller.setMuted(true)
+    controller.setMuted(false)
+
+    expect(audio(APPROVED_AUDIO.theme).playCount).toBe(1)
   })
 
   it("swallows rejected playback and blocked storage", async () => {

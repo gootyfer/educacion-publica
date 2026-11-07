@@ -43,6 +43,7 @@ export function createAudioController({
   let muted = readMuted(storage)
   let activeTerm: Term | null = null
   let lastEndedTerm: Term | null = null
+  let suspendedForTransition = false
 
   return {
     async unlock() {
@@ -53,8 +54,10 @@ export function createAudioController({
     startTerm(term) {
       activeTerm = term
       lastEndedTerm = null
+      suspendedForTransition = false
       pauseEffects(effects)
       audio.theme.currentTime = 0
+      audio.theme.playbackRate = INTENSITY_RATES[term - 1] ?? 1
       if (unlocked && !muted) void safePlay(audio.theme)
     },
     setIntensity(level) {
@@ -73,15 +76,18 @@ export function createAudioController({
     playTermEnd(term) {
       if (lastEndedTerm === term) return
       lastEndedTerm = term
+      suspendedForTransition = true
       audio.theme.pause()
       playEffect(audio.termEnd)
     },
     playHoliday(afterTerm) {
+      suspendedForTransition = true
       audio.theme.pause()
       playEffect(afterTerm === 1 ? audio.christmas : audio.spring)
     },
     playCourseEnd() {
       activeTerm = null
+      suspendedForTransition = true
       audio.theme.pause()
       playEffect(audio.courseEnd)
     },
@@ -90,7 +96,11 @@ export function createAudioController({
       writeMuted(storage, muted)
       if (muted) {
         pauseAll(allAudio)
-      } else if (unlocked && activeTerm !== null) {
+      } else if (
+        unlocked &&
+        activeTerm !== null &&
+        !suspendedForTransition
+      ) {
         void safePlay(audio.theme)
       }
     },
@@ -99,6 +109,7 @@ export function createAudioController({
     },
     stop() {
       activeTerm = null
+      suspendedForTransition = true
       pauseAll(allAudio)
     },
   }

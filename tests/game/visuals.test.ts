@@ -4,6 +4,7 @@ import {
   OBSTACLE_ART,
   obstacleArtFor,
 } from "../../src/game/art/obstacles"
+import { pupilBottomForRow } from "../../src/game/art/characters"
 import { sceneVisualFor } from "../../src/game/art/scene"
 import { OBSTACLE_DIMENSIONS } from "../../src/game/obstacles"
 import type { ObstacleVariant, Term } from "../../src/game/types"
@@ -18,6 +19,13 @@ const VARIANTS: readonly ObstacleVariant[] = [
 ]
 
 describe("seasonal visual model", () => {
+  it("keeps pupils grounded independently of the teacher jump", () => {
+    expect(pupilBottomForRow(0, -90)).toBe(pupilBottomForRow(0, 0))
+    expect(pupilBottomForRow(1, -90)).toBeLessThan(
+      pupilBottomForRow(0, 0),
+    )
+  })
+
   it("uses distinct term labels and a non-decreasing green-ribbon presence", () => {
     const visuals = ([1, 2, 3] as const).map(sceneVisualFor)
 
