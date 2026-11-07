@@ -2,7 +2,7 @@ import "./styles.css"
 
 import { EVIDENCE_FACTS } from "./content/facts"
 import { createGameRuntime } from "./game/runtime"
-import type { GameState } from "./game/types"
+import type { GameState, TermResult } from "./game/types"
 import {
   buildResultViewModel,
   readRecord,
@@ -10,6 +10,7 @@ import {
   type ResultViewModel,
 } from "./ui/results"
 import { shareResult } from "./ui/share"
+import { buildTransitionViewModel } from "./ui/transitions"
 
 const app = document.querySelector<HTMLElement>("#app")
 
@@ -30,6 +31,7 @@ const readJourneyButton = requiredElement<HTMLButtonElement>(
 const statusLive = requiredElement<HTMLElement>("#status-live")
 
 let previousState: GameState | null = null
+let transitionTimers: number[] = []
 
 const runtime = createGameRuntime({
   canvas,
@@ -41,7 +43,10 @@ const runtime = createGameRuntime({
     }
     previousState = state
   },
-  onFinish(state) {
+  onTermEnd(_state, result) {
+    renderTransition(result)
+  },
+  onCourseFinish(state) {
     gameRegion.classList.add("is-hidden")
     results.classList.remove("is-hidden")
     const storage = getOptionalStorage()
@@ -60,11 +65,13 @@ startButton.addEventListener("click", () => {
 readJourneyButton.addEventListener("click", renderTextJourney)
 
 function startJornada() {
+  clearTransitionTimers()
   intro.classList.add("is-hidden")
   results.classList.add("is-hidden")
   gameRegion.classList.remove("is-hidden")
   previousState = null
-  statusLive.textContent = "Jornada en marcha. Energía 100. Ratio 20."
+  statusLive.textContent =
+    "Curso en marcha. Primer trimestre. Energía 100. Ratio 20."
   runtime.start()
   canvas.focus()
 }
@@ -83,6 +90,16 @@ function renderResults(viewModel: ResultViewModel) {
     )
     .join("")
   const factCards = renderFactCards(viewModel.facts)
+  const termRows = viewModel.termRows
+    .map(
+      (row) => `
+        <li class="term-result">
+          <span>${row.label}</span>
+          <strong>${row.durationLabel}</strong>
+          <small>Ratio máxima ${row.maxRatio}</small>
+        </li>`,
+    )
+    .join("")
 
   results.innerHTML = `
     <header class="results-header">
@@ -92,9 +109,10 @@ function renderResults(viewModel: ResultViewModel) {
     </header>
     <button id="retry-button" class="primary-action" type="button">Volver a intentarlo</button>
     <div class="result-score" aria-label="Resumen de la partida">
-      <p><span>Has aguantado</span><strong>${viewModel.durationLabel}</strong></p>
+      <p><span>Tiempo total</span><strong>${viewModel.durationLabel}</strong></p>
       <p><span>Ratio máxima</span><strong>${viewModel.maxRatio}</strong></p>
     </div>
+    <ol class="term-results" aria-label="Resultado por trimestre">${termRows}</ol>
     <p class="ratio-explanation">${viewModel.ratioExplanation}</p>
     <ul class="damage-list">${damageRows}</ul>
     <p class="result-message">${viewModel.message}</p>
@@ -123,7 +141,7 @@ function renderResults(viewModel: ResultViewModel) {
       const outcome = await shareResult(
         {
           title: "Una jornada docente",
-          text: `Aguanté ${viewModel.durationLabel} con una ratio máxima de ${viewModel.maxRatio}. ¿Tú cuánto aguantarías?`,
+          text: `Completé el curso en ${viewModel.durationLabel} con una ratio máxima de ${viewModel.maxRatio}. ¿Tú cuánto aguantarías?`,
           url: window.location.href,
         },
         {
@@ -139,6 +157,58 @@ function renderResults(viewModel: ResultViewModel) {
             : "No se pudo compartir automáticamente. Puedes copiar la dirección de esta página."
     },
   )
+}
+
+function renderTransition(result: TermResult) {
+  const viewModel = buildTransitionViewModel(result)
+  if (!viewModel) return
+
+  clearTransitionTimers()
+  gameRegion.classList.add("is-hidden")
+  results.classList.remove("is-hidden")
+  results.innerHTML = `
+    <section class="holiday-transition" aria-labelledby="results-title">
+      <p class="eyebrow">${viewModel.eyebrow}</p>
+      <h2 id="results-title" tabindex="-1">${viewModel.title}</h2>
+      <p class="holiday-duration">Has aguantado ${viewModel.durationLabel}</p>
+      <p class="result-message">${viewModel.message}</p>
+      <button id="continue-course" class="primary-action" type="button" disabled>
+        Continuar el curso
+      </button>
+    </section>
+  `
+  results.querySelector<HTMLElement>("#results-title")?.focus()
+  statusLive.textContent = viewModel.accessibleSummary
+
+  const continueButton = requiredElement<HTMLButtonElement>("#continue-course")
+  let continued = false
+  const continueOnce = () => {
+    if (continued) return
+    continued = true
+    clearTransitionTimers()
+    results.classList.add("is-hidden")
+    gameRegion.classList.remove("is-hidden")
+    previousState = null
+    statusLive.textContent = `${termName(viewModel.nextTerm)} trimestre. Energía 100. Ratio en aumento.`
+    runtime.resumeNextTerm()
+  }
+
+  continueButton.addEventListener("click", continueOnce)
+  transitionTimers.push(
+    window.setTimeout(() => {
+      continueButton.disabled = false
+    }, 1_000),
+    window.setTimeout(continueOnce, 3_000),
+  )
+}
+
+function clearTransitionTimers() {
+  for (const timer of transitionTimers) window.clearTimeout(timer)
+  transitionTimers = []
+}
+
+function termName(term: 2 | 3) {
+  return term === 2 ? "Segundo" : "Tercer"
 }
 
 function renderTextJourney() {

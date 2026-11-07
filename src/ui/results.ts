@@ -1,8 +1,8 @@
 import { EVIDENCE_FACTS } from "../content/facts"
 import type { EvidenceFact } from "../content/types"
-import type { DamageKind, GameState } from "../game/types"
+import type { DamageKind, GameState, Term } from "../game/types"
 
-const RECORD_KEY = "jornada-docente-record-seconds"
+const RECORD_KEY = "curso-docente-record-seconds-v2"
 
 export interface DamageRow {
   kind: DamageKind
@@ -11,15 +11,24 @@ export interface DamageRow {
 }
 
 export interface ResultViewModel {
-  title: "Fin de la jornada"
+  title: "Fin de curso"
   durationSeconds: number
   durationLabel: string
+  totalDistance: number
+  termRows: TermRow[]
   maxRatio: number
   damageRows: DamageRow[]
   ratioExplanation: string
   message: string
   facts: readonly EvidenceFact[]
   isRecord: boolean
+}
+
+export interface TermRow {
+  term: Term
+  label: string
+  durationLabel: string
+  maxRatio: number
 }
 
 interface RecordStorage {
@@ -31,28 +40,56 @@ export function buildResultViewModel(
   state: GameState,
   previousRecord: number | null,
 ): ResultViewModel {
-  const durationSeconds = Math.floor(state.elapsedMs / 1000)
+  const durationSeconds = Math.floor(
+    state.completedTerms.reduce(
+      (total, result) => total + result.durationMs,
+      0,
+    ) / 1000,
+  )
+  const combinedHits = state.completedTerms.reduce(
+    (total, result) => ({
+      paperwork: total.paperwork + result.hitsByKind.paperwork,
+      heat: total.heat + result.hitsByKind.heat,
+      infrastructure:
+        total.infrastructure + result.hitsByKind.infrastructure,
+    }),
+    { paperwork: 0, heat: 0, infrastructure: 0 },
+  )
+  const maxRatio = Math.max(
+    GAME_BASELINE_RATIO,
+    ...state.completedTerms.map(({ maxRatio }) => maxRatio),
+  )
 
   return {
-    title: "Fin de la jornada",
+    title: "Fin de curso",
     durationSeconds,
     durationLabel: formatDuration(durationSeconds),
-    maxRatio: state.maxRatio,
+    totalDistance: state.completedTerms.reduce(
+      (total, result) => total + result.distanceTravelled,
+      0,
+    ),
+    termRows: state.completedTerms.map((result) => ({
+      term: result.term,
+      label: `${ordinal(result.term)} trimestre`,
+      durationLabel: formatDuration(Math.floor(result.durationMs / 1000)),
+      maxRatio: result.maxRatio,
+    })),
+    maxRatio,
     damageRows: [
       {
         kind: "paperwork",
         label: "Burocracia",
-        hits: state.hitsByKind.paperwork,
+        hits: combinedHits.paperwork,
       },
       {
         kind: "heat",
         label: "Climatización",
-        hits: state.hitsByKind.heat,
+        hits: combinedHits.heat,
       },
       {
         kind: "infrastructure",
         label: "Infraestructura",
-        hits: state.hitsByKind.infrastructure,
+        hits: combinedHits.infrastructure,
       },
     ],
     ratioExplanation:
@@ -62,6 +99,14 @@ export function buildResultViewModel(
     facts: EVIDENCE_FACTS,
     isRecord: previousRecord === null || durationSeconds > previousRecord,
   }
+}
+
+const GAME_BASELINE_RATIO = 20
+
+function ordinal(term: Term): string {
+  if (term === 1) return "Primer"
+  if (term === 2) return "Segundo"
+  return "Tercer"
 }
 
 export function readRecord(storage: RecordStorage | null): number | null {

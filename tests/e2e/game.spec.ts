@@ -1,4 +1,40 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
+
+async function advanceUntilVisible(
+  page: Page,
+  locator: Locator,
+  maxVirtualMs = 150_000,
+) {
+  for (let elapsed = 0; elapsed < maxVirtualMs; elapsed += 1_000) {
+    await page.clock.runFor(1_000)
+    if (await locator.isVisible()) return
+  }
+  throw new Error(`No apareció el estado esperado en ${maxVirtualMs} ms`)
+}
+
+async function continueHoliday(page: Page, title: string) {
+  const heading = page.getByRole("heading", { name: title })
+  await advanceUntilVisible(page, heading)
+  await page.clock.runFor(1_000)
+  const continueButton = page.getByRole("button", {
+    name: "Continuar el curso",
+  })
+  await expect(continueButton).toBeEnabled()
+  await continueButton.evaluate((button: HTMLButtonElement) => {
+    button.click()
+    button.click()
+  })
+  await expect(page.locator("#game-canvas")).toBeFocused()
+}
+
+async function completeCourse(page: Page) {
+  await continueHoliday(page, "Vacaciones de Navidad")
+  await continueHoliday(page, "Vacaciones de Semana Santa")
+  await advanceUntilVisible(
+    page,
+    page.getByRole("heading", { name: "Fin de curso" }),
+  )
+}
 
 test.describe("runner controls", () => {
   test("starts and jumps with one touch on a phone", async ({ browser }) => {
@@ -15,7 +51,7 @@ test.describe("runner controls", () => {
     const canvas = page.locator("#game-canvas")
     await expect(canvas).toBeVisible()
     await expect(page.locator("#status-live")).toContainText(
-      "Jornada en marcha",
+      "Curso en marcha",
     )
 
     await canvas.tap({ position: { x: 190, y: 350 } })
@@ -49,17 +85,39 @@ test.describe("runner controls", () => {
     await expect(page.locator("#game-canvas")).toBeVisible()
   })
 
-  test("explains a finished jornada and supports an immediate replay", async ({
+  test("connects all three terms through the two holiday transitions", async ({
     page,
   }) => {
     await page.clock.install()
     await page.goto("/")
     await page.getByRole("button", { name: "Empezar la jornada" }).click()
 
-    await page.clock.runFor(120_000)
+    await continueHoliday(page, "Vacaciones de Navidad")
+    await expect(page.locator("#status-live")).toContainText(
+      "Segundo trimestre",
+    )
+    await continueHoliday(page, "Vacaciones de Semana Santa")
+    await expect(page.locator("#status-live")).toContainText(
+      "Tercer trimestre",
+    )
+    await advanceUntilVisible(
+      page,
+      page.getByRole("heading", { name: "Fin de curso" }),
+    )
+    await expect(page.locator(".term-result")).toHaveCount(3)
+  })
+
+  test("explains a finished course and supports an immediate replay", async ({
+    page,
+  }) => {
+    await page.clock.install()
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    await completeCourse(page)
 
     await expect(
-      page.getByRole("heading", { name: "Fin de la jornada" }),
+      page.getByRole("heading", { name: "Fin de curso" }),
     ).toBeVisible()
     await expect(page.locator("#results .fact-card a")).toHaveCount(4)
     await expect(
@@ -70,7 +128,7 @@ test.describe("runner controls", () => {
     ).toBeVisible()
 
     const storedRecord = await page.evaluate(() =>
-      localStorage.getItem("jornada-docente-record-seconds"),
+      localStorage.getItem("curso-docente-record-seconds-v2"),
     )
     expect(Number(storedRecord)).toBeGreaterThan(0)
 
@@ -82,7 +140,7 @@ test.describe("runner controls", () => {
     await page.reload()
     expect(
       await page.evaluate(() =>
-        localStorage.getItem("jornada-docente-record-seconds"),
+        localStorage.getItem("curso-docente-record-seconds-v2"),
       ),
     ).toBe(storedRecord)
   })
@@ -90,6 +148,7 @@ test.describe("runner controls", () => {
   test("still renders results when access to localStorage is blocked", async ({
     page,
   }) => {
+    await page.clock.install()
     await page.addInitScript(() => {
       Object.defineProperty(window, "localStorage", {
         configurable: true,
@@ -100,9 +159,10 @@ test.describe("runner controls", () => {
     })
     await page.goto("/")
     await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await completeCourse(page)
 
     await expect(
-      page.getByRole("heading", { name: "Fin de la jornada" }),
+      page.getByRole("heading", { name: "Fin de curso" }),
     ).toBeVisible({ timeout: 20_000 })
     await expect(
       page.getByRole("button", { name: "Volver a intentarlo" }),

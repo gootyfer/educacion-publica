@@ -1,11 +1,12 @@
-import { advanceGame, createGameState } from "./mechanics"
+import { advanceGame, createGameState, startNextTerm } from "./mechanics"
 import { createRenderer } from "./renderer"
-import type { GameState } from "./types"
+import type { GameState, TermResult } from "./types"
 
 export interface GameRuntimeOptions {
   canvas: HTMLCanvasElement
   onStateChange: (state: GameState) => void
-  onFinish: (state: GameState) => void
+  onTermEnd: (state: GameState, result: TermResult) => void
+  onCourseFinish: (state: GameState) => void
   randomSeed?: number
 }
 
@@ -13,12 +14,14 @@ export interface GameRuntime {
   start(): void
   stop(): void
   jump(): void
+  resumeNextTerm(): void
 }
 
 export function createGameRuntime({
   canvas,
   onStateChange,
-  onFinish,
+  onTermEnd,
+  onCourseFinish,
   randomSeed = 42,
 }: GameRuntimeOptions): GameRuntime {
   const renderer = createRenderer(canvas)
@@ -38,9 +41,16 @@ export function createGameRuntime({
     renderer.render(state)
     onStateChange(state)
 
+    if (state.phase === "between-terms") {
+      running = false
+      const result = state.completedTerms.at(-1)
+      if (result) onTermEnd(state, result)
+      return
+    }
+
     if (state.phase === "finished") {
       running = false
-      onFinish(state)
+      onCourseFinish(state)
       return
     }
 
@@ -96,5 +106,16 @@ export function createGameRuntime({
       window.cancelAnimationFrame(animationFrame)
     },
     jump,
+    resumeNextTerm() {
+      if (running || state.phase !== "between-terms") return
+      state = startNextTerm(state)
+      running = true
+      pendingJump = false
+      lastTimestamp = null
+      renderer.render(state)
+      onStateChange(state)
+      canvas.focus()
+      animationFrame = window.requestAnimationFrame(frame)
+    },
   }
 }

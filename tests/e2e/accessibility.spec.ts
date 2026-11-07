@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 async function expectNoSeriousAxeViolations(page: Page) {
   const results = await new AxeBuilder({ page }).analyze()
@@ -9,14 +9,39 @@ async function expectNoSeriousAxeViolations(page: Page) {
   expect(serious).toEqual([])
 }
 
-async function finishJornada(page: Page) {
+async function advanceUntilVisible(
+  page: Page,
+  locator: Locator,
+  maxVirtualMs = 150_000,
+) {
+  for (let elapsed = 0; elapsed < maxVirtualMs; elapsed += 1_000) {
+    await page.clock.runFor(1_000)
+    if (await locator.isVisible()) return
+  }
+  throw new Error(`No apareció el estado esperado en ${maxVirtualMs} ms`)
+}
+
+async function continueHolidayWithKeyboard(page: Page, title: string) {
+  await advanceUntilVisible(page, page.getByRole("heading", { name: title }))
+  await page.clock.runFor(1_000)
+  const continueButton = page.getByRole("button", {
+    name: "Continuar el curso",
+  })
+  await continueButton.focus()
+  await page.keyboard.press("Enter")
+  await expect(page.locator("#game-canvas")).toBeFocused()
+}
+
+async function finishCourse(page: Page) {
   await page.clock.install()
   await page.goto("/")
   await page.getByRole("button", { name: "Empezar la jornada" }).click()
-  await page.clock.runFor(120_000)
-  await expect(
-    page.getByRole("heading", { name: "Fin de la jornada" }),
-  ).toBeVisible()
+  await continueHolidayWithKeyboard(page, "Vacaciones de Navidad")
+  await continueHolidayWithKeyboard(page, "Vacaciones de Semana Santa")
+  await advanceUntilVisible(
+    page,
+    page.getByRole("heading", { name: "Fin de curso" }),
+  )
 }
 
 test.describe("accessible journey", () => {
@@ -26,7 +51,7 @@ test.describe("accessible journey", () => {
     await page.goto("/")
     await expectNoSeriousAxeViolations(page)
 
-    await finishJornada(page)
+    await finishCourse(page)
     await expectNoSeriousAxeViolations(page)
   })
 
@@ -46,7 +71,12 @@ test.describe("accessible journey", () => {
       "El docente ha saltado",
     )
 
-    await page.clock.runFor(120_000)
+    await continueHolidayWithKeyboard(page, "Vacaciones de Navidad")
+    await continueHolidayWithKeyboard(page, "Vacaciones de Semana Santa")
+    await advanceUntilVisible(
+      page,
+      page.getByRole("heading", { name: "Fin de curso" }),
+    )
     await expect(page.locator("#results-title")).toBeFocused()
 
     const retry = page.getByRole("button", { name: "Volver a intentarlo" })

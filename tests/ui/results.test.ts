@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import { createGameState } from "../../src/game/mechanics"
+import type { TermResult } from "../../src/game/types"
 import {
   buildResultViewModel,
   readRecord,
@@ -9,28 +10,37 @@ import {
 import { shareResult } from "../../src/ui/share"
 
 describe("result view model", () => {
-  it("translates the finished run into an attributable result", () => {
+  it("translates three completed terms into an attributable course result", () => {
+    const completedTerms: TermResult[] = [
+      termResult(1, 64_000, 28, { paperwork: 2, heat: 0, infrastructure: 1 }),
+      termResult(2, 71_000, 32, { paperwork: 1, heat: 1, infrastructure: 2 }),
+      termResult(3, 75_000, 36, { paperwork: 3, heat: 2, infrastructure: 1 }),
+    ]
     const state = {
       ...createGameState(),
       phase: "finished" as const,
-      elapsedMs: 74_400,
+      term: 3 as const,
+      elapsedMs: 75_000,
+      courseElapsedMs: 210_000,
+      completedTerms,
       maxRatio: 36,
-      hitsByKind: {
-        paperwork: 2,
-        heat: 1,
-        infrastructure: 3,
-      },
     }
 
-    const result = buildResultViewModel(state, 70)
+    const result = buildResultViewModel(state, 200)
 
-    expect(result.title).toBe("Fin de la jornada")
-    expect(result.durationLabel).toBe("1 min 14 s")
+    expect(result.title).toBe("Fin de curso")
+    expect(result.durationSeconds).toBe(210)
+    expect(result.durationLabel).toBe("3 min 30 s")
     expect(result.maxRatio).toBe(36)
+    expect(result.termRows.map(({ durationLabel }) => durationLabel)).toEqual([
+      "1 min 4 s",
+      "1 min 11 s",
+      "1 min 15 s",
+    ])
     expect(result.damageRows).toEqual([
-      { kind: "paperwork", label: "Burocracia", hits: 2 },
-      { kind: "heat", label: "Climatización", hits: 1 },
-      { kind: "infrastructure", label: "Infraestructura", hits: 3 },
+      { kind: "paperwork", label: "Burocracia", hits: 6 },
+      { kind: "heat", label: "Climatización", hits: 3 },
+      { kind: "infrastructure", label: "Infraestructura", hits: 4 },
     ])
     expect(result.message).toBe(
       "No has jugado mal. Intentabas hacer un trabajo cada vez más exigente con tiempo y recursos insuficientes.",
@@ -42,6 +52,21 @@ describe("result view model", () => {
     expect(result.isRecord).toBe(true)
   })
 })
+
+function termResult(
+  term: 1 | 2 | 3,
+  durationMs: number,
+  maxRatio: number,
+  hitsByKind: TermResult["hitsByKind"],
+): TermResult {
+  return {
+    term,
+    durationMs,
+    maxRatio,
+    hitsByKind,
+    distanceTravelled: durationMs / 30,
+  }
+}
 
 describe("record storage", () => {
   it("only replaces a record with a longer jornada", () => {
