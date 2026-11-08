@@ -27,7 +27,7 @@ export const GAME_CONFIG = {
   playerWidth: 32,
   playerHeight: 54,
   worldWidth: 390,
-  obstacleSpeed: 180,
+  obstacleSpeed: 220,
   speedRampDurationMs: 60_000,
   gapProfiles: {
     short: { min: 220, max: 280, probability: 0.3 },
@@ -39,11 +39,11 @@ export const GAME_CONFIG = {
     2: { start: 0.3, end: 0.6 },
     3: { start: 0.6, end: 1 },
   },
-  finalSafeGapScale: 0.5,
+  finalSafeGapScale: 0.75,
   termMaxSpeedRamps: {
-    1: 0.2,
-    2: 0.25,
-    3: 0.3,
+    1: 0.45,
+    2: 0.7,
+    3: 1,
   },
   spawnGraceMs: 1_500,
 } as const
