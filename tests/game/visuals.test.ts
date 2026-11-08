@@ -67,16 +67,35 @@ describe("seasonal visual model", () => {
   })
 
   it.each([0, 17, 149])(
-    "anchors every ribbon to a fence post at parallax %s",
-    (parallax) => {
-      const layout = fenceLayoutFor(3, 40_000, parallax)
+    "anchors every ribbon to a fence post at distance %s",
+    (distance) => {
+      const layout = fenceLayoutFor(3, 40_000, distance)
 
-      expect(layout.ribbonXs).toHaveLength(7)
+      expect(layout.ribbonXs.length).toBeGreaterThanOrEqual(7)
+      expect(layout.ribbonXs.length).toBeLessThanOrEqual(8)
       expect(
         layout.ribbonXs.every((ribbonX) => layout.postXs.includes(ribbonX)),
       ).toBe(true)
     },
   )
+
+  it("keeps a ribbon on the same moving post between adjacent frames", () => {
+    const before = fenceLayoutFor(1, 0, 0)
+    const after = fenceLayoutFor(1, 0, 2.88)
+
+    expect(before.ribbonXs).toContain(0)
+    expect(after.ribbonXs[0]).toBeCloseTo(-0.12096, 5)
+  })
+
+  it("keeps ribbon motion continuous across the former parallax wrap", () => {
+    const before = fenceLayoutFor(1, 0, 1_249)
+    const after = fenceLayoutFor(1, 0, 1_251)
+
+    expect(after.ribbonXs).toHaveLength(before.ribbonXs.length)
+    after.ribbonXs.forEach((x, index) => {
+      expect(x).toBeCloseTo((before.ribbonXs[index] ?? 0) - 0.084, 5)
+    })
+  })
 
   it.each([1, 2, 3] as const)(
     "returns a complete high-contrast palette for term %s",

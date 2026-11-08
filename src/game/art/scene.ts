@@ -72,7 +72,12 @@ export function drawScene(
     context.stroke()
   }
 
-  drawFenceAndRibbons(context, state.term, state.elapsedMs, parallax)
+  drawFenceAndRibbons(
+    context,
+    state.term,
+    state.elapsedMs,
+    state.distanceTravelled,
+  )
 
   context.fillStyle = visual.textColor
   context.fillRect(0, GROUND_Y, WORLD_WIDTH, 5)
@@ -147,9 +152,9 @@ function drawFenceAndRibbons(
   context: CanvasRenderingContext2D,
   term: Term,
   elapsedMs: number,
-  parallax: number,
+  distanceTravelled: number,
 ) {
-  const layout = fenceLayoutFor(term, elapsedMs, parallax)
+  const layout = fenceLayoutFor(term, elapsedMs, distanceTravelled)
   context.save()
   context.strokeStyle = "rgb(23 53 47 / 46%)"
   context.lineWidth = 3
@@ -178,15 +183,30 @@ export function ribbonCountFor(term: Term, elapsedMs: number): number {
 export function fenceLayoutFor(
   term: Term,
   elapsedMs: number,
-  parallax: number,
+  distanceTravelled: number,
 ): { postXs: number[]; ribbonXs: number[] } {
-  const offset = (Math.max(0, parallax) * 0.35) % 110
+  const scroll = Math.max(0, distanceTravelled) * 0.042
+  const firstPostIndex = Math.floor(scroll / 55) - 1
+  const lastPostIndex = Math.ceil((scroll + WORLD_WIDTH) / 55) + 1
   const postXs: number[] = []
-  for (let x = -offset; x < WORLD_WIDTH + 30; x += 55) postXs.push(x)
+  const ribbonXs: number[] = []
+  const ribbonDensity = ribbonCountFor(term, elapsedMs)
 
-  const visiblePostXs = postXs.filter((x) => x >= 0 && x <= WORLD_WIDTH)
-  return {
-    postXs,
-    ribbonXs: visiblePostXs.slice(0, ribbonCountFor(term, elapsedMs)),
+  for (let index = firstPostIndex; index <= lastPostIndex; index += 1) {
+    const x = index * 55 - scroll
+    postXs.push(x)
+    if (
+      x >= -13 &&
+      x <= WORLD_WIDTH + 13 &&
+      positiveModulo(index, 7) < ribbonDensity
+    ) {
+      ribbonXs.push(x)
+    }
   }
+
+  return { postXs, ribbonXs }
+}
+
+function positiveModulo(value: number, divisor: number): number {
+  return ((value % divisor) + divisor) % divisor
 }
