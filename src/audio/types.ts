@@ -1,12 +1,14 @@
 import type { Term } from "../game/types"
 
+const AUDIO_BASE = `${import.meta.env.BASE_URL}audio/approved/`
+
 export const APPROVED_AUDIO = {
-  theme: "/audio/approved/main-theme.mp3",
-  christmas: "/audio/approved/holiday-christmas.mp3",
-  spring: "/audio/approved/holiday-spring.mp3",
-  courseEnd: "/audio/approved/course-end.mp3",
-  jump: "/audio/approved/jump.mp3",
-  newObstacle: "/audio/approved/new-obstacle.mp3",
+  theme: `${AUDIO_BASE}main-theme.mp3`,
+  christmas: `${AUDIO_BASE}holiday-christmas.mp3`,
+  spring: `${AUDIO_BASE}holiday-spring.mp3`,
+  courseEnd: `${AUDIO_BASE}course-end.mp3`,
+  jump: `${AUDIO_BASE}jump.mp3`,
+  newObstacle: `${AUDIO_BASE}new-obstacle.mp3`,
 } as const
 
 export interface AudioLike {
