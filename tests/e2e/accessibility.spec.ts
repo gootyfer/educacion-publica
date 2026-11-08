@@ -153,7 +153,7 @@ test.describe("accessible journey", () => {
       }),
     ).toBeVisible()
     await expect(
-      page.getByRole("heading", { name: "Una jornada docente" }),
+      page.getByRole("heading", { name: "Una jornada decente" }),
     ).toBeVisible()
     await expect(
       page.getByRole("heading", { name: "Un curso en tres trimestres" }),

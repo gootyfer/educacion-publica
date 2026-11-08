@@ -258,7 +258,7 @@ function renderTextJourney() {
     <header class="results-header panel-masthead">
       <span class="screen-mark" aria-hidden="true">@</span>
       <p class="eyebrow">Cómo funciona</p>
-      <h2 id="results-title" tabindex="-1">Una jornada docente</h2>
+      <h2 id="results-title" tabindex="-1">Una jornada decente</h2>
     </header>
     <section id="text-journey" class="text-journey" aria-labelledby="course-summary-title">
       <h2 id="course-summary-title">Un curso en tres trimestres</h2>

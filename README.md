@@ -1,4 +1,4 @@
-# Una jornada docente
+# Una jornada decente
 
 Runner web móvil de un solo toque para comprender, mediante humor y una
 mecánica familiar, algunas reivindicaciones de la educación pública madrileña.
