@@ -118,6 +118,7 @@ export function advanceGame(
   let distanceSinceLastSpawn =
     state.distanceSinceLastSpawn + travelledThisFrame
   let nextObstacleGap = state.nextObstacleGap
+  let lastGapBand = state.lastGapBand
   let spawnCount = state.spawnCount
   let randomSeed = state.randomSeed
   let introducedObstacleVariants = state.introducedObstacleVariants
@@ -139,6 +140,7 @@ export function advanceGame(
     }
     distanceSinceLastSpawn = 0
     nextObstacleGap = spawned.nextGap
+    lastGapBand = spawned.nextGapBand
     spawnCount += 1
     randomSeed = random.seed
   }
@@ -187,6 +189,7 @@ export function advanceGame(
     distanceTravelled: state.distanceTravelled + travelledThisFrame,
     distanceSinceLastSpawn,
     nextObstacleGap,
+    lastGapBand,
     spawnCount,
     randomSeed,
   }

@@ -4,6 +4,7 @@ import { GAME_CONFIG } from "../../src/game/config"
 import {
   advanceGame,
   createGameState,
+  startNextTerm,
   worldSpeedFor,
 } from "../../src/game/mechanics"
 import {
@@ -11,6 +12,7 @@ import {
   SeededRandom,
   availableObstaclesFor,
   damageKindForObstacle,
+  gapScaleFor,
   intersectsPlayer,
   spawnObstacle,
 } from "../../src/game/obstacles"
@@ -49,8 +51,11 @@ describe("obstacles", () => {
       const result = spawnObstacle(state, random)
 
       expect(result).not.toBeNull()
-      expect(result?.nextGap).toBeGreaterThanOrEqual(260)
-      expect(result?.nextGap).toBeLessThanOrEqual(420)
+      const band = result?.nextGapBand ?? "medium"
+      const profile = GAME_CONFIG.gapProfiles[band]
+      const scale = gapScaleFor(1, 2_000)
+      expect(result?.nextGap).toBeGreaterThanOrEqual(profile.min * scale)
+      expect(result?.nextGap).toBeLessThanOrEqual(profile.max * scale)
       variants.push(result?.obstacle.variant)
     }
 
@@ -62,6 +67,49 @@ describe("obstacles", () => {
       "filing-cart",
       "cold-climate",
     ])
+  })
+
+  it("persists a new gap band only when an obstacle spawns", () => {
+    const readyToSpawn = {
+      ...createGameState(),
+      phase: "running" as const,
+      elapsedMs: 2_000,
+      distanceSinceLastSpawn: 500,
+      nextObstacleGap: 260,
+    }
+
+    const spawned = advanceGame(readyToSpawn, NO_INPUT, 0)
+    expect(spawned.lastGapBand).not.toBeNull()
+
+    const withoutSpawn = advanceGame(
+      {
+        ...spawned,
+        distanceSinceLastSpawn: 0,
+        nextObstacleGap: 500,
+      },
+      NO_INPUT,
+      0,
+    )
+    expect(withoutSpawn.lastGapBand).toBe(spawned.lastGapBand)
+  })
+
+  it("resets the gap band but preserves the random stream next term", () => {
+    const ended = {
+      ...createGameState(),
+      phase: "between-terms" as const,
+      randomSeed: 973,
+      lastGapBand: "long" as const,
+    }
+
+    const next = startNextTerm(ended)
+
+    expect(next.lastGapBand).toBeNull()
+    expect(next.randomSeed).toBe(973)
+  })
+
+  it("reproduces complete gap sequences for the same seed and state trace", () => {
+    expect(gapSequence(42)).toEqual(gapSequence(42))
+    expect(gapSequence(43)).not.toEqual(gapSequence(42))
   })
 
   it("uses seasonal pools and introduces the wall late in term one", () => {
@@ -223,4 +271,36 @@ function dimensionsFor(variant: ObstacleVariant) {
   if (variant === "heat-climate") return { width: 34, height: 46 }
   if (variant === "leak") return { width: 38, height: 34 }
   return { width: 42, height: 44 }
+}
+
+function gapSequence(seed: number) {
+  let state: GameState = {
+    ...createGameState(),
+    phase: "running",
+    randomSeed: seed,
+  }
+  const sequence = []
+
+  for (let index = 0; index < 12; index += 1) {
+    state = advanceGame(
+      {
+        ...state,
+        elapsedMs: 2_000 + index * 1_000,
+        obstacles: [],
+        distanceSinceLastSpawn: 1_000,
+        nextObstacleGap: 0,
+      },
+      NO_INPUT,
+      0,
+    )
+    const obstacle = state.obstacles.at(-1)
+    sequence.push({
+      variant: obstacle?.variant,
+      gap: state.nextObstacleGap,
+      band: state.lastGapBand,
+      seed: state.randomSeed,
+    })
+  }
+
+  return sequence
 }

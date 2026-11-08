@@ -1,6 +1,7 @@
 import { GAME_CONFIG } from "./config"
 import type {
   DamageKind,
+  GapBand,
   GameState,
   Obstacle,
   ObstacleVariant,
@@ -59,6 +60,31 @@ export class SeededRandom {
 export interface SpawnResult {
   obstacle: Obstacle
   nextGap: number
+  nextGapBand: GapBand
+}
+
+interface RandomSource {
+  next(): number
+}
+
+export function chooseObstacleGap(
+  state: Pick<GameState, "term" | "elapsedMs" | "lastGapBand">,
+  random: RandomSource,
+): { gap: number; band: GapBand } {
+  const bandRoll = random.next()
+  const distanceRoll = random.next()
+  let band: GapBand =
+    bandRoll < 0.3 ? "short" : bandRoll < 0.75 ? "medium" : "long"
+  if (band === "short" && state.lastGapBand === "short") band = "medium"
+
+  const profile = GAME_CONFIG.gapProfiles[band]
+  const withinProfile = Math.min(1, Math.max(0, distanceRoll))
+  const unscaledGap =
+    profile.min + (profile.max - profile.min) * withinProfile
+  return {
+    band,
+    gap: unscaledGap * gapScaleFor(state.term, state.elapsedMs),
+  }
 }
 
 export function damageKindForObstacle(
@@ -122,8 +148,7 @@ export function spawnObstacle(
   }
 
   const dimensions = OBSTACLE_DIMENSIONS[variant]
-  const gapRange = GAME_CONFIG.obstacleGapMax - GAME_CONFIG.obstacleGapMin
-  const nextGap = GAME_CONFIG.obstacleGapMin + random.next() * gapRange
+  const nextGap = chooseObstacleGap(state, random)
 
   return {
     obstacle: {
@@ -134,7 +159,8 @@ export function spawnObstacle(
       width: dimensions.width,
       height: dimensions.height,
     },
-    nextGap,
+    nextGap: nextGap.gap,
+    nextGapBand: nextGap.band,
   }
 }
 

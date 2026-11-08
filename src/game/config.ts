@@ -45,7 +45,5 @@ export const GAME_CONFIG = {
     2: 0.25,
     3: 0.3,
   },
-  obstacleGapMin: 260,
-  obstacleGapMax: 420,
   spawnGraceMs: 1_500,
 } as const
