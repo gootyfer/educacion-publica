@@ -5,9 +5,9 @@ import {
   obstacleArtFor,
 } from "../../src/game/art/obstacles"
 import {
-  hiddenPupilCount,
   pupilBottomForRow,
-  VISIBLE_PUPIL_COUNT,
+  ratioLabelFor,
+  visiblePupilCountForRatio,
 } from "../../src/game/art/characters"
 import {
   fenceLayoutFor,
@@ -27,11 +27,14 @@ const VARIANTS: readonly ObstacleVariant[] = [
 ]
 
 describe("seasonal visual model", () => {
-  it("keeps six representative pupils and makes their remainder equal the ratio", () => {
-    expect(VISIBLE_PUPIL_COUNT).toBe(6)
-    expect(hiddenPupilCount(20)).toBe(14)
-    expect(hiddenPupilCount(24)).toBe(18)
-    expect(hiddenPupilCount(6)).toBe(0)
+  it("adds one representative pupil per ratio decade up to six", () => {
+    expect(visiblePupilCountForRatio(20)).toBe(2)
+    expect(visiblePupilCountForRatio(25)).toBe(2)
+    expect(visiblePupilCountForRatio(30)).toBe(3)
+    expect(visiblePupilCountForRatio(59)).toBe(5)
+    expect(visiblePupilCountForRatio(60)).toBe(6)
+    expect(visiblePupilCountForRatio(74)).toBe(6)
+    expect(ratioLabelFor(25)).toBe("RATIO 25")
   })
 
   it("moves both pupil rows with the teacher jump", () => {
@@ -71,11 +74,12 @@ describe("seasonal visual model", () => {
     (distance) => {
       const layout = fenceLayoutFor(3, 40_000, distance)
 
-      expect(layout.ribbonXs.length).toBeGreaterThanOrEqual(7)
-      expect(layout.ribbonXs.length).toBeLessThanOrEqual(8)
+      expect(layout.ribbons.length).toBeGreaterThanOrEqual(7)
+      expect(layout.ribbons.length).toBeLessThanOrEqual(8)
       expect(
-        layout.ribbonXs.every((ribbonX) => layout.postXs.includes(ribbonX)),
+        layout.ribbons.every(({ x }) => layout.postXs.includes(x)),
       ).toBe(true)
+      expect(new Set(layout.ribbons.map(({ y }) => y)).size).toBeGreaterThan(1)
     },
   )
 
@@ -83,17 +87,18 @@ describe("seasonal visual model", () => {
     const before = fenceLayoutFor(1, 0, 0)
     const after = fenceLayoutFor(1, 0, 2.88)
 
-    expect(before.ribbonXs).toContain(0)
-    expect(after.ribbonXs[0]).toBeCloseTo(-0.12096, 5)
+    expect(before.ribbons.some(({ x }) => x === 0)).toBe(true)
+    expect(after.ribbons[0]?.x).toBeCloseTo(-0.3456, 5)
   })
 
   it("keeps ribbon motion continuous across the former parallax wrap", () => {
     const before = fenceLayoutFor(1, 0, 1_249)
     const after = fenceLayoutFor(1, 0, 1_251)
 
-    expect(after.ribbonXs).toHaveLength(before.ribbonXs.length)
-    after.ribbonXs.forEach((x, index) => {
-      expect(x).toBeCloseTo((before.ribbonXs[index] ?? 0) - 0.084, 5)
+    expect(after.ribbons).toHaveLength(before.ribbons.length)
+    after.ribbons.forEach(({ x, y }, index) => {
+      expect(x).toBeCloseTo((before.ribbons[index]?.x ?? 0) - 0.24, 5)
+      expect(y).toBe(before.ribbons[index]?.y)
     })
   })
 

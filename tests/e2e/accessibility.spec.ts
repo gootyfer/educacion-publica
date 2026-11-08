@@ -183,6 +183,16 @@ test.describe("accessible journey", () => {
       "abril a junio",
     )
     await expect(page.locator("#results .fact-card a")).toHaveCount(4)
+    const backButton = page.getByRole("button", { name: "Volver al inicio" })
+    const [buttonBox, resultsBox] = await Promise.all([
+      backButton.boundingBox(),
+      page.locator("#results").boundingBox(),
+    ])
+    expect(buttonBox).not.toBeNull()
+    expect(resultsBox).not.toBeNull()
+    expect(buttonBox?.width ?? 0).toBeGreaterThan(
+      (resultsBox?.width ?? 0) * 0.8,
+    )
   })
 
   for (const viewport of [

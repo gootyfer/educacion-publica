@@ -4,6 +4,7 @@ import { drawRibbon, roundedRect } from "./primitives"
 export const WORLD_WIDTH = 390
 export const WORLD_HEIGHT = 700
 export const GROUND_Y = 584
+const SCENERY_SCROLL_FACTOR = 0.12
 
 export interface SceneVisual {
   term: Term
@@ -56,7 +57,7 @@ export function drawScene(
   context.fillStyle = visual.windowColor
   context.fillRect(0, 88, WORLD_WIDTH, 205)
 
-  const parallax = (state.distanceTravelled * 0.12) % 150
+  const parallax = (state.distanceTravelled * SCENERY_SCROLL_FACTOR) % 150
   for (let x = -parallax - 100; x < WORLD_WIDTH + 100; x += 150) {
     drawWindow(context, x, state.term)
   }
@@ -106,13 +107,12 @@ export function drawHud(
   context.fillStyle = "#17352f"
   context.font = "800 12px system-ui"
   context.fillText(`TRIMESTRE ${state.term} · ENERGÍA`, 31, 40)
-  context.fillText(`RATIO  ${state.ratio}`, 287, 40)
 
   context.fillStyle = "#d9d4c6"
-  roundedRect(context, 31, 49, 220, 12, 6)
+  roundedRect(context, 31, 49, 328, 12, 6)
   context.fill()
   context.fillStyle = state.energy > 35 ? "#008f5a" : "#e55536"
-  roundedRect(context, 31, 49, 220 * (state.energy / 100), 12, 6)
+  roundedRect(context, 31, 49, 328 * (state.energy / 100), 12, 6)
   context.fill()
 }
 
@@ -167,8 +167,8 @@ function drawFenceAndRibbons(
   }
   context.stroke()
 
-  for (const x of layout.ribbonXs) {
-    drawRibbon(context, x, 410, 13)
+  for (const { x, y } of layout.ribbons) {
+    drawRibbon(context, x, y, 13)
   }
   context.restore()
 }
@@ -184,12 +184,12 @@ export function fenceLayoutFor(
   term: Term,
   elapsedMs: number,
   distanceTravelled: number,
-): { postXs: number[]; ribbonXs: number[] } {
-  const scroll = Math.max(0, distanceTravelled) * 0.042
+): { postXs: number[]; ribbons: Array<{ x: number; y: number }> } {
+  const scroll = Math.max(0, distanceTravelled) * SCENERY_SCROLL_FACTOR
   const firstPostIndex = Math.floor(scroll / 55) - 1
   const lastPostIndex = Math.ceil((scroll + WORLD_WIDTH) / 55) + 1
   const postXs: number[] = []
-  const ribbonXs: number[] = []
+  const ribbons: Array<{ x: number; y: number }> = []
   const ribbonDensity = ribbonCountFor(term, elapsedMs)
 
   for (let index = firstPostIndex; index <= lastPostIndex; index += 1) {
@@ -200,11 +200,11 @@ export function fenceLayoutFor(
       x <= WORLD_WIDTH + 13 &&
       positiveModulo(index, 7) < ribbonDensity
     ) {
-      ribbonXs.push(x)
+      ribbons.push({ x, y: 397 + positiveModulo(index, 4) * 12 })
     }
   }
 
-  return { postXs, ribbonXs }
+  return { postXs, ribbons }
 }
 
 function positiveModulo(value: number, divisor: number): number {
