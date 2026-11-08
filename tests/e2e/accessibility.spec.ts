@@ -80,6 +80,10 @@ test.describe("accessible journey", () => {
       page.getByRole("heading", { name: "Fin de curso" }),
     )
     await expect(page.locator("#results-title")).toBeFocused()
+    await expect(page.locator("#results-title")).toHaveCSS(
+      "outline-style",
+      "none",
+    )
 
     const retry = page.getByRole("button", { name: "Volver a intentarlo" })
     await retry.focus()

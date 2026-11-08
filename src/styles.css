@@ -167,10 +167,13 @@ h1 {
 
 button:focus-visible,
 canvas:focus-visible,
-a:focus-visible,
-[tabindex="-1"]:focus-visible {
+a:focus-visible {
   outline: 4px solid var(--yellow);
   outline-offset: 3px;
+}
+
+.panel-masthead h2[tabindex="-1"]:focus {
+  outline: none;
 }
 
 .control-hint {
