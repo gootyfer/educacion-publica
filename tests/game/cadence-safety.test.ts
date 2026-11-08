@@ -14,8 +14,9 @@ import {
 } from "./helpers/cadenceSafety"
 
 describe("obstacle cadence safety calibration", () => {
-  it("uses the lowest cadence scale that passes every safety scenario", () => {
-    expect(calibrateFinalGapScale()).toBe(GAME_CONFIG.finalSafeGapScale)
+  it("records the deliberate arcade override of the calibrated limit", () => {
+    expect(calibrateFinalGapScale()).toBe(0.95)
+    expect(GAME_CONFIG.finalSafeGapScale).toBe(0.5)
   })
 
   it("rejects a sequence when the next decision window arrives before landing", () => {

@@ -128,7 +128,7 @@ La garantía termina en el modelo sintético indicado. La CI conserva además la
 
 ### Resultado de la calibración
 
-El corpus aprobado selecciona `finalSafeGapScale = 0.95` como el primer candidato seguro. La frecuencia efectiva final respecto al generador V3 a igual velocidad del mundo es `1 / 0.95 = 1.05×`. Los hitos derivados quedan en `1.00 → 0.985 → 0.97 → 0.95`. Los candidatos entre `0.50` y `0.90` se rechazan porque al menos una pareja o secuencia larga no permite aterrizar antes de la siguiente ventana de decisión; no se modifican física ni daño para forzar una cifra mayor.
+El corpus selecciona `0.95` como primer valor que garantiza aterrizar antes de cada ventana de decisión. Para priorizar la dificultad y la validación manual, producción usa deliberadamente `finalSafeGapScale = 0.50`: la frecuencia final objetivo es `2×` y los hitos quedan en `1.00 → 0.85 → 0.70 → 0.50`. Esta configuración conserva la física y puede generar secuencias donde no se haya aterrizado antes de la siguiente ventana de salto.
 
 ## Estado y arquitectura
 
