@@ -115,10 +115,11 @@ producción.
 ### Integración de producción
 
 Los once archivos aprobados se copiaron a `public/audio/approved/` con nombres
-estables. La integración incluye música en bucle con tres intensidades
-(`1×`, `1,075×`, `1,15×`), firma de xilófono, transiciones, fin de curso y
-efectos diferenciados. El control de silencio es persistente y cualquier fallo
-de reproducción o almacenamiento se trata como opcional: nunca detiene el juego.
+estables. La integración incluye música en bucle cuya velocidad aumenta
+progresivamente de `1×` a `1,24×` con la velocidad del mundo, firma de xilófono,
+transiciones, fin de curso y efectos diferenciados. El control de silencio es
+persistente y cualquier fallo de reproducción o almacenamiento se trata como
+opcional: nunca detiene el juego.
 
 Ninguna variante rechazada, pista de metales ni primera versión de vacaciones
 forma parte del directorio público.
@@ -176,6 +177,8 @@ primero.
 
 - Duración real: 80,04 segundos.
 - Método: subida de referencia + plan condicionado + composición Music v2.5.
-- Estado: pendiente de validación directa del usuario.
+- Estado: aprobada por el usuario el 8 de noviembre de 2026.
 - Manifiesto: `artifacts/audio-review/main-theme-conditioned-80s.json`.
-- Integración: ninguna; el candidato continúa fuera de `public/`.
+- Integración: la candidata original de 80,04 segundos se conserva intacta en
+  revisión. Una copia MP3 sin recodificar, cortada a 78,048 segundos, sustituye
+  `public/audio/approved/main-theme.mp3` y se reproduce en bucle.
