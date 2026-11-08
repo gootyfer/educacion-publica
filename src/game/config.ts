@@ -39,7 +39,7 @@ export const GAME_CONFIG = {
     2: { start: 0.3, end: 0.6 },
     3: { start: 0.6, end: 1 },
   },
-  finalSafeGapScale: 0.75,
+  finalSafeGapScale: 0.95,
   termMaxSpeedRamps: {
     1: 0.2,
     2: 0.25,

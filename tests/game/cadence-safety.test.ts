@@ -9,12 +9,23 @@ import {
 import type { Term } from "../../src/game/types"
 import {
   calibrateFinalGapScale,
+  sequenceIsSafe,
   visibleJumpPolicy,
 } from "./helpers/cadenceSafety"
 
 describe("obstacle cadence safety calibration", () => {
   it("uses the lowest cadence scale that passes every safety scenario", () => {
     expect(calibrateFinalGapScale()).toBe(GAME_CONFIG.finalSafeGapScale)
+  })
+
+  it("rejects a sequence when the next decision window arrives before landing", () => {
+    expect(
+      sequenceIsSafe({
+        variants: ["paper-stack", "filing-cart"],
+        unscaledGaps: [220],
+        scale: 0.75,
+      }),
+    ).toBe(false)
   })
 
   it("keeps the opening familiar and reaches the calibrated final frequency", () => {

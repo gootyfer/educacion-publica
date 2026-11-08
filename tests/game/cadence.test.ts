@@ -113,11 +113,11 @@ describe("obstacle cadence curve", () => {
 
   it("uses the calibrated milestones and effective final frequency", () => {
     expect(gapScaleFor(1, 0)).toBe(1)
-    expect(gapScaleFor(1, 60_000)).toBeCloseTo(0.925)
-    expect(gapScaleFor(2, 0)).toBeCloseTo(0.925)
-    expect(gapScaleFor(2, 60_000)).toBeCloseTo(0.85)
-    expect(gapScaleFor(3, 0)).toBeCloseTo(0.85)
-    expect(gapScaleFor(3, 60_000)).toBe(0.75)
-    expect(1 / gapScaleFor(3, 60_000)).toBeCloseTo(1.3333, 4)
+    expect(gapScaleFor(1, 60_000)).toBeCloseTo(0.985)
+    expect(gapScaleFor(2, 0)).toBeCloseTo(0.985)
+    expect(gapScaleFor(2, 60_000)).toBeCloseTo(0.97)
+    expect(gapScaleFor(3, 0)).toBeCloseTo(0.97)
+    expect(gapScaleFor(3, 60_000)).toBe(0.95)
+    expect(1 / gapScaleFor(3, 60_000)).toBeCloseTo(1.0526, 4)
   })
 })

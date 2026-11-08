@@ -128,7 +128,7 @@ La garantía termina en el modelo sintético indicado. La CI conserva además la
 
 ### Resultado de la calibración
 
-El corpus aprobado selecciona `finalSafeGapScale = 0.75` como el primer candidato seguro. La frecuencia efectiva final respecto al generador V3 a igual velocidad del mundo es `1 / 0.75 = 1.33×`. Los hitos derivados quedan en `1.00 → 0.925 → 0.85 → 0.75`. Los candidatos entre `0.50` y `0.70` se rechazan por producir al menos una pareja o secuencia larga sin trayectoria válida bajo la política visible; no se modifican física ni daño para forzar una cifra mayor.
+El corpus aprobado selecciona `finalSafeGapScale = 0.95` como el primer candidato seguro. La frecuencia efectiva final respecto al generador V3 a igual velocidad del mundo es `1 / 0.95 = 1.05×`. Los hitos derivados quedan en `1.00 → 0.985 → 0.97 → 0.95`. Los candidatos entre `0.50` y `0.90` se rechazan porque al menos una pareja o secuencia larga no permite aterrizar antes de la siguiente ventana de decisión; no se modifican física ni daño para forzar una cifra mayor.
 
 ## Estado y arquitectura
 

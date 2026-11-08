@@ -89,6 +89,7 @@ export function sequenceIsSafe(scenario: SafetyScenario): boolean {
   for (let frame = 0; frame < 12_000; frame += 1) {
     const next = advanceGame(state, visibleJumpPolicy(state), 16)
     if (totalHits(next) > 0) return false
+    if (missedLandingWindow(state, next, obstacles[0]?.id)) return false
     if (next.obstacles.length === 0) return true
     state = {
       ...next,
@@ -97,6 +98,23 @@ export function sequenceIsSafe(scenario: SafetyScenario): boolean {
     }
   }
   return false
+}
+
+function missedLandingWindow(
+  previous: GameState,
+  next: GameState,
+  firstObstacleId: number | undefined,
+): boolean {
+  if (next.grounded) return false
+  const previousXById = new Map(
+    previous.obstacles.map((obstacle) => [obstacle.id, obstacle.x]),
+  )
+  return next.obstacles.some((obstacle) => {
+    if (obstacle.id === firstObstacleId) return false
+    const previousX = previousXById.get(obstacle.id)
+    const threshold = JUMP_THRESHOLD_X[obstacle.variant]
+    return previousX !== undefined && previousX > threshold && obstacle.x <= threshold
+  })
 }
 
 export function calibrateFinalGapScale(): number {
