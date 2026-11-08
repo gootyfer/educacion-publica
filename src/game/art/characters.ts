@@ -89,16 +89,16 @@ function drawPupils(context: CanvasRenderingContext2D, state: GameState) {
   }
 
   context.fillStyle = "#17352f"
-  context.font = "800 10px system-ui"
-  context.fillText(ratioLabelFor(state.ratio), 8, GROUND_Y + state.playerY - 52)
+  context.font = "800 12px system-ui"
+  context.fillText(ratioLabelFor(state.ratio), 8, GROUND_Y + state.playerY - 8)
 }
 
 export function visiblePupilCountForRatio(ratio: number): number {
-  return Math.min(MAX_VISIBLE_PUPILS, Math.max(0, Math.floor(ratio / 10)))
+  return Math.min(MAX_VISIBLE_PUPILS, Math.max(0, Math.floor(ratio / 8)))
 }
 
 export function ratioLabelFor(ratio: number): string {
-  return `RATIO ${Math.max(0, Math.floor(ratio))}`
+  return String(Math.max(0, Math.floor(ratio)))
 }
 
 export function pupilBottomForRow(row: number, teacherY: number): number {

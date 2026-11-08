@@ -27,14 +27,15 @@ const VARIANTS: readonly ObstacleVariant[] = [
 ]
 
 describe("seasonal visual model", () => {
-  it("adds one representative pupil per ratio decade up to six", () => {
+  it("adds one representative pupil per eight ratio points up to six", () => {
     expect(visiblePupilCountForRatio(20)).toBe(2)
-    expect(visiblePupilCountForRatio(25)).toBe(2)
-    expect(visiblePupilCountForRatio(30)).toBe(3)
-    expect(visiblePupilCountForRatio(59)).toBe(5)
-    expect(visiblePupilCountForRatio(60)).toBe(6)
+    expect(visiblePupilCountForRatio(23)).toBe(2)
+    expect(visiblePupilCountForRatio(24)).toBe(3)
+    expect(visiblePupilCountForRatio(25)).toBe(3)
+    expect(visiblePupilCountForRatio(40)).toBe(5)
+    expect(visiblePupilCountForRatio(48)).toBe(6)
     expect(visiblePupilCountForRatio(74)).toBe(6)
-    expect(ratioLabelFor(25)).toBe("RATIO 25")
+    expect(ratioLabelFor(25)).toBe("25")
   })
 
   it("moves both pupil rows with the teacher jump", () => {
