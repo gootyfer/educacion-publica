@@ -8,10 +8,11 @@ const MUSIC_UPLOAD_API = "https://api.elevenlabs.io/v1/music/upload"
 const SFX_API =
   "https://api.elevenlabs.io/v1/sound-generation?output_format=mp3_44100_128"
 const OUTPUT_DIR = join(process.cwd(), "artifacts", "audio-review")
-const REFERENCE_FILE = join(OUTPUT_DIR, "main-theme-reference-30s.mp3")
+const REFERENCE_FILE = join(process.cwd(), "public", "audio", "approved", "main-theme.mp3")
 const key = process.env.ELEVENLABS_API_KEY
 
 if (!key) throw new Error("Falta ELEVENLABS_API_KEY")
+const referenceAudio = await readFile(REFERENCE_FILE)
 
 const cues = [
   {
@@ -83,10 +84,9 @@ manifest.candidates.push({
   bytes: electronic.audio.byteLength,
 })
 
-console.log("Uploading the 30-second approved-theme reference...")
-const referenceAudio = await readFile(REFERENCE_FILE)
+console.log("Uploading the approved main-theme reference...")
 const form = new FormData()
-form.append("file", new Blob([referenceAudio], { type: "audio/mpeg" }), "main-theme-reference-30s.mp3")
+form.append("file", new Blob([referenceAudio], { type: "audio/mpeg" }), "main-theme.mp3")
 form.append("extract_composition_plan", "music_v2_5")
 const uploadResponse = await fetch(MUSIC_UPLOAD_API, {
   method: "POST",
@@ -141,7 +141,7 @@ manifest.candidates.push({
   modelId: "music_v2_5",
   requestedDurationSeconds: 80,
   prompt: extensionPrompt,
-  sourceFile: "main-theme-reference-30s.mp3",
+  sourceFile: "public/audio/approved/main-theme.mp3",
   sourceSongId: uploaded.song_id,
   songId: extendedResponse.headers.get("song-id"),
   bytes: extendedAudio.byteLength,

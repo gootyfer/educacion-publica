@@ -144,6 +144,12 @@ segundos con `/v1/music/plan` y se compone con Music v2.5. ElevenLabs documenta
 que Audio Reference guía estilo, instrumentación, tempo y producción, pero no
 copia ni remezcla literalmente la pista original.
 
+La candidata existente se generó con ese recorte de 30 segundos y su manifiesto
+conserva ese origen real. Para futuras ejecuciones, el generador lee y valida
+`public/audio/approved/main-theme.mp3` completo antes de hacer ninguna petición a
+la API; así, un checkout limpio no depende de un recorte ignorado ni puede
+consumir créditos si falta la referencia.
+
 Generación completada mediante API el 8 de noviembre de 2026:
 
 | Candidata | Duración real | Estado |

@@ -167,15 +167,15 @@ describe("audio controller", () => {
     expect(audio(APPROVED_AUDIO.jump).playCount).toBe(1)
     expect(audio(APPROVED_AUDIO.newObstacle).playCount).toBe(4)
     expect(audio(APPROVED_AUDIO.courseEnd).playCount).toBe(1)
-    expect(createdSources).not.toEqual(
-      expect.arrayContaining([
-        "/audio/approved/term-end.mp3",
-        "/audio/approved/paper.mp3",
-        "/audio/approved/fan.mp3",
-        "/audio/approved/leak.mp3",
-        "/audio/approved/rubble.mp3",
-      ]),
-    )
+    for (const obsoleteSource of [
+      "/audio/approved/term-end.mp3",
+      "/audio/approved/paper.mp3",
+      "/audio/approved/fan.mp3",
+      "/audio/approved/leak.mp3",
+      "/audio/approved/rubble.mp3",
+    ]) {
+      expect(createdSources).not.toContain(obsoleteSource)
+    }
   })
 
   it("persists mute and prevents every kind of playback", async () => {

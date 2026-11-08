@@ -3,6 +3,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test"
 declare global {
   interface Window {
     __audioEvents: string[]
+    __audioPauses: string[]
     __themeRates: number[]
   }
 }
@@ -258,6 +259,47 @@ test.describe("runner controls", () => {
     )
     await expect(page.locator(".term-result")).toHaveCount(3)
     await expect(page.locator("[data-discovered-obstacle]")).toHaveCount(0)
+  })
+
+  test("stops the theme and plays the seasonal cue as soon as a term ends", async ({
+    page,
+  }) => {
+    await page.clock.install()
+    await page.addInitScript(() => {
+      const audioEvents: string[] = []
+      const audioPauses: string[] = []
+      Object.defineProperty(window, "__audioEvents", {
+        value: audioEvents,
+        configurable: true,
+      })
+      Object.defineProperty(window, "__audioPauses", {
+        value: audioPauses,
+        configurable: true,
+      })
+      HTMLMediaElement.prototype.play = function () {
+        audioEvents.push(this.getAttribute("src") ?? this.currentSrc)
+        return Promise.resolve()
+      }
+      HTMLMediaElement.prototype.pause = function () {
+        audioPauses.push(this.getAttribute("src") ?? this.currentSrc)
+      }
+    })
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    await advanceUntilVisible(
+      page,
+      page.getByRole("heading", { name: "Vacaciones de Navidad" }),
+    )
+
+    const audioState = await page.evaluate(() => ({
+      plays: window.__audioEvents.slice(),
+      pauses: window.__audioPauses.slice(),
+    }))
+    expect(audioState.plays).toContain(
+      "/audio/approved/holiday-christmas.mp3",
+    )
+    expect(audioState.pauses).toContain("/audio/approved/main-theme.mp3")
   })
 
   test("waits indefinitely for the player before starting the next term", async ({

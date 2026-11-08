@@ -41,7 +41,6 @@ app.append(soundButton)
 updateSoundButton()
 
 let previousState: GameState | null = null
-let transitionTimers: number[] = []
 
 const runtime = createGameRuntime({
   canvas,
@@ -88,7 +87,6 @@ soundButton.addEventListener("click", () => {
 })
 
 function startJornada() {
-  clearTransitionTimers()
   intro.classList.add("is-hidden")
   results.classList.add("is-hidden")
   gameRegion.classList.remove("is-hidden")
@@ -187,7 +185,6 @@ function renderTransition(result: TermResult) {
   const viewModel = buildTransitionViewModel(result)
   if (!viewModel) return
 
-  clearTransitionTimers()
   gameRegion.classList.add("is-hidden")
   results.classList.remove("is-hidden")
   results.innerHTML = `
@@ -214,7 +211,6 @@ function renderTransition(result: TermResult) {
   const continueOnce = () => {
     if (continued) return
     continued = true
-    clearTransitionTimers()
     results.classList.add("is-hidden")
     gameRegion.classList.remove("is-hidden")
     previousState = null
@@ -225,16 +221,7 @@ function renderTransition(result: TermResult) {
   }
 
   continueButton.addEventListener("click", continueOnce)
-  transitionTimers.push(
-    window.setTimeout(() => {
-      audioController.playHoliday(result.term as 1 | 2)
-    }, 3_000),
-  )
-}
-
-function clearTransitionTimers() {
-  for (const timer of transitionTimers) window.clearTimeout(timer)
-  transitionTimers = []
+  audioController.playHoliday(result.term as 1 | 2)
 }
 
 function termName(term: 2 | 3) {
