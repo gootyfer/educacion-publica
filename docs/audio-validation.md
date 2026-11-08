@@ -154,12 +154,28 @@ Generación completada mediante API el 8 de noviembre de 2026:
 
 | Candidata | Duración real | Estado |
 | --- | ---: | --- |
-| `holiday-christmas-v3.mp3` | 5,00 s | Pendiente de escucha |
-| `holiday-spring-v3.mp3` | 5,00 s | Pendiente de escucha |
-| `course-end-v2.mp3` | 5,00 s | Pendiente de escucha |
+| `holiday-christmas-v3.mp3` | 5,00 s | Aprobada el 8 de noviembre de 2026 |
+| `holiday-spring-v3.mp3` | 5,00 s | Aprobada el 8 de noviembre de 2026 |
+| `course-end-v2.mp3` | 5,00 s | Aprobada el 8 de noviembre de 2026 |
 | `main-theme-electronic-80s.mp3` | 80,04 s | Pendiente de escucha |
-| `main-theme-extended-80s.mp3` | 80,04 s | Pendiente de escucha |
+| `main-theme-extended-80s.mp3` | 80,04 s | Rechazada: generó otra melodía |
 
 El manifiesto `artifacts/audio-review/audio-v2-manifest.json` conserva prompts,
 modelos, métodos, tamaños e identificadores de canción. Ningún archivo de esta
 tabla se ha copiado a producción.
+
+### Tema completo condicionado mediante inpainting
+
+Tras descartar la falsa extensión, se generó
+`main-theme-conditioned-80s.mp3` con un plan manual de Music v2.5 formado por
+cuatro fragmentos de generación de 20 segundos. Ninguno inserta audio original.
+El primero usa `conditioning_ref` sobre los primeros 30 segundos del tema
+aprobado, `condition_strength: xhigh` y `context_adherence: high`; los tres
+fragmentos posteriores mantienen alta adherencia al contexto creado por el
+primero.
+
+- Duración real: 80,04 segundos.
+- Método: subida de referencia + plan condicionado + composición Music v2.5.
+- Estado: pendiente de validación directa del usuario.
+- Manifiesto: `artifacts/audio-review/main-theme-conditioned-80s.json`.
+- Integración: ninguna; el candidato continúa fuera de `public/`.
