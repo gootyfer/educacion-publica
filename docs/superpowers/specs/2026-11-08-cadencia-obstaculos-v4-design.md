@@ -126,6 +126,10 @@ La prueba de seguridad evalúa secuencias completas, no solo que cada obstáculo
 
 La garantía termina en el modelo sintético indicado. La CI conserva además las pruebas actuales de fotogramas y el recorrido manual se hará en móvil físico o emulado, pero una trayectoria imposible causada por deltas lentos se documentará como limitación preexistente y no se intentará compensar aumentando los huecos de V4, porque un hueco no repara un obstáculo aislado que ya es imposible con esa física.
 
+### Resultado de la calibración
+
+El corpus aprobado selecciona `finalSafeGapScale = 0.75` como el primer candidato seguro. La frecuencia efectiva final respecto al generador V3 a igual velocidad del mundo es `1 / 0.75 = 1.33×`. Los hitos derivados quedan en `1.00 → 0.925 → 0.85 → 0.75`. Los candidatos entre `0.50` y `0.70` se rechazan por producir al menos una pareja o secuencia larga sin trayectoria válida bajo la política visible; no se modifican física ni daño para forzar una cifra mayor.
+
 ## Estado y arquitectura
 
 - `GAME_CONFIG` contiene los perfiles, probabilidades, hitos de progreso `0/0.30/0.60/1` y la escala final calibrada.
