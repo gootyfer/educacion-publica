@@ -122,3 +122,38 @@ de reproducción o almacenamiento se trata como opcional: nunca detiene el juego
 
 Ninguna variante rechazada, pista de metales ni primera versión de vacaciones
 forma parte del directorio público.
+
+## Segunda pasada musical (Audio V2)
+
+Por decisión del usuario del 8 de noviembre de 2026, todas las generaciones se
+realizan mediante la API de ElevenLabs y quedan fuera de producción hasta una
+escucha explícita. El flujo reproducible está en
+`scripts/generate-audio-v2.mjs` y produce:
+
+- `holiday-christmas-v3.mp3`: charanga navideña con cascabeles, campanillas y
+  glockenspiel, sin melodía de villancico.
+- `holiday-spring-v3.mp3`: cuerdas barrocas, violín solista, clave y maderas,
+  sin citar una melodía clásica reconocible.
+- `course-end-v2.mp3`: marcha ceremonial de graduación original.
+- `main-theme-electronic-80s.mp3`: charanga electrónica y timbres arcade retro.
+- `main-theme-extended-80s.mp3`: generación de 80 segundos condicionada por un
+  plan extraído mediante API de los primeros 30 segundos del tema aprobado.
+
+La referencia se sube con `/v1/music/upload`, se transforma en un plan de 80
+segundos con `/v1/music/plan` y se compone con Music v2.5. ElevenLabs documenta
+que Audio Reference guía estilo, instrumentación, tempo y producción, pero no
+copia ni remezcla literalmente la pista original.
+
+Generación completada mediante API el 8 de noviembre de 2026:
+
+| Candidata | Duración real | Estado |
+| --- | ---: | --- |
+| `holiday-christmas-v3.mp3` | 5,00 s | Pendiente de escucha |
+| `holiday-spring-v3.mp3` | 5,00 s | Pendiente de escucha |
+| `course-end-v2.mp3` | 5,00 s | Pendiente de escucha |
+| `main-theme-electronic-80s.mp3` | 80,04 s | Pendiente de escucha |
+| `main-theme-extended-80s.mp3` | 80,04 s | Pendiente de escucha |
+
+El manifiesto `artifacts/audio-review/audio-v2-manifest.json` conserva prompts,
+modelos, métodos, tamaños e identificadores de canción. Ningún archivo de esta
+tabla se ha copiado a producción.
