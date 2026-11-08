@@ -29,6 +29,17 @@ export const GAME_CONFIG = {
   worldWidth: 390,
   obstacleSpeed: 180,
   speedRampDurationMs: 60_000,
+  gapProfiles: {
+    short: { min: 220, max: 280, probability: 0.3 },
+    medium: { min: 300, max: 380, probability: 0.45 },
+    long: { min: 420, max: 500, probability: 0.25 },
+  },
+  gapProgressByTerm: {
+    1: { start: 0, end: 0.3 },
+    2: { start: 0.3, end: 0.6 },
+    3: { start: 0.6, end: 1 },
+  },
+  finalSafeGapScale: 0.5,
   termMaxSpeedRamps: {
     1: 0.2,
     2: 0.25,

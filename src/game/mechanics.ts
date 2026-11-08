@@ -28,6 +28,7 @@ export function createGameState(): GameState {
     distanceTravelled: 0,
     distanceSinceLastSpawn: 0,
     nextObstacleGap: 300,
+    lastGapBand: null,
     spawnCount: 0,
     randomSeed: 42,
   }
@@ -239,6 +240,7 @@ export function startNextTerm(state: GameState): GameState {
     distanceTravelled: 0,
     distanceSinceLastSpawn: 0,
     nextObstacleGap: 300,
+    lastGapBand: null,
     spawnCount: 0,
   }
 }

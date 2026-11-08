@@ -37,6 +37,7 @@ describe("game mechanics", () => {
       playerY: 0,
       playerVelocityY: 0,
       grounded: true,
+      lastGapBand: null,
       elapsedMs: 0,
       courseElapsedMs: 0,
       completedTerms: [],
@@ -159,6 +160,7 @@ describe("game mechanics", () => {
       elapsedMs: 0,
       courseElapsedMs: ended.courseElapsedMs,
       obstacles: [],
+      lastGapBand: null,
       invulnerabilityMs: 0,
     })
     expect(next.completedTerms).toEqual(ended.completedTerms)

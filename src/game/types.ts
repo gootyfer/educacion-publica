@@ -1,5 +1,7 @@
 export type Term = 1 | 2 | 3
 
+export type GapBand = "short" | "medium" | "long"
+
 export type GamePhase = "ready" | "running" | "between-terms" | "finished"
 
 export type DamageKind = "paperwork" | "heat" | "infrastructure"
@@ -54,6 +56,7 @@ export interface GameState {
   distanceTravelled: number
   distanceSinceLastSpawn: number
   nextObstacleGap: number
+  lastGapBand: GapBand | null
   spawnCount: number
   randomSeed: number
 }

@@ -4,6 +4,7 @@ import type {
   GameState,
   Obstacle,
   ObstacleVariant,
+  Term,
 } from "./types"
 
 export const OBSTACLE_DIMENSIONS: Record<
@@ -21,6 +22,22 @@ export const OBSTACLE_DIMENSIONS: Record<
 export const MAX_OBSTACLE_HEIGHT = Math.max(
   ...Object.values(OBSTACLE_DIMENSIONS).map(({ height }) => height),
 )
+
+export function gapScaleFor(
+  term: Term,
+  elapsedMs: number,
+  finalSafeScale: number = GAME_CONFIG.finalSafeGapScale,
+): number {
+  const termProgress = GAME_CONFIG.gapProgressByTerm[term]
+  const withinTerm = Math.min(
+    1,
+    Math.max(0, elapsedMs) / GAME_CONFIG.speedRampDurationMs,
+  )
+  const courseProgress =
+    termProgress.start +
+    (termProgress.end - termProgress.start) * withinTerm
+  return 1 - courseProgress * (1 - finalSafeScale)
+}
 
 export class SeededRandom {
   #seed: number
