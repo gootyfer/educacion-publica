@@ -83,6 +83,42 @@ test.describe("runner controls", () => {
     ).toBeVisible()
   })
 
+  test("stays silent for a new obstacle and uses the notification on collision", async ({
+    page,
+  }) => {
+    await page.clock.install()
+    await page.addInitScript(() => {
+      const audioEvents: string[] = []
+      Object.defineProperty(window, "__audioEvents", {
+        value: audioEvents,
+        configurable: true,
+      })
+      HTMLMediaElement.prototype.play = function () {
+        audioEvents.push(this.getAttribute("src") ?? this.currentSrc)
+        return Promise.resolve()
+      }
+      HTMLMediaElement.prototype.pause = function () {}
+    })
+    await page.goto("/")
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+
+    await page.clock.runFor(2_000)
+    expect(
+      await page.evaluate(() =>
+        window.__audioEvents.filter((src) => src.includes("new-obstacle.mp3")),
+      ),
+    ).toEqual([])
+
+    await page.clock.runFor(3_000)
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          window.__audioEvents.some((src) => src.includes("new-obstacle.mp3")),
+        ),
+      )
+      .toBe(true)
+  })
+
   test("increases the theme tempo with world speed without exceeding its cap", async ({
     page,
   }) => {

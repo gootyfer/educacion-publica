@@ -55,6 +55,7 @@ function setup(options: { rejectPlay?: boolean; storage?: Storage } = {}) {
   })
   return {
     controller,
+    createdSources: [...audioBySrc.keys()],
     audio(path: string) {
       const audio = audioBySrc.get(path)
       if (!audio) throw new Error(`Audio no creado: ${path}`)
@@ -81,10 +82,14 @@ describe("audio controller", () => {
   })
 
   it("maps world speed continuously into the approved musical range", () => {
-    const maxCourseSpeed = 276.12
+    const maxCourseSpeed =
+      GAME_CONFIG.obstacleSpeed *
+      GAME_CONFIG.termInitialSpeedMultipliers[3] *
+      (1 + GAME_CONFIG.termMaxSpeedRamps[3])
+    const midCourseSpeed = (GAME_CONFIG.obstacleSpeed + maxCourseSpeed) / 2
 
     expect(playbackRateForWorldSpeed(GAME_CONFIG.obstacleSpeed)).toBe(1)
-    expect(playbackRateForWorldSpeed((180 + maxCourseSpeed) / 2)).toBe(1.12)
+    expect(playbackRateForWorldSpeed(midCourseSpeed)).toBe(1.12)
     expect(playbackRateForWorldSpeed(maxCourseSpeed)).toBe(1.24)
     expect(playbackRateForWorldSpeed(0)).toBe(1)
     expect(playbackRateForWorldSpeed(Number.POSITIVE_INFINITY)).toBe(1.24)
@@ -96,16 +101,20 @@ describe("audio controller", () => {
     const theme = audio(APPROVED_AUDIO.theme)
     const writesAfterStart = theme.playbackRateWrites
 
-    controller.setWorldSpeed(181)
+    controller.setWorldSpeed(GAME_CONFIG.obstacleSpeed + 1)
     expect(theme.playbackRateWrites).toBe(writesAfterStart)
-    controller.setWorldSpeed(228.06)
+    const maxCourseSpeed =
+      GAME_CONFIG.obstacleSpeed *
+      GAME_CONFIG.termInitialSpeedMultipliers[3] *
+      (1 + GAME_CONFIG.termMaxSpeedRamps[3])
+    controller.setWorldSpeed((GAME_CONFIG.obstacleSpeed + maxCourseSpeed) / 2)
     expect(theme.playbackRate).toBe(1.12)
     expect(theme.playbackRateWrites).toBe(writesAfterStart + 1)
     expect(theme.preservesPitch).toBe(true)
     expect(theme.playCount).toBe(0)
 
     controller.setMuted(true)
-    controller.setWorldSpeed(276.12)
+    controller.setWorldSpeed(maxCourseSpeed)
     expect(theme.playbackRate).toBe(1.24)
     expect(theme.playCount).toBe(0)
   })
@@ -117,46 +126,56 @@ describe("audio controller", () => {
     controller.startTerm(1)
     expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1)
     controller.startTerm(2)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.04)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(
+      playbackRateForWorldSpeed(
+        GAME_CONFIG.obstacleSpeed * GAME_CONFIG.termInitialSpeedMultipliers[2],
+      ),
+    )
     controller.startTerm(3)
-    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(1.08)
+    expect(audio(APPROVED_AUDIO.theme).playbackRate).toBe(
+      playbackRateForWorldSpeed(
+        GAME_CONFIG.obstacleSpeed * GAME_CONFIG.termInitialSpeedMultipliers[3],
+      ),
+    )
   })
 
-  it("plays one term signature and pauses the theme during holidays", async () => {
+  it("plays only the seasonal cue and pauses the theme during holidays", async () => {
     const { controller, audio } = setup()
     await controller.unlock()
     controller.startTerm(1)
 
-    controller.playTermEnd(1)
-    controller.playTermEnd(1)
-    expect(audio(APPROVED_AUDIO.termEnd).playCount).toBe(1)
-    expect(audio(APPROVED_AUDIO.theme).pauseCount).toBeGreaterThan(0)
+    expect("playTermEnd" in controller).toBe(false)
 
     controller.playHoliday(1)
     controller.playHoliday(2)
     expect(audio(APPROVED_AUDIO.christmas).playCount).toBe(1)
     expect(audio(APPROVED_AUDIO.spring).playCount).toBe(1)
+    expect(audio(APPROVED_AUDIO.theme).pauseCount).toBeGreaterThan(0)
   })
 
-  it("differentiates collisions and the remaining game cues", async () => {
-    const { controller, audio } = setup()
+  it("uses the same notification for every collision and creates no obsolete effects", async () => {
+    const { controller, audio, createdSources } = setup()
     await controller.unlock()
 
     controller.playJump()
-    controller.playCollision("paperwork", "paper-stack")
-    controller.playCollision("heat", "heat-climate")
-    controller.playCollision("infrastructure", "leak")
-    controller.playCollision("infrastructure", "wall")
-    controller.playNewObstacle()
+    controller.playCollision()
+    controller.playCollision()
+    controller.playCollision()
+    controller.playCollision()
     controller.playCourseEnd()
 
     expect(audio(APPROVED_AUDIO.jump).playCount).toBe(1)
-    expect(audio(APPROVED_AUDIO.paper).playCount).toBe(1)
-    expect(audio(APPROVED_AUDIO.fan).playCount).toBe(1)
-    expect(audio(APPROVED_AUDIO.leak).playCount).toBe(1)
-    expect(audio(APPROVED_AUDIO.rubble).playCount).toBe(1)
-    expect(audio(APPROVED_AUDIO.newObstacle).playCount).toBe(1)
+    expect(audio(APPROVED_AUDIO.newObstacle).playCount).toBe(4)
     expect(audio(APPROVED_AUDIO.courseEnd).playCount).toBe(1)
+    expect(createdSources).not.toEqual(
+      expect.arrayContaining([
+        "/audio/approved/term-end.mp3",
+        "/audio/approved/paper.mp3",
+        "/audio/approved/fan.mp3",
+        "/audio/approved/leak.mp3",
+        "/audio/approved/rubble.mp3",
+      ]),
+    )
   })
 
   it("persists mute and prevents every kind of playback", async () => {
@@ -170,9 +189,7 @@ describe("audio controller", () => {
 
     controller.startTerm(1)
     controller.playJump()
-    controller.playCollision("paperwork")
-    controller.playNewObstacle()
-    controller.playTermEnd(1)
+    controller.playCollision()
     controller.playHoliday(1)
     controller.playCourseEnd()
 
@@ -182,7 +199,7 @@ describe("audio controller", () => {
       "true",
     )
     expect(audio(APPROVED_AUDIO.jump).playCount).toBe(0)
-    expect(audio(APPROVED_AUDIO.termEnd).playCount).toBe(0)
+    expect(audio(APPROVED_AUDIO.newObstacle).playCount).toBe(0)
     expect(audio(APPROVED_AUDIO.courseEnd).playCount).toBe(0)
   })
 
@@ -192,7 +209,7 @@ describe("audio controller", () => {
     controller.startTerm(1)
     expect(audio(APPROVED_AUDIO.theme).playCount).toBe(1)
 
-    controller.playTermEnd(1)
+    controller.playHoliday(1)
     controller.setMuted(true)
     controller.setMuted(false)
 

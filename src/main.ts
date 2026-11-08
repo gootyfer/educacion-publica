@@ -4,7 +4,6 @@ import "./styles.css"
 import { createAudioController } from "./audio/controller"
 import { EVIDENCE_FACTS } from "./content/facts"
 import { worldSpeedFor } from "./game/mechanics"
-import { intersectsPlayer } from "./game/obstacles"
 import { createGameRuntime } from "./game/runtime"
 import type { DamageKind, GameState, TermResult } from "./game/types"
 import {
@@ -55,18 +54,11 @@ const runtime = createGameRuntime({
     }
     if (previousState) {
       playNewCollisions(previousState, state)
-      if (
-        state.introducedObstacleVariants.length >
-        previousState.introducedObstacleVariants.length
-      ) {
-        audioController.playNewObstacle()
-      }
     }
     audioController.setWorldSpeed(worldSpeedFor(state))
     previousState = state
   },
   onTermEnd(_state, result) {
-    audioController.playTermEnd(result.term)
     renderTransition(result)
   },
   onCourseFinish(state) {
@@ -300,10 +292,7 @@ function playNewCollisions(previous: GameState, current: GameState) {
   const kinds: DamageKind[] = ["paperwork", "heat", "infrastructure"]
   for (const kind of kinds) {
     if (current.hitsByKind[kind] <= previous.hitsByKind[kind]) continue
-    const collided = current.obstacles.find(
-      (obstacle) => obstacle.kind === kind && intersectsPlayer(obstacle, current),
-    )
-    audioController.playCollision(kind, collided?.variant)
+    audioController.playCollision()
   }
 }
 

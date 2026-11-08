@@ -1,4 +1,4 @@
-import type { ObstacleVariant, Term } from "../game/types"
+import type { Term } from "../game/types"
 import { GAME_CONFIG } from "../game/config"
 import {
   APPROVED_AUDIO,
@@ -33,15 +33,10 @@ export function createAudioController({
 }: AudioControllerOptions = {}): AudioController {
   const audio = {
     theme: createAudio(APPROVED_AUDIO.theme),
-    termEnd: createAudio(APPROVED_AUDIO.termEnd),
     christmas: createAudio(APPROVED_AUDIO.christmas),
     spring: createAudio(APPROVED_AUDIO.spring),
     courseEnd: createAudio(APPROVED_AUDIO.courseEnd),
     jump: createAudio(APPROVED_AUDIO.jump),
-    paper: createAudio(APPROVED_AUDIO.paper),
-    fan: createAudio(APPROVED_AUDIO.fan),
-    leak: createAudio(APPROVED_AUDIO.leak),
-    rubble: createAudio(APPROVED_AUDIO.rubble),
     newObstacle: createAudio(APPROVED_AUDIO.newObstacle),
   }
   const allAudio = Object.values(audio)
@@ -60,7 +55,6 @@ export function createAudioController({
   let unlocked = false
   let muted = readMuted(storage)
   let activeTerm: Term | null = null
-  let lastEndedTerm: Term | null = null
   let suspendedForTransition = false
 
   return {
@@ -71,7 +65,6 @@ export function createAudioController({
     },
     startTerm(term) {
       activeTerm = term
-      lastEndedTerm = null
       suspendedForTransition = false
       pauseEffects(effects)
       audio.theme.currentTime = 0
@@ -87,18 +80,8 @@ export function createAudioController({
     playJump() {
       playEffect(audio.jump)
     },
-    playCollision(kind, variant) {
-      playEffect(collisionAudio(audio, kind, variant))
-    },
-    playNewObstacle() {
+    playCollision() {
       playEffect(audio.newObstacle)
-    },
-    playTermEnd(term) {
-      if (lastEndedTerm === term) return
-      lastEndedTerm = term
-      suspendedForTransition = true
-      audio.theme.pause()
-      playEffect(audio.termEnd)
     },
     playHoliday(afterTerm) {
       suspendedForTransition = true
@@ -146,18 +129,6 @@ export function createAudioController({
     effect.currentTime = 0
     void safePlay(effect)
   }
-}
-
-function collisionAudio(
-  audio: Record<"paper" | "fan" | "leak" | "rubble", AudioLike>,
-  kind: "paperwork" | "heat" | "infrastructure",
-  variant?: ObstacleVariant,
-): AudioLike {
-  if (variant === "leak") return audio.leak
-  if (variant === "wall") return audio.rubble
-  if (kind === "paperwork") return audio.paper
-  if (kind === "heat") return audio.fan
-  return audio.rubble
 }
 
 async function safePlay(audio: AudioLike) {
