@@ -44,6 +44,27 @@ async function completeCourse(page: Page) {
 }
 
 test.describe("runner controls", () => {
+  test("shows essential audio loading progress before starting the game", async ({
+    page,
+  }) => {
+    await page.route("**/audio/approved/**", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 150))
+      await route.continue()
+    })
+    await page.addInitScript(() => {
+      HTMLMediaElement.prototype.play = () => Promise.resolve()
+      HTMLMediaElement.prototype.pause = function () {}
+    })
+    await page.goto("/")
+
+    await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await expect(
+      page.getByRole("heading", { name: "Preparando la jornada" }),
+    ).toBeVisible()
+    await expect(page.locator("#loading-status")).toContainText(/de 3/)
+    await expect(page.locator("#game-canvas")).toBeVisible()
+  })
+
   test("starts approved audio only after interaction and lets the player mute it", async ({
     page,
   }) => {
@@ -158,6 +179,7 @@ test.describe("runner controls", () => {
     })
     await page.goto("/")
     await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await expect(page.locator("#game-canvas")).toBeVisible()
 
     await page.clock.runFor(10_000)
     const rates = await page.evaluate(() => window.__themeRates.slice())
@@ -182,6 +204,7 @@ test.describe("runner controls", () => {
     })
     await page.goto("/")
     await page.getByRole("button", { name: "Empezar la jornada" }).click()
+    await expect(page.locator("#game-canvas")).toBeVisible()
     await page.keyboard.press("Space")
 
     await expect(page.locator("#status-live")).toContainText(

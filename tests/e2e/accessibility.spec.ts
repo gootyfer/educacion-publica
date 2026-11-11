@@ -228,7 +228,9 @@ test.describe("accessible journey", () => {
 
       await page.getByRole("button", { name: "Empezar la jornada" }).click()
       await expect(page.locator("#intro")).toBeHidden()
-      const canvasBox = await page.locator("#game-canvas").boundingBox()
+      const canvas = page.locator("#game-canvas")
+      await expect(canvas).toBeVisible()
+      const canvasBox = await canvas.boundingBox()
       expect(canvasBox).not.toBeNull()
       expect(canvasBox?.y).toBeGreaterThanOrEqual(0)
       expect((canvasBox?.y ?? 0) + (canvasBox?.height ?? 0)).toBeLessThanOrEqual(

@@ -18,12 +18,15 @@ export interface AudioLike {
   currentTime: number
   preservesPitch?: boolean
   preload?: string
+  load?(): void
   play(): Promise<void> | void
   pause(): void
 }
 
 export interface AudioController {
   unlock(): Promise<void>
+  prepareEssentialAudio(onProgress?: AudioProgress): Promise<void>
+  prepareDeferredAudio(): Promise<void>
   startTerm(term: Term): void
   setWorldSpeed(worldSpeed: number): void
   playJump(): void
@@ -35,6 +38,8 @@ export interface AudioController {
   stop(): void
 }
 
+export type AudioProgress = (loaded: number, total: number) => void
+
 export interface AudioStorage {
   getItem(key: string): string | null
   setItem(key: string, value: string): void
@@ -43,4 +48,5 @@ export interface AudioStorage {
 export interface AudioControllerOptions {
   createAudio?: (src: string) => AudioLike
   storage?: AudioStorage | null
+  loadAudio?: (src: string) => Promise<void>
 }

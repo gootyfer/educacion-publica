@@ -35,6 +35,30 @@
       </section>
 
       <section
+        id="loading-screen"
+        class="panel loading-panel is-hidden"
+        aria-labelledby="loading-title"
+      >
+        <header class="panel-masthead">
+          <span class="screen-mark" aria-hidden="true">@</span>
+          <p class="eyebrow">El curso está a punto de empezar</p>
+          <h2 id="loading-title">Preparando la jornada</h2>
+        </header>
+        <div class="panel-body">
+          <p id="loading-status" role="status" aria-live="polite">
+            Cargando sonido 0 de 3
+          </p>
+          <progress
+            id="loading-progress"
+            max="3"
+            value="0"
+            aria-label="Progreso de carga del sonido"
+          ></progress>
+          <p class="control-hint">Solo debería tardar unos segundos.</p>
+        </div>
+      </section>
+
+      <section
         id="game-region"
         class="panel game-panel is-hidden"
         aria-label="Juego de carrera sobre una jornada decente"

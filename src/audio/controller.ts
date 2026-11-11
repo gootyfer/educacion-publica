@@ -5,6 +5,7 @@ import {
   type AudioController,
   type AudioControllerOptions,
   type AudioLike,
+  type AudioProgress,
 } from "./types"
 
 const MUTE_STORAGE_KEY = "curso-docente-audio-muted-v1"
@@ -30,6 +31,7 @@ export function playbackRateForWorldSpeed(worldSpeed: number): number {
 export function createAudioController({
   createAudio = (src) => new Audio(src),
   storage = getBrowserStorage(),
+  loadAudio = cacheAudio,
 }: AudioControllerOptions = {}): AudioController {
   const audio = {
     theme: createAudio(APPROVED_AUDIO.theme),
@@ -41,15 +43,34 @@ export function createAudioController({
   }
   const allAudio = Object.values(audio)
   const effects = allAudio.filter((item) => item !== audio.theme)
+  const audioBySource = new Map<string, AudioLike>([
+    [APPROVED_AUDIO.theme, audio.theme],
+    [APPROVED_AUDIO.christmas, audio.christmas],
+    [APPROVED_AUDIO.spring, audio.spring],
+    [APPROVED_AUDIO.courseEnd, audio.courseEnd],
+    [APPROVED_AUDIO.jump, audio.jump],
+    [APPROVED_AUDIO.newObstacle, audio.newObstacle],
+  ])
+  const essentialSources = [
+    APPROVED_AUDIO.theme,
+    APPROVED_AUDIO.jump,
+    APPROVED_AUDIO.newObstacle,
+  ]
+  const deferredSources = [
+    APPROVED_AUDIO.christmas,
+    APPROVED_AUDIO.spring,
+    APPROVED_AUDIO.courseEnd,
+  ]
+  const loading = new Map<string, Promise<void>>()
 
   audio.theme.loop = true
   audio.theme.volume = 0.32
-  audio.theme.preload = "auto"
+  audio.theme.preload = "none"
   if ("preservesPitch" in audio.theme) audio.theme.preservesPitch = true
   for (const effect of effects) {
     effect.loop = false
     effect.volume = 0.78
-    effect.preload = "auto"
+    effect.preload = "none"
   }
 
   let unlocked = false
@@ -61,7 +82,23 @@ export function createAudioController({
     async unlock() {
       if (unlocked) return
       unlocked = true
-      if (activeTerm !== null && !muted) await safePlay(audio.theme)
+      if (activeTerm !== null && !muted) {
+        await safePlay(audio.theme)
+      } else if (!muted) {
+        const volume = audio.theme.volume
+        audio.theme.volume = 0
+        const attempt = safePlay(audio.theme)
+        audio.theme.pause()
+        audio.theme.currentTime = 0
+        audio.theme.volume = volume
+        await attempt
+      }
+    },
+    prepareEssentialAudio(onProgress) {
+      return prepare(essentialSources, onProgress)
+    },
+    prepareDeferredAudio() {
+      return prepare(deferredSources)
     },
     startTerm(term) {
       activeTerm = term
@@ -129,6 +166,41 @@ export function createAudioController({
     effect.currentTime = 0
     void safePlay(effect)
   }
+
+  async function prepare(sources: string[], onProgress?: AudioProgress) {
+    let loaded = 0
+    await Promise.all(
+      sources.map(async (source) => {
+        try {
+          await loadOnce(source)
+          const item = audioBySource.get(source)
+          if (item) {
+            item.preload = "auto"
+            item.load?.()
+          }
+        } catch {
+          // Audio stays optional when a request fails or the device is offline.
+        } finally {
+          loaded += 1
+          onProgress?.(loaded, sources.length)
+        }
+      }),
+    )
+  }
+
+  function loadOnce(source: string) {
+    const existing = loading.get(source)
+    if (existing) return existing
+    const request = loadAudio(source)
+    loading.set(source, request)
+    return request
+  }
+}
+
+async function cacheAudio(source: string) {
+  const response = await fetch(source, { cache: "force-cache" })
+  if (!response.ok) throw new Error(`Audio unavailable: ${response.status}`)
+  await response.arrayBuffer()
 }
 
 async function safePlay(audio: AudioLike) {

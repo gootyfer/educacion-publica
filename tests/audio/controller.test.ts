@@ -43,7 +43,13 @@ class FakeAudio {
   }
 }
 
-function setup(options: { rejectPlay?: boolean; storage?: Storage } = {}) {
+function setup(
+  options: {
+    rejectPlay?: boolean
+    storage?: Storage
+    loadAudio?: (src: string) => Promise<void>
+  } = {},
+) {
   const audioBySrc = new Map<string, FakeAudio>()
   const controller = createAudioController({
     createAudio(src) {
@@ -52,6 +58,7 @@ function setup(options: { rejectPlay?: boolean; storage?: Storage } = {}) {
       return audio
     },
     storage: options.storage ?? null,
+    loadAudio: options.loadAudio,
   })
   return {
     controller,
@@ -65,6 +72,44 @@ function setup(options: { rejectPlay?: boolean; storage?: Storage } = {}) {
 }
 
 describe("audio controller", () => {
+  it("loads the three essential files before the three transition files", async () => {
+    const loadAudio = vi.fn(async (_src: string) => {})
+    const progress = vi.fn()
+    const { controller } = setup({ loadAudio })
+
+    await controller.prepareEssentialAudio(progress)
+    expect(loadAudio.mock.calls.map(([src]) => src)).toEqual([
+      APPROVED_AUDIO.theme,
+      APPROVED_AUDIO.jump,
+      APPROVED_AUDIO.newObstacle,
+    ])
+    expect(progress.mock.calls).toEqual([
+      [1, 3],
+      [2, 3],
+      [3, 3],
+    ])
+
+    await controller.prepareDeferredAudio()
+    expect(loadAudio.mock.calls.slice(3).map(([src]) => src)).toEqual([
+      APPROVED_AUDIO.christmas,
+      APPROVED_AUDIO.spring,
+      APPROVED_AUDIO.courseEnd,
+    ])
+  })
+
+  it("continues preparation when an audio request fails", async () => {
+    const loadAudio = vi.fn(async (src: string) => {
+      if (src === APPROVED_AUDIO.jump) throw new Error("network")
+    })
+    const progress = vi.fn()
+    const { controller } = setup({ loadAudio })
+
+    await expect(
+      controller.prepareEssentialAudio(progress),
+    ).resolves.toBeUndefined()
+    expect(progress).toHaveBeenLastCalledWith(3, 3)
+  })
+
   it("does not play before interaction and starts the approved theme once unlocked", async () => {
     const { controller, audio } = setup()
 
@@ -207,13 +252,13 @@ describe("audio controller", () => {
     const { controller, audio } = setup()
     await controller.unlock()
     controller.startTerm(1)
-    expect(audio(APPROVED_AUDIO.theme).playCount).toBe(1)
+    const playsBeforeHoliday = audio(APPROVED_AUDIO.theme).playCount
 
     controller.playHoliday(1)
     controller.setMuted(true)
     controller.setMuted(false)
 
-    expect(audio(APPROVED_AUDIO.theme).playCount).toBe(1)
+    expect(audio(APPROVED_AUDIO.theme).playCount).toBe(playsBeforeHoliday)
   })
 
   it("swallows rejected playback and blocked storage", async () => {

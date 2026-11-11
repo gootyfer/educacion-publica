@@ -24,6 +24,11 @@ if (!app) {
 app.dataset.appReady = "true"
 
 const intro = requiredElement<HTMLElement>("#intro")
+const loadingScreen = requiredElement<HTMLElement>("#loading-screen")
+const loadingStatus = requiredElement<HTMLElement>("#loading-status")
+const loadingProgress = requiredElement<HTMLProgressElement>(
+  "#loading-progress",
+)
 const gameRegion = requiredElement<HTMLElement>("#game-region")
 const canvas = requiredElement<HTMLCanvasElement>("#game-canvas")
 const results = requiredElement<HTMLElement>("#results")
@@ -41,6 +46,7 @@ app.append(soundButton)
 updateSoundButton()
 
 let previousState: GameState | null = null
+let preparingStart = false
 
 const runtime = createGameRuntime({
   canvas,
@@ -74,7 +80,7 @@ const runtime = createGameRuntime({
 })
 
 startButton.addEventListener("click", () => {
-  startJornada()
+  void prepareAndStartJornada()
 })
 
 readJourneyButton.addEventListener("click", renderTextJourney)
@@ -88,6 +94,7 @@ soundButton.addEventListener("click", () => {
 
 function startJornada() {
   intro.classList.add("is-hidden")
+  loadingScreen.classList.add("is-hidden")
   results.classList.add("is-hidden")
   gameRegion.classList.remove("is-hidden")
   previousState = null
@@ -97,6 +104,35 @@ function startJornada() {
     "Curso en marcha. Primer trimestre. Energía 100. Ratio 20."
   runtime.start()
   canvas.focus()
+}
+
+async function prepareAndStartJornada() {
+  if (preparingStart) return
+  preparingStart = true
+  intro.classList.add("is-hidden")
+  results.classList.add("is-hidden")
+  loadingScreen.classList.remove("is-hidden")
+  loadingProgress.value = 0
+  loadingStatus.textContent = "Cargando sonido 0 de 3"
+  statusLive.textContent = "Preparando la jornada. Cargando sonido."
+
+  const unlock = audioController.unlock()
+  const essentials = audioController.prepareEssentialAudio((loaded, total) => {
+    if (!preparingStart) return
+    loadingProgress.max = total
+    loadingProgress.value = loaded
+    loadingStatus.textContent = `Cargando sonido ${loaded} de ${total}`
+    statusLive.textContent = `Preparando la jornada. Sonido ${loaded} de ${total}.`
+  })
+
+  await Promise.race([Promise.all([unlock, essentials]), wait(8_000)])
+  startJornada()
+  void audioController.prepareDeferredAudio()
+  preparingStart = false
+}
+
+function wait(milliseconds: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))
 }
 
 function renderResults(viewModel: ResultViewModel) {

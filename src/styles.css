@@ -57,6 +57,27 @@ a {
   justify-self: center;
 }
 
+.loading-panel {
+  max-width: 480px;
+  justify-self: center;
+}
+
+.loading-panel #loading-status {
+  margin: 0 0 0.75rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.loading-panel progress {
+  display: block;
+  width: 100%;
+  height: 1rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  accent-color: var(--green);
+}
+
 .panel-masthead {
   position: relative;
   overflow: hidden;
