@@ -1,0 +1,76 @@
+export interface ImageAsset {
+  readonly kind: "image"
+  readonly url: string
+}
+
+export interface SheetAsset {
+  readonly kind: "spritesheet"
+  readonly url: string
+  readonly frameWidth: number
+  readonly frameHeight: number
+}
+
+export type GameAsset = ImageAsset | SheetAsset
+
+export const GAME_ASSETS = {
+  teacher: {
+    kind: "spritesheet",
+    url: "/game/characters/teacher.png",
+    frameWidth: 64,
+    frameHeight: 64,
+  },
+  companions: {
+    kind: "spritesheet",
+    url: "/game/characters/companions.png",
+    frameWidth: 75,
+    frameHeight: 75,
+  },
+  obstacles: {
+    kind: "spritesheet",
+    url: "/game/obstacles/obstacles.png",
+    frameWidth: 128,
+    frameHeight: 128,
+  },
+  term1: { kind: "image", url: "/game/backgrounds/term-1.png" },
+  term2: { kind: "image", url: "/game/backgrounds/term-2.png" },
+  term3: { kind: "image", url: "/game/backgrounds/term-3.png" },
+  energy: {
+    kind: "spritesheet",
+    url: "/game/ui/energy.png",
+    frameWidth: 100,
+    frameHeight: 100,
+  },
+  panels: {
+    kind: "spritesheet",
+    url: "/game/ui/panels.png",
+    frameWidth: 100,
+    frameHeight: 100,
+  },
+} as const satisfies Record<string, GameAsset>
+
+export const TEACHER_ANIMATIONS = {
+  run: Array.from({ length: 6 }, (_, index) => `teacher-run-${index}`),
+  jump: Array.from({ length: 6 }, (_, index) => `teacher-jump-${index}`),
+  hit: Array.from({ length: 4 }, (_, index) => `teacher-hit-${index}`),
+  tired: Array.from({ length: 6 }, (_, index) => `teacher-tired-${index}`),
+} as const
+
+export const COMPANION_DEFINITIONS = Array.from(
+  { length: 9 },
+  (_, index) => ({
+    id: `companion-${index + 1}`,
+    frames: [
+      `companion-${index + 1}-run-0`,
+      `companion-${index + 1}-run-1`,
+    ],
+  }),
+)
+
+export const OBSTACLE_FRAMES = [
+  "paper-stack",
+  "filing-cart",
+  "cold-climate",
+  "heat-climate",
+  "leak",
+  "wall",
+] as const
