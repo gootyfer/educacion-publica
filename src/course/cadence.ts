@@ -2,6 +2,24 @@ import type { ObstacleKind, Term } from "./types"
 
 export type SpeedBand = "slow" | "medium" | "fast"
 
+export const TERM_BACKGROUNDS = {
+  1: "term1",
+  2: "term2",
+  3: "term3",
+} as const satisfies Readonly<Record<Term, string>>
+
+export const COURSE_GEOMETRY = {
+  jumpAirtimeMs: 835,
+  obstacleWidth: 62,
+  readabilityPadding: 48,
+} as const
+
+export const SPEED_BY_BAND: Readonly<Record<SpeedBand, number>> = {
+  slow: 150,
+  medium: 180,
+  fast: 215,
+}
+
 export interface RandomSource {
   next(): number
 }
@@ -34,11 +52,20 @@ const TERM_OBSTACLES: Readonly<Record<Term, readonly ObstacleKind[]>> = {
   3: ["paper-stack", "filing-cart", "heat-climate", "leak", "wall"],
 }
 
+export function eligibleObstacles(term: Term): readonly ObstacleKind[] {
+  return TERM_OBSTACLES[term]
+}
+
 export class SeededRandom implements RandomSource {
   private seed: number
 
   constructor(seed: number) {
-    this.seed = seed >>> 0
+    let mixed = seed >>> 0
+    mixed ^= mixed >>> 16
+    mixed = Math.imul(mixed, 0x7feb352d)
+    mixed ^= mixed >>> 15
+    mixed = Math.imul(mixed, 0x846ca68b)
+    this.seed = (mixed ^ (mixed >>> 16)) >>> 0
   }
 
   next(): number {
@@ -68,7 +95,7 @@ export function nextObstacle(
   const minimumGap =
     request.worldSpeed * (request.jumpAirtimeMs / 1000) +
     request.obstacleWidth +
-    48
+    COURSE_GEOMETRY.readabilityPadding
 
   return {
     kind,

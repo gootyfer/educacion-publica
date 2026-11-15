@@ -42,6 +42,10 @@ export class CompanionGroup {
     return this.sprites.slice(0, this.count).map((sprite) => sprite.y)
   }
 
+  visibleCount(): number {
+    return this.count
+  }
+
   destroy(): void {
     this.sprites.forEach((sprite) => sprite.destroy())
   }

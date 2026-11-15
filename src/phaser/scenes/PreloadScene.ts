@@ -1,6 +1,8 @@
 import Phaser from "phaser"
 
 import { GAME_ASSETS } from "../assets"
+import { createCourseStateAtTerm } from "../../course/progression"
+import type { Term } from "../../course/types"
 
 export const PRELOAD_PROGRESS_EVENT = "preload:progress"
 export const PRELOAD_COMPLETE_EVENT = "preload:complete"
@@ -39,6 +41,18 @@ export class PreloadScene extends Phaser.Scene {
 
   create(): void {
     this.game.events.emit(PRELOAD_COMPLETE_EVENT)
-    this.scene.start("game", { term: 1 })
+    const term = this.developmentTermFromLocation()
+    this.scene.start("game", {
+      term,
+      state: createCourseStateAtTerm(term),
+    })
+  }
+
+  private developmentTermFromLocation(): Term {
+    if (!import.meta.env.DEV || typeof window === "undefined") return 1
+    const requested = Number(
+      new URLSearchParams(window.location.search).get("term"),
+    )
+    return requested === 2 || requested === 3 ? requested : 1
   }
 }

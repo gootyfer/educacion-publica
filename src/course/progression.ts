@@ -39,6 +39,21 @@ export function createCourseState(
   }
 }
 
+export function createCourseStateAtTerm(
+  term: Term,
+  profile: CalibrationProfile = DEFAULT_CALIBRATION,
+): CourseState {
+  if (term === 1) return createCourseState(profile)
+  const ratio = profile.initialRatios[term]
+  return {
+    ...createCourseState(profile),
+    term,
+    ratio,
+    maxRatio: ratio,
+    companionCount: companionCountForProfile(ratio, profile),
+  }
+}
+
 export function companionCountForRatio(ratio: number): number {
   return companionCountForProfile(ratio, DEFAULT_CALIBRATION)
 }

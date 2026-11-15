@@ -15,18 +15,17 @@ export interface CalibrationProfile {
   readonly targetTermDurationMs: Readonly<Record<Term, number>>
 }
 
-// Provisional values. Task 5 recalibrates them against production geometry.
 export const DEFAULT_CALIBRATION: CalibrationProfile = {
   initialEnergy: 100,
   maxDeltaMs: 50,
-  impactDamage: 18,
-  invulnerabilityMs: 750,
-  ratioIntervalMs: 15_000,
+  impactDamage: 14,
+  invulnerabilityMs: 900,
+  ratioIntervalMs: 8_000,
   ratioStep: 4,
   maxRatio: 52,
   companionBaselineRatio: 20,
   companionRatioStep: 4,
-  energyDrainPerSecond: { 1: 0.55, 2: 0.65, 3: 0.75 },
-  initialRatios: { 1: 20, 2: 24, 3: 28 },
-  targetTermDurationMs: { 1: 75_000, 2: 70_000, 3: 65_000 },
+  energyDrainPerSecond: { 1: 1.05, 2: 1.2, 3: 1.35 },
+  initialRatios: { 1: 20, 2: 28, 3: 36 },
+  targetTermDurationMs: { 1: 70_000, 2: 65_000, 3: 60_000 },
 }

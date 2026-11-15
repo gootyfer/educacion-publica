@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  COURSE_GEOMETRY,
   SeededRandom,
   TALL_OBSTACLES,
   nextObstacle,
@@ -30,7 +31,9 @@ describe("engine-independent obstacle cadence", () => {
             random,
           )
           const minimumGap =
-            worldSpeed * (jumpAirtimeMs / 1000) + obstacleWidth + 48
+            worldSpeed * (jumpAirtimeMs / 1000) +
+            obstacleWidth +
+            COURSE_GEOMETRY.readabilityPadding
 
           expect(decision.gap).toBeGreaterThanOrEqual(minimumGap)
           expect(["slow", "medium", "fast"]).toContain(decision.speedBand)

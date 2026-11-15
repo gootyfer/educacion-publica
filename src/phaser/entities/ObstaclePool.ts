@@ -1,6 +1,12 @@
 import Phaser from "phaser"
 
-import type { ObstacleKind } from "../../course/types"
+import {
+  COURSE_GEOMETRY,
+  SPEED_BY_BAND,
+  SeededRandom,
+  nextObstacle,
+} from "../../course/cadence"
+import type { CourseState, ObstacleKind } from "../../course/types"
 
 const FRAME_BY_KIND: Readonly<Record<ObstacleKind, number>> = {
   "paper-stack": 0,
@@ -13,22 +19,25 @@ const FRAME_BY_KIND: Readonly<Record<ObstacleKind, number>> = {
 
 export class ObstaclePool {
   private readonly obstacle: Phaser.Physics.Arcade.Image
+  private readonly random: SeededRandom
   private kind: ObstacleKind = "paper-stack"
+  private previousKind?: ObstacleKind
 
   constructor(
     scene: Phaser.Scene,
     private readonly groundY: number,
+    state: CourseState,
+    seed = 2_026,
   ) {
+    this.random = new SeededRandom(seed)
     this.obstacle = scene.physics.add
-      .image(520, groundY, "obstacles", FRAME_BY_KIND[this.kind])
+      .image(720, groundY, "obstacles", FRAME_BY_KIND[this.kind])
       .setOrigin(0.5, 1)
-      .setDisplaySize(62, 76)
       .setDepth(18)
       .setImmovable(true)
     const body = this.obstacle.body as Phaser.Physics.Arcade.Body
     body.setAllowGravity(false)
-    body.setSize(46, 68).setOffset(41, 54)
-    this.obstacle.setVelocityX(-140)
+    this.reset(state, 540)
   }
 
   active(): Phaser.Physics.Arcade.Image {
@@ -39,13 +48,48 @@ export class ObstaclePool {
     return this.kind
   }
 
-  update(): void {
+  update(state: CourseState): void {
     if (this.obstacle.x >= -80) return
-    this.obstacle.setPosition(720, this.groundY)
-    this.obstacle.setVelocityX(-140)
+    this.reset(state)
+  }
+
+  size(): number {
+    return 1
   }
 
   destroy(): void {
     this.obstacle.destroy()
+  }
+
+  private reset(state: CourseState, initialX?: number): void {
+    const decision = nextObstacle(
+      {
+        term: state.term,
+        energy: state.energy,
+        worldSpeed: SPEED_BY_BAND.medium,
+        jumpAirtimeMs: COURSE_GEOMETRY.jumpAirtimeMs,
+        obstacleWidth: COURSE_GEOMETRY.obstacleWidth,
+        previousKind: this.previousKind,
+      },
+      this.random,
+    )
+    this.kind = decision.kind
+    this.previousKind = decision.kind
+    const speed = SPEED_BY_BAND[decision.speedBand]
+    const spawnX = initialX ?? 640 + decision.gap
+
+    this.obstacle
+      .setFrame(FRAME_BY_KIND[this.kind])
+      .setDisplaySize(62, 76)
+      .setPosition(spawnX, this.groundY)
+      .setVelocityX(-speed)
+      .setActive(true)
+      .setVisible(true)
+
+    const body = this.obstacle.body as Phaser.Physics.Arcade.Body
+    body.enable = true
+    body.setSize(46, 64, true)
+    body.reset(spawnX, this.groundY - 38)
+    body.setVelocityX(-speed)
   }
 }
