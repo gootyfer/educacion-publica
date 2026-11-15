@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import { BootScene } from "./scenes/BootScene"
+import { GameScene } from "./scenes/GameScene"
 import { PreloadScene } from "./scenes/PreloadScene"
 
 export const GAME_WIDTH = 640
@@ -27,6 +28,6 @@ export function buildGameConfig(
       width: GAME_WIDTH,
       height: GAME_HEIGHT,
     },
-    scene: [BootScene, PreloadScene],
+    scene: [BootScene, PreloadScene, GameScene],
   }
 }

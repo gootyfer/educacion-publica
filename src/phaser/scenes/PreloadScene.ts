@@ -39,5 +39,6 @@ export class PreloadScene extends Phaser.Scene {
 
   create(): void {
     this.game.events.emit(PRELOAD_COMPLETE_EVENT)
+    this.scene.start("game", { term: 1 })
   }
 }
