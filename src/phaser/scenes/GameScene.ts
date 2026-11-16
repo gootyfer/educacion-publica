@@ -75,6 +75,7 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-SPACE", this.requestJump, this)
     this.input.keyboard?.on("keydown-UP", this.requestJump, this)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
+    this.game.events.emit("scene:game", this.courseState.term)
   }
 
   override update(_time: number, delta: number): void {
