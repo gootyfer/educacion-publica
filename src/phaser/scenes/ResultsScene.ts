@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import type { CourseResult, CourseState } from "../../course/types"
+import { createCourseState } from "../../course/progression"
 import { RESULTS_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
 
@@ -52,7 +53,9 @@ export class ResultsScene extends Phaser.Scene {
   private readonly retryCourse = (): void => {
     if (this.retried) return
     this.retried = true
-    this.scene.start("title")
+    this.scene.start("title", {
+      state: createCourseState(this.sceneData.state.profile),
+    })
   }
 
   private shutdown(): void {

@@ -31,17 +31,20 @@ export function energyBlocksFor(energy: number): EnergyBlockState[] {
 }
 
 export class EnergyHud {
-  private readonly frame: Phaser.GameObjects.Image
+  private readonly frame: Phaser.GameObjects.Rectangle
   private readonly blocks: Phaser.GameObjects.Image[]
 
   constructor(scene: Phaser.Scene, x = 22, y = 20) {
     this.frame = scene.add
-      .image(x, y, "energy", 3)
-      .setOrigin(0, 0)
-      .setDisplaySize(
+      .rectangle(
+        x,
+        y,
         ENERGY_HUD_LAYOUT.frameWidth,
         ENERGY_HUD_LAYOUT.frameHeight,
+        0x173f35,
       )
+      .setOrigin(0, 0)
+      .setStrokeStyle(2, 0xfff8de)
       .setScrollFactor(0)
       .setDepth(99)
 

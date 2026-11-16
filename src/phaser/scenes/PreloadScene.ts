@@ -4,6 +4,10 @@ import { GAME_ASSETS } from "../assets"
 import { AUDIO_ASSETS } from "../audio/GameAudio"
 import { createCourseStateAtTerm } from "../../course/progression"
 import type { Term } from "../../course/types"
+import {
+  DEFAULT_CALIBRATION,
+  type CalibrationProfile,
+} from "../../course/calibration"
 
 export const PRELOAD_PROGRESS_EVENT = "preload:progress"
 export const PRELOAD_COMPLETE_EVENT = "preload:complete"
@@ -46,13 +50,17 @@ export class PreloadScene extends Phaser.Scene {
   create(): void {
     this.game.events.emit(PRELOAD_COMPLETE_EVENT)
     const term = this.developmentTermFromLocation()
+    const state = createCourseStateAtTerm(
+      term ?? 1,
+      this.developmentProfile(),
+    )
     if (term === null) {
-      this.scene.start("title")
+      this.scene.start("title", { state })
       return
     }
     this.scene.start("game", {
       term,
-      state: createCourseStateAtTerm(term),
+      state,
     })
   }
 
@@ -62,5 +70,23 @@ export class PreloadScene extends Phaser.Scene {
     if (!params.has("slice") && !params.has("term")) return null
     const requested = Number(params.get("term"))
     return requested === 2 || requested === 3 ? requested : 1
+  }
+
+  private developmentProfile(): CalibrationProfile {
+    if (
+      !import.meta.env.DEV ||
+      typeof window === "undefined" ||
+      new URLSearchParams(window.location.search).get("fast") !== "1"
+    ) {
+      return DEFAULT_CALIBRATION
+    }
+    return {
+      ...DEFAULT_CALIBRATION,
+      impactDamage: 2,
+      ratioIntervalMs: 20,
+      energyDrainPerSecond: { 1: 200, 2: 200, 3: 200 },
+      initialRatios: { 1: 20, 2: 36, 3: 52 },
+      targetTermDurationMs: { 1: 500, 2: 500, 3: 500 },
+    }
   }
 }

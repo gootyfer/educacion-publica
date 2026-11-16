@@ -3,6 +3,7 @@ import "./styles.css"
 import type { CourseState, ObstacleKind } from "./course/types"
 import { createPhaserGame } from "./phaser/create-game"
 import { GameAudio } from "./phaser/audio/GameAudio"
+import type { GameDebugState } from "./phaser/scenes/GameScene"
 import {
   PRELOAD_COMPLETE_EVENT,
   PRELOAD_ERROR_EVENT,
@@ -14,6 +15,18 @@ import {
   type ShellAction,
 } from "./ui/GameShell"
 import { shareResult } from "./ui/share"
+
+declare global {
+  interface Window {
+    __phaserSlice?: GameDebugState
+    __gameDiagnostics?: {
+      activeScenes: number
+      inputBindings: number
+      obstaclePoolSize: number
+      frameMs: number[]
+    }
+  }
+}
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("No se encontró el contenedor de la aplicación")
@@ -44,6 +57,7 @@ try {
     shell.setScreen("term-break")
     audio.playHoliday(term)
   })
+  game.events.on("term-break:refilled", () => shell.setContinueReady(true))
   game.events.on("scene:results", (state: CourseState) => {
     resultState = state
     shell.setScreen("results")
@@ -60,6 +74,24 @@ try {
   game.events.on("game:companions-added", (count: number) =>
     shell.announce(announcementFor("companions", count)),
   )
+
+  if (import.meta.env.DEV) {
+    const frameMs: number[] = []
+    let previousSample = performance.now()
+    game.events.on("game:debug", (state: GameDebugState) => {
+      const now = performance.now()
+      frameMs.push(now - previousSample)
+      previousSample = now
+      if (frameMs.length > 120) frameMs.shift()
+      window.__phaserSlice = state
+      window.__gameDiagnostics = {
+        activeScenes: game.scene.getScenes(true).length,
+        inputBindings: 3,
+        obstaclePoolSize: state.obstaclePoolSize,
+        frameMs: [...frameMs],
+      }
+    })
+  }
 
   shell.onAction((action, invoker) => {
     if (action === "start" || action === "continue" || action === "retry") {

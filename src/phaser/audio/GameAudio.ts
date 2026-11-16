@@ -1,12 +1,14 @@
 import type { ObstacleKind, Term } from "../../course/types"
 
+const AUDIO_BASE = `${import.meta.env.BASE_URL}audio/approved/`
+
 export const AUDIO_ASSETS = {
-  "audio-theme": "/audio/approved/main-theme.mp3",
-  "audio-christmas": "/audio/approved/holiday-christmas.mp3",
-  "audio-spring": "/audio/approved/holiday-spring.mp3",
-  "audio-course-end": "/audio/approved/course-end.mp3",
-  "audio-jump": "/audio/approved/jump.mp3",
-  "audio-impact": "/audio/approved/new-obstacle.mp3",
+  "audio-theme": `${AUDIO_BASE}main-theme.mp3`,
+  "audio-christmas": `${AUDIO_BASE}holiday-christmas.mp3`,
+  "audio-spring": `${AUDIO_BASE}holiday-spring.mp3`,
+  "audio-course-end": `${AUDIO_BASE}course-end.mp3`,
+  "audio-jump": `${AUDIO_BASE}jump.mp3`,
+  "audio-impact": `${AUDIO_BASE}new-obstacle.mp3`,
 } as const
 
 interface SoundLike {

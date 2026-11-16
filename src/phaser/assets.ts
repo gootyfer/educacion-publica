@@ -12,37 +12,39 @@ export interface SheetAsset {
 
 export type GameAsset = ImageAsset | SheetAsset
 
+const GAME_BASE = `${import.meta.env.BASE_URL}game/`
+
 export const GAME_ASSETS = {
   teacher: {
     kind: "spritesheet",
-    url: "/game/characters/teacher.png",
+    url: `${GAME_BASE}characters/teacher.png`,
     frameWidth: 64,
     frameHeight: 64,
   },
   companions: {
     kind: "spritesheet",
-    url: "/game/characters/companions.png",
+    url: `${GAME_BASE}characters/companions.png`,
     frameWidth: 75,
     frameHeight: 75,
   },
   obstacles: {
     kind: "spritesheet",
-    url: "/game/obstacles/obstacles.png",
+    url: `${GAME_BASE}obstacles/obstacles.png`,
     frameWidth: 128,
     frameHeight: 128,
   },
-  term1: { kind: "image", url: "/game/backgrounds/term-1.png" },
-  term2: { kind: "image", url: "/game/backgrounds/term-2.png" },
-  term3: { kind: "image", url: "/game/backgrounds/term-3.png" },
+  term1: { kind: "image", url: `${GAME_BASE}backgrounds/term-1.png` },
+  term2: { kind: "image", url: `${GAME_BASE}backgrounds/term-2.png` },
+  term3: { kind: "image", url: `${GAME_BASE}backgrounds/term-3.png` },
   energy: {
     kind: "spritesheet",
-    url: "/game/ui/energy.png",
+    url: `${GAME_BASE}ui/energy.png`,
     frameWidth: 100,
     frameHeight: 100,
   },
   panels: {
     kind: "spritesheet",
-    url: "/game/ui/panels.png",
+    url: `${GAME_BASE}ui/panels.png`,
     frameWidth: 100,
     frameHeight: 100,
   },

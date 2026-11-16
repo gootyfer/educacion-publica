@@ -9,10 +9,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "budget": "node scripts/check-game-budget.mjs dist",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "ci": "npm run typecheck && npm test && npm run build && npm run test:e2e"
+    "ci": "npm run typecheck && npm test && npm run build && npm run budget && npm run test:e2e"
   },
   "devDependencies": {
     "@axe-core/playwright": "latest",
@@ -22,7 +23,6 @@
     "vitest": "latest"
   },
   "dependencies": {
-    "@fontsource/schoolbell": "^5.3.0",
     "phaser": "3.90.0"
   }
 }

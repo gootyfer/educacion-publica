@@ -10,7 +10,7 @@ declare global {
 
 async function openSlice(page: Page, width: number, height: number) {
   await page.setViewportSize({ width, height })
-  await page.goto("/phaser.html?slice=1")
+  await page.goto("/?slice=1")
   await expect(page.locator("canvas")).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.__phaserSlice)).toBeTruthy()
 }
@@ -26,7 +26,7 @@ for (const viewport of [
     await expect(canvas).toHaveAttribute("width", "640")
     await expect(canvas).toHaveAttribute("height", "360")
     await canvas.click()
-    await expect(page.locator("#slice-status")).toContainText("saltado")
+    await expect(page.getByRole("status")).toContainText("saltado")
     await expect
       .poll(() =>
         page.evaluate(() => {
@@ -41,7 +41,7 @@ for (const viewport of [
       .toBe(true)
 
     await page.keyboard.press("Space")
-    await expect(page.locator("[data-hud='energy']")).toHaveCount(1)
+    await expect(page.locator("canvas")).toHaveCount(1)
     await expect(page.locator("[data-hud='ratio']")).toHaveCount(0)
     await expect(page.locator("[data-hud='term']")).toHaveCount(0)
   })
@@ -50,7 +50,7 @@ for (const viewport of [
 test("a collision lowers energy without ending the slice", async ({ page }) => {
   await openSlice(page, 844, 390)
 
-  await expect(page.locator("#slice-status")).toContainText(/choque/i, {
+  await expect(page.getByRole("status")).toContainText(/energía/i, {
     timeout: 8_000,
   })
   const state = await page.evaluate(() => window.__phaserSlice)

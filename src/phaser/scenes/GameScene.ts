@@ -24,6 +24,7 @@ export interface GameDebugState {
   readonly companionCount: number
   readonly obstacleKind: string
   readonly background: string
+  readonly obstaclePoolSize: number
 }
 
 const GROUND_Y = 318
@@ -137,6 +138,7 @@ export class GameScene extends Phaser.Scene {
       companionCount: this.companions.visibleCount(),
       obstacleKind: this.obstacles.activeKind(),
       background: TERM_BACKGROUNDS[this.courseState.term],
+      obstaclePoolSize: this.obstacles.size(),
     }
   }
 

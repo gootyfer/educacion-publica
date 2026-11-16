@@ -3,13 +3,24 @@ import Phaser from "phaser"
 import { createCourseState } from "../../course/progression"
 import { TITLE_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
+import type { CourseState } from "../../course/types"
+
+interface TitleSceneData {
+  readonly state?: CourseState
+}
 
 export class TitleScene extends Phaser.Scene {
   private panel?: PixelPanel
   private started = false
+  private initialState = createCourseState()
 
   constructor() {
     super("title")
+  }
+
+  init(data: TitleSceneData): void {
+    this.initialState = data.state ?? createCourseState()
+    this.started = false
   }
 
   create(): void {
@@ -29,7 +40,7 @@ export class TitleScene extends Phaser.Scene {
   private readonly startCourse = (): void => {
     if (this.started) return
     this.started = true
-    this.scene.start("game", { term: 1, state: createCourseState() })
+    this.scene.start("game", { term: 1, state: this.initialState })
   }
 
   private shutdown(): void {

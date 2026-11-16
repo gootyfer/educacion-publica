@@ -77,6 +77,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   pointer-events: auto;
 }
 .semantic-action:focus-visible { outline: 4px solid #f3d765; background: rgb(243 215 101 / 15%); }
+.semantic-action:disabled { cursor: wait; pointer-events: none; }
 .action-start { top: 43%; }
 .action-how { top: 57%; }
 .action-continue { top: 64%; width: 40%; }

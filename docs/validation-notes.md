@@ -1,58 +1,36 @@
-# Validación del prototipo
+# Validación de la reimplementación Phaser
 
-**Revisión interna:** 7 de noviembre de 2026
-**Entorno:** Chromium, viewport móvil y escritorio
+**Revisión interna:** 16 de noviembre de 2026  
+**Motor y formato:** Phaser 3, 640×360, móvil horizontal
 
-## Comprobado
+## Comprobado automáticamente
 
-- Los controles se entienden desde la portada y solo requieren tocar o pulsar espacio.
-- La ratio creciente se muestra en el HUD, aumenta el desgaste y reduce gradualmente el salto.
-- El alumnado acompaña al docente y no recibe colisiones; los obstáculos son burocracia, climatización e infraestructura.
-- La pantalla final permite recordar al menos dos motivos de la protesta y explica explícitamente la relación entre ratio, energía y salto.
-- El tono se dirige a situaciones y carencias, sin caricaturas de figuras políticas ni lenguaje partidista.
-- Las cuatro cifras distinguen fuentes oficiales, sindicales e información de prensa, con cautelas visibles.
-- La portada, las vacaciones y el resultado se revisaron visualmente en 390×844 y 844×390: no hay recortes ni solapamientos y la jerarquía se mantiene legible.
-- La portada panorámica usa dos columnas para conservar instrucciones y controles dentro de la primera pantalla.
-- La @ aparece una sola vez por menú como marca secundaria; no compite con la información ni se usa como control.
-- La fuente manual Schoolbell se empaqueta con la aplicación y el cuerpo conserva una tipografía de sistema redondeada y legible.
-- Axe no detecta problemas serios o críticos en portada, ambas vacaciones ni resultado; el recorrido completo funciona con teclado.
-- Se añadió una regresión específica para asegurar que la portada permanezca oculta al jugar en 844×390.
-- El curso completo enlaza los tres trimestres, las dos vacaciones y el resultado acumulado; cada trimestre empieza algo más rápido que el anterior.
-- Las seis siluetas aparecen progresivamente y la alternativa textual las enumera junto con su estacionalidad.
-- Solo los once audios aprobados están en `public/audio/approved/`; las versiones rechazadas no forman parte del build.
-- La música usa tres velocidades hasta 1,15×, se pausa en vacaciones y convive con firma de trimestre, finales y efectos sin controlar el estado del juego.
-- El botón de sonido tiene nombre accesible, conserva la preferencia y mantiene la partida operativa con reproducción rechazada, archivos ausentes o `localStorage` bloqueado.
-- `npm run ci` completa 51 pruebas unitarias, build de producción y 18 recorridos Playwright.
-- Una pestaña oculta congela el tiempo visible de vacaciones y no puede saltarse una transición al volver.
-- El alumnado permanece apoyado en el suelo cuando salta el docente; el resultado acumulado enumera etapas y obstáculos descubiertos.
-- El build funciona con recursos locales: fuente, código, cifras y audio no requieren peticiones de red durante la partida.
+- El profesorado salta mientras los acompañantes permanecen agrupados y apoyados en el suelo.
+- La ratio crece simbólicamente hasta nueve identidades diversas y nunca crea colisiones del alumnado.
+- Septiembre, invierno y junio usan fondos propios; frío y goteras aparecen en invierno y calor en junio.
+- Los seis obstáculos pueden aparecer y sus huecos respetan la geometría mínima de salto.
+- Un choque reduce energía sin terminar inmediatamente el trimestre.
+- Navidad y Semana Santa esperan una activación manual y rellenan diez bloques en aproximadamente un segundo; movimiento reducido completa la barra sin espera visual.
+- La portada, las pausas y el resultado usan cartel central y no recuperan los adornos rojos descartados.
+- La navegación por teclado, la restauración del foco, el modo vertical, las fuentes reales y la alternativa sin JavaScript tienen cobertura de navegador.
+- Axe no detecta incidencias serias o críticas en la portada.
+- El audio no comienza antes de interactuar, el silencio persiste y los MP3 ausentes no bloquean el juego.
+- El build aplica un presupuesto comprimido de 3 MB a código y arte crítico, con audio excluido.
 
-## Recorrido de QA interno
+## Revisión visual interna
 
-- 390×844: portada, partida, HUD, tres estaciones, vacaciones, resultado, repetición y control de sonido.
-- 844×390: portada en dos columnas, Canvas contenido en viewport, resultado sin reaparición de la portada y botón de sonido separado del contenido.
-- Teclado: foco de inicio, salto con espacio, continuación de vacaciones, resultado enfocado y repetición.
-- Sonido activado y silenciado: la preferencia cambia de forma accesible; las pruebas instrumentadas confirman que no hay reproducción antes de interactuar y que el silencio impide los eventos posteriores.
-- Degradación: la partida continúa cuando todos los `play()` se rechazan y cuando las rutas de audio se abortan.
+- 844×390: portada, HUD, docente, grupo y obstáculo legibles.
+- 640×360 lógico: pixel snapping y composición sin texto persistente de trimestre o ratio.
+- La camiseta conserva el verde y su lema blanco se sugiere como varias marcas horizontales; no aparece una `@` aislada.
+- Gafas, ojos y nariz se mantienen visibles; no hay pendiente.
+- El grupo queda detrás del profesorado y no salta.
 
 ## Validación pendiente con público general
 
-1. Probar con al menos cinco personas ajenas a la comunidad educativa si interpretan al alumnado como responsabilidad y no como carga.
-2. Medir si pueden nombrar dos reivindicaciones después de una sola partida.
-3. Ajustar frecuencia de obstáculos y desgaste tras observar partidas reales; no cambiar simultáneamente más de un parámetro.
-4. Comprobar rendimiento táctil en un móvil físico antiguo, además de los viewports emulados.
-5. Revisar el texto compartido con organizaciones convocantes antes de una difusión pública amplia.
+1. Confirmar con al menos cinco personas ajenas a la comunidad educativa que interpretan al alumnado como una responsabilidad que necesita apoyos, no como una carga.
+2. Medir si recuerdan dos reivindicaciones y relacionan clima, burocracia e infraestructura con los objetos.
+3. Ajustar una sola variable por iteración después de observar partidas reales.
+4. Comprobar tacto y rendimiento en un móvil físico de gama media o antigua.
+5. Revisar el texto de compartir con organizaciones convocantes antes de una difusión amplia.
 
-### Guion mínimo de prueba
-
-Después de una sola partida, sin explicar previamente las metáforas, preguntar:
-
-1. ¿Qué crees que representa que el salto se haga más corto?
-2. ¿Por qué aumenta el número de alumnos y qué efecto tiene?
-3. ¿Qué obstáculos recuerdas y cuáles relacionas con cada trimestre?
-4. ¿Interpretaste al alumnado como una carga o como una responsabilidad que exige más energía y apoyos?
-5. ¿Qué dos reivindicaciones explicarías a otra persona?
-
-Registrar respuestas literales y el dispositivo utilizado. Si se ajusta el
-equilibrio, cambiar un único parámetro por iteración para poder atribuir el
-resultado observado.
+La PWA y su icono de instalación quedan expresamente aplazados.

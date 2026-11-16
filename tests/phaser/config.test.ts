@@ -3,10 +3,12 @@ import { describe, expect, it, vi } from "vitest"
 vi.mock("phaser", () => {
   class Scene {}
   class Game {}
+  class Sprite {}
   const phaser = {
     AUTO: 0,
     Game,
     Scene,
+    Physics: { Arcade: { Sprite } },
     Loader: { Events: { PROGRESS: "progress" } },
     Scale: { FIT: 1, CENTER_BOTH: 2 },
   }

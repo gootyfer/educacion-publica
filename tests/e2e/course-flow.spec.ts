@@ -13,7 +13,7 @@ test("uses the three seasonal school backgrounds in course order", async ({
 }) => {
   const backgrounds: string[] = []
   for (const term of [1, 2, 3]) {
-    await page.goto(`/phaser.html?term=${term}&seed=2026`)
+    await page.goto(`/?term=${term}&seed=2026`)
     await expect(page.locator("canvas")).toBeVisible()
     await expect
       .poll(() => page.evaluate(() => window.__phaserSlice?.term))
@@ -30,8 +30,8 @@ test("deterministic impacts are recoverable and followers stay grounded", async 
   page,
 }) => {
   await page.setViewportSize({ width: 844, height: 390 })
-  await page.goto("/phaser.html?term=2&seed=9")
-  await expect(page.locator("#slice-status")).toContainText(/choque/i, {
+  await page.goto("/?term=2&seed=9")
+  await expect(page.getByRole("status")).toContainText(/energía/i, {
     timeout: 10_000,
   })
 

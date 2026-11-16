@@ -64,6 +64,7 @@ export interface GameShellHandle {
   setLoading(progress: number): void
   announce(message: string): void
   setMuted(muted: boolean): void
+  setContinueReady(ready: boolean): void
   onAction(listener: (action: ShellAction, invoker: HTMLElement) => void): void
   showMotivation(invoker?: HTMLElement | null): void
   showSources(invoker?: HTMLElement | null): void
@@ -142,6 +143,7 @@ export class GameShell implements GameShellHandle {
       button.dataset.shellAction = control.action
       button.setAttribute("aria-label", control.label)
       button.textContent = control.label
+      if (control.action === "continue") button.disabled = true
       button.addEventListener("click", this.handleAction)
       this.controls.append(button)
     }
@@ -168,6 +170,13 @@ export class GameShell implements GameShellHandle {
     if (!button) return
     button.setAttribute("aria-label", muted ? "Activar sonido" : "Silenciar sonido")
     button.innerHTML = `<span aria-hidden="true">${muted ? "🔇" : "🔊"}</span>`
+  }
+
+  setContinueReady(ready: boolean): void {
+    const button = this.controls.querySelector<HTMLButtonElement>(
+      "[data-shell-action='continue']",
+    )
+    if (button) button.disabled = !ready
   }
 
   onAction(listener: (action: ShellAction, invoker: HTMLElement) => void): void {
