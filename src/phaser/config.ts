@@ -3,6 +3,9 @@ import Phaser from "phaser"
 import { BootScene } from "./scenes/BootScene"
 import { GameScene } from "./scenes/GameScene"
 import { PreloadScene } from "./scenes/PreloadScene"
+import { ResultsScene } from "./scenes/ResultsScene"
+import { TermBreakScene } from "./scenes/TermBreakScene"
+import { TitleScene } from "./scenes/TitleScene"
 
 export const GAME_WIDTH = 640
 export const GAME_HEIGHT = 360
@@ -28,6 +31,13 @@ export function buildGameConfig(
       width: GAME_WIDTH,
       height: GAME_HEIGHT,
     },
-    scene: [BootScene, PreloadScene, GameScene],
+    scene: [
+      BootScene,
+      PreloadScene,
+      TitleScene,
+      GameScene,
+      TermBreakScene,
+      ResultsScene,
+    ],
   }
 }

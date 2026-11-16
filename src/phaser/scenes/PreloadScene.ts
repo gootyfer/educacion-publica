@@ -42,17 +42,21 @@ export class PreloadScene extends Phaser.Scene {
   create(): void {
     this.game.events.emit(PRELOAD_COMPLETE_EVENT)
     const term = this.developmentTermFromLocation()
+    if (term === null) {
+      this.scene.start("title")
+      return
+    }
     this.scene.start("game", {
       term,
       state: createCourseStateAtTerm(term),
     })
   }
 
-  private developmentTermFromLocation(): Term {
-    if (!import.meta.env.DEV || typeof window === "undefined") return 1
-    const requested = Number(
-      new URLSearchParams(window.location.search).get("term"),
-    )
+  private developmentTermFromLocation(): Term | null {
+    if (!import.meta.env.DEV || typeof window === "undefined") return null
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has("slice") && !params.has("term")) return null
+    const requested = Number(params.get("term"))
     return requested === 2 || requested === 3 ? requested : 1
   }
 }

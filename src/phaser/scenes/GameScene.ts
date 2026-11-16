@@ -102,9 +102,18 @@ export class GameScene extends Phaser.Scene {
       } else if (event.type === "term-ended") {
         this.physics.pause()
         this.game.events.emit("game:term-ended", event.term, this.courseState)
+        this.scene.start("term-break", {
+          completedTerm: event.term,
+          nextTerm: event.term === 1 ? 2 : 3,
+          state: this.courseState,
+        })
       } else if (event.type === "course-ended") {
         this.physics.pause()
         this.game.events.emit("game:course-ended", this.courseState)
+        const result = this.courseState.completedTerms.at(-1)
+        if (result) {
+          this.scene.start("results", { result, state: this.courseState })
+        }
       }
     }
 

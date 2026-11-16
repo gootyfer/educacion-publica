@@ -10,7 +10,7 @@ declare global {
 
 async function openSlice(page: Page, width: number, height: number) {
   await page.setViewportSize({ width, height })
-  await page.goto("/phaser.html")
+  await page.goto("/phaser.html?slice=1")
   await expect(page.locator("canvas")).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.__phaserSlice)).toBeTruthy()
 }
