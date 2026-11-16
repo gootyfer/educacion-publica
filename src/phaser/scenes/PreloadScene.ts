@@ -1,6 +1,7 @@
 import Phaser from "phaser"
 
 import { GAME_ASSETS } from "../assets"
+import { AUDIO_ASSETS } from "../audio/GameAudio"
 import { createCourseStateAtTerm } from "../../course/progression"
 import type { Term } from "../../course/types"
 
@@ -36,6 +37,9 @@ export class PreloadScene extends Phaser.Scene {
           frameHeight: asset.frameHeight,
         })
       }
+    }
+    for (const [key, url] of Object.entries(AUDIO_ASSETS)) {
+      this.load.audio(key, url)
     }
   }
 

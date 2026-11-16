@@ -1,7 +1,8 @@
 import "./styles.css"
 
-import type { CourseState } from "./course/types"
+import type { CourseState, ObstacleKind } from "./course/types"
 import { createPhaserGame } from "./phaser/create-game"
+import { GameAudio } from "./phaser/audio/GameAudio"
 import {
   PRELOAD_COMPLETE_EVENT,
   PRELOAD_ERROR_EVENT,
@@ -21,11 +22,10 @@ const shell = GameShell.mount(app)
 app.dataset.appReady = "true"
 
 let resultState: CourseState | null = null
-let muted = readMuted()
-shell.setMuted(muted)
-
 try {
   const game = createPhaserGame(shell.gameRoot)
+  const audio = new GameAudio(game.sound)
+  shell.setMuted(audio.isMuted())
 
   game.events.on(PRELOAD_PROGRESS_EVENT, (progress: number) => {
     shell.setLoading(progress)
@@ -38,20 +38,34 @@ try {
   game.events.on("scene:game", (term: 1 | 2 | 3) => {
     shell.setScreen("game")
     shell.announce(announcementFor("term", term))
+    audio.startTerm(term)
   })
-  game.events.on("scene:term-break", () => shell.setScreen("term-break"))
+  game.events.on("scene:term-break", (term: 1 | 2) => {
+    shell.setScreen("term-break")
+    audio.playHoliday(term)
+  })
   game.events.on("scene:results", (state: CourseState) => {
     resultState = state
     shell.setScreen("results")
+    audio.playCourseEnd()
   })
-  game.events.on("game:jump", () => shell.announce(announcementFor("jump")))
-  game.events.on("game:impact", () => shell.announce(announcementFor("impact")))
+  game.events.on("game:jump", () => {
+    shell.announce(announcementFor("jump"))
+    audio.playJump()
+  })
+  game.events.on("game:impact", (kind: ObstacleKind) => {
+    shell.announce(announcementFor("impact"))
+    audio.playImpact(kind)
+  })
   game.events.on("game:companions-added", (count: number) =>
     shell.announce(announcementFor("companions", count)),
   )
 
   shell.onAction((action, invoker) => {
-    void handleAction(action, invoker, game)
+    if (action === "start" || action === "continue" || action === "retry") {
+      audio.unlock()
+    }
+    void handleAction(action, invoker, game, audio)
   })
 } catch {
   app.innerHTML = `
@@ -67,17 +81,17 @@ async function handleAction(
   action: ShellAction,
   invoker: HTMLElement,
   game: Phaser.Game,
+  audio: GameAudio,
 ): Promise<void> {
   if (action === "how" || action === "why") {
     shell.showMotivation(invoker)
     return
   }
   if (action === "mute") {
-    muted = !muted
-    writeMuted(muted)
+    const muted = !audio.isMuted()
+    audio.setMuted(muted)
     shell.setMuted(muted)
     shell.announce(muted ? "Sonido desactivado." : "Sonido activado.")
-    game.events.emit("audio:mute", muted)
     return
   }
   if (action === "share") {
@@ -107,20 +121,4 @@ async function handleAction(
   }
 
   game.events.emit(`ui:${action}`)
-}
-
-function readMuted(): boolean {
-  try {
-    return window.localStorage.getItem("jornada-muted") === "true"
-  } catch {
-    return false
-  }
-}
-
-function writeMuted(value: boolean): void {
-  try {
-    window.localStorage.setItem("jornada-muted", String(value))
-  } catch {
-    // El juego sigue funcionando cuando el almacenamiento está bloqueado.
-  }
 }
