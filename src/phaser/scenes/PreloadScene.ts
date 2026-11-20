@@ -93,7 +93,7 @@ export class PreloadScene extends Phaser.Scene {
     ) {
       return {
         ...DEFAULT_CALIBRATION,
-        ratioIntervalMs: 60_000,
+        ratioIntervalMs: { 1: 60_000, 2: 60_000, 3: 60_000 },
         energyDrainPerSecond: { 1: 0.01, 2: 0.01, 3: 0.01 },
         initialRatios: { 1: 52, 2: 52, 3: 52 },
       }
@@ -108,9 +108,9 @@ export class PreloadScene extends Phaser.Scene {
     return {
       ...DEFAULT_CALIBRATION,
       impactDamage: 2,
-      ratioIntervalMs: 20,
+      ratioIntervalMs: { 1: 20, 2: 20, 3: 20 },
       energyDrainPerSecond: { 1: 200, 2: 200, 3: 200 },
-      initialRatios: { 1: 20, 2: 36, 3: 52 },
+      initialRatios: { 1: 20, 2: 20, 3: 20 },
       targetTermDurationMs: { 1: 500, 2: 500, 3: 500 },
     }
   }

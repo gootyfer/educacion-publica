@@ -5,17 +5,23 @@ import {
   advanceCourse,
   companionCountForRatio,
   createCourseState,
+  createCourseStateAtTerm,
 } from "../../src/course/progression"
 
 describe("course progression", () => {
-  it("starts the first term with full energy and one symbolic companion", () => {
+  it("starts every term with full energy and two symbolic companions", () => {
     const state = createCourseState()
 
     expect(state.phase).toBe("running")
     expect(state.term).toBe(1)
     expect(state.energy).toBe(100)
     expect(state.ratio).toBe(DEFAULT_CALIBRATION.initialRatios[1])
-    expect(state.companionCount).toBe(1)
+    expect(state.companionCount).toBe(2)
+    for (const term of [1, 2, 3] as const) {
+      const termState = createCourseStateAtTerm(term)
+      expect(termState.ratio).toBe(20)
+      expect(termState.companionCount).toBe(2)
+    }
   })
 
   it("clamps large frame deltas before advancing time and draining energy", () => {
@@ -49,7 +55,7 @@ describe("course progression", () => {
       companionCountForRatio,
     )
 
-    expect(counts[0]).toBe(1)
+    expect(counts[0]).toBe(2)
     expect(counts.at(-1)).toBe(9)
     expect(counts.every((count, index) => index === 0 || count >= counts[index - 1]!)).toBe(true)
   })
@@ -96,7 +102,7 @@ describe("course progression", () => {
     expect(step.events).toContainEqual({ type: "term-started", term: 3 })
   })
 
-  it("never shrinks the companion group across term breaks", () => {
+  it("resets ratio and companions each term while preserving the annual maximum", () => {
     const termOneEnded = {
       ...createCourseState(),
       phase: "term-break" as const,
@@ -112,10 +118,48 @@ describe("course progression", () => {
     ).state
     const nextFrame = advanceCourse(winter, {}, 16).state
 
-    expect(winter.ratio).toBe(52)
-    expect(winter.companionCount).toBe(9)
+    expect(winter.ratio).toBe(20)
+    expect(winter.maxRatio).toBe(52)
+    expect(winter.companionCount).toBe(2)
     expect(nextFrame.ratio).toBeGreaterThanOrEqual(winter.ratio)
-    expect(nextFrame.companionCount).toBe(9)
+    expect(nextFrame.companionCount).toBe(2)
+  })
+
+  it("reaches nine companions at roughly two thirds of every normal term", () => {
+    for (const term of [1, 2, 3] as const) {
+      for (const withImpacts of [false, true]) {
+        let state = createCourseStateAtTerm(term)
+        const target = state.profile.targetTermDurationMs[term]
+        let sentFirstImpact = false
+        let sentSecondImpact = false
+        while (state.phase === "running" && state.companionCount < 9) {
+          const input =
+            withImpacts && !sentFirstImpact && state.elapsedMs >= target * 0.2
+              ? ((sentFirstImpact = true), { impact: "paper-stack" as const })
+              : withImpacts &&
+                  !sentSecondImpact &&
+                  state.elapsedMs >= target * 0.45
+                ? ((sentSecondImpact = true), { impact: "wall" as const })
+                : {}
+          state = advanceCourse(state, input, state.profile.maxDeltaMs).state
+        }
+        expect(state.companionCount).toBe(9)
+        expect(state.elapsedMs / target).toBeGreaterThanOrEqual(0.64)
+        expect(state.elapsedMs / target).toBeLessThanOrEqual(0.75)
+      }
+    }
+  })
+
+  it("allows repeated impacts to end a term before the group reaches nine", () => {
+    let state = createCourseStateAtTerm(1)
+    while (state.phase === "running") {
+      state = advanceCourse(
+        state,
+        state.invulnerabilityMs === 0 ? { impact: "wall" } : {},
+        state.profile.maxDeltaMs,
+      ).state
+    }
+    expect(state.companionCount).toBeLessThan(9)
   })
 
   it("emits course end when energy reaches zero in term three", () => {

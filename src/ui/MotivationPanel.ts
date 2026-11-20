@@ -1,9 +1,9 @@
-import { EVIDENCE_FACTS } from "../content/facts"
+import { EVIDENCE_FACTS, RATIO_METAPHOR_NOTE } from "../content/facts"
 
 export const MOTIVATION_SECTIONS = [
   {
     title: "La ratio crece",
-    body: "Más alumnado necesita más tiempo, apoyos y recursos.",
+    body: RATIO_METAPHOR_NOTE,
   },
   {
     title: "La energía baja",

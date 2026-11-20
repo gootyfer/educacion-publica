@@ -76,9 +76,9 @@ describe("production course calibration", () => {
       counts.push(state.companionCount)
     }
 
-    expect(counts[0]).toBe(1)
+    expect(counts[0]).toBe(2)
     expect(Math.max(...counts)).toBe(9)
-    expect(counts.every((count) => count >= 1 && count <= 9)).toBe(true)
+    expect(counts.every((count) => count >= 2 && count <= 9)).toBe(true)
   })
 
   it("keeps every generated gap traversable at minimum energy", () => {

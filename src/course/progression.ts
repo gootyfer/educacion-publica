@@ -65,7 +65,7 @@ function companionCountForProfile(
   const growth = Math.floor(
     (ratio - profile.companionBaselineRatio) / profile.companionRatioStep,
   )
-  return clamp(1 + growth, 1, 9)
+  return clamp(2 + growth, 2, 9)
 }
 
 export function advanceCourse(
@@ -84,7 +84,7 @@ export function advanceCourse(
   const courseElapsedMs = state.courseElapsedMs + safeDeltaMs
   const scheduledRatio =
     state.profile.initialRatios[state.term] +
-    Math.floor(elapsedMs / state.profile.ratioIntervalMs) *
+    Math.floor(elapsedMs / state.profile.ratioIntervalMs[state.term]) *
       state.profile.ratioStep
   const ratio = Math.max(
     state.ratio,
@@ -160,7 +160,7 @@ export function advanceCourse(
 
 function startNextTerm(state: CourseState): CourseStep {
   const term = Math.min(3, state.term + 1) as Term
-  const ratio = Math.max(state.ratio, state.profile.initialRatios[term])
+  const ratio = state.profile.initialRatios[term]
   return {
     state: {
       ...state,
@@ -169,7 +169,7 @@ function startNextTerm(state: CourseState): CourseStep {
       elapsedMs: 0,
       energy: clamp(state.profile.initialEnergy, 0, 100),
       ratio,
-      maxRatio: ratio,
+      maxRatio: Math.max(state.maxRatio, ratio),
       companionCount: companionCountForProfile(ratio, state.profile),
       invulnerabilityMs: 0,
       impacts: emptyImpacts(),

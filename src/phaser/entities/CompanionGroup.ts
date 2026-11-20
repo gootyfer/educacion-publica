@@ -2,6 +2,29 @@ import type Phaser from "phaser"
 
 import { COMPANION_FRAME_INDEXES } from "../animations"
 
+export interface CompanionSlot {
+  readonly x: number
+  readonly y: number
+  readonly scale: number
+  readonly depth: number
+}
+
+const FORMATION: readonly CompanionSlot[] = [
+  { x: -44, y: 0, scale: 0.88, depth: 30 },
+  { x: -76, y: 0, scale: 0.88, depth: 30 },
+  { x: -108, y: 0, scale: 0.88, depth: 30 },
+  { x: -58, y: -10, scale: 0.82, depth: 20 },
+  { x: -90, y: -10, scale: 0.82, depth: 20 },
+  { x: -122, y: -10, scale: 0.82, depth: 20 },
+  { x: -72, y: -20, scale: 0.76, depth: 10 },
+  { x: -104, y: -20, scale: 0.76, depth: 10 },
+  { x: -136, y: -20, scale: 0.76, depth: 10 },
+]
+
+export function companionFormation(count: number): readonly CompanionSlot[] {
+  return FORMATION.slice(0, Math.min(9, Math.max(0, Math.floor(count))))
+}
+
 export class CompanionGroup {
   private readonly sprites: Phaser.GameObjects.Sprite[]
   private count = 0
@@ -15,8 +38,8 @@ export class CompanionGroup {
       scene.add
         .sprite(0, groundY, "companions", frames[0])
         .setOrigin(0.5, 1)
-        .setScale(index === 8 ? 0.78 : 0.88)
-        .setDepth(10 + index)
+        .setScale(0.88)
+        .setDepth(10)
         .setVisible(false)
         .play(`companion-${index + 1}-run`),
     )
@@ -24,17 +47,19 @@ export class CompanionGroup {
 
   setCount(count: number): void {
     this.count = Math.min(9, Math.max(0, Math.floor(count)))
+    const slots = companionFormation(this.count)
     this.sprites.forEach((sprite, index) => {
       const visible = index < this.count
-      const row = index % 2
-      const column = Math.floor(index / 2)
+      const slot = slots[index]
       sprite
         .setVisible(visible)
         .setActive(visible)
-        .setPosition(
-          this.teacherX - 42 - column * 23 - row * 10,
-          this.groundY,
-        )
+      if (slot) {
+        sprite
+          .setPosition(this.teacherX + slot.x, this.groundY + slot.y)
+          .setScale(slot.scale)
+          .setDepth(slot.depth)
+      }
     })
   }
 
