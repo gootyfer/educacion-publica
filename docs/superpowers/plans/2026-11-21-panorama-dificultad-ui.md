@@ -4,7 +4,7 @@
 
 **Goal:** Incorporar el recorrido madrileño continuo ya diseñado, reproducir fielmente las pantallas aprobadas y recalibrar acompañantes, obstáculos y música para que el runner tenga movimiento y dificultad progresiva sin secuencias injustas.
 
-**Architecture:** La implementación separa decisiones puras de juego (`course`) de objetos Phaser: una única función de presión controla velocidad, distancia entre obstáculos y tasa musical; un `TileSprite` desplaza panoramas estacionales enteros; y constantes de layout compartidas alinean el dibujo Phaser con los botones HTML. La producción visual es la primera tarea y constituye un punto de aprobación obligatorio: no se integran los assets ni se modifica la jugabilidad hasta que el usuario valide la hoja de contacto y los bucles.
+**Architecture:** La implementación separa decisiones puras de juego (`course`) de objetos Phaser: una única función de presión controla velocidad, distancia entre obstáculos y tasa musical; un `TileSprite` desplaza panoramas estacionales enteros; y constantes de layout compartidas alinean el dibujo Phaser con los botones HTML. La producción visual es la primera tarea y sus evidencias se conservan para revisión, pero la ejecución continúa directamente con la integración por instrucción expresa del usuario.
 
 **Tech Stack:** TypeScript 5, Phaser 3.90, Vite, Vitest, Playwright, CSS/DOM semántico, Sharp (solo desarrollo para preparar assets), ImageGen para el pixel art.
 
@@ -89,11 +89,11 @@
 
   Usar el `ffmpeg` ya disponible en el entorno para ensamblar sin interpolación. La hoja de contacto debe mostrar los quince tramos en filas estacionales y la pausa primaveral; los tres GIF deben recorrer `3200 px` y cruzar una vez la costura final. Verificar con `ffprobe` que ningún frame reescala el arte fuera de múltiplos enteros.
 
-- [ ] **Step 6: Detener la ejecución para aprobación del usuario**
+- [ ] **Step 6: Conservar las evidencias y continuar con la integración**
 
-  Mostrar la hoja de contacto y los tres bucles. No iniciar Task 2 ni alterar código, dependencias o assets de producción hasta recibir aprobación explícita.
+  Guardar la hoja de contacto y los tres bucles como registro visual. Continuar con Task 2 sin una nueva pausa de aprobación, conforme a la instrucción explícita del usuario.
 
-- [ ] **Step 7: Commit tras la aprobación**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add art-source/panoramas docs/art-direction/una-jornada-decente/panorama-review
