@@ -4,8 +4,10 @@ import { DEFAULT_CALIBRATION } from "../../src/course/calibration"
 import {
   COURSE_GEOMETRY,
   SeededRandom,
+  difficultyPressure,
   eligibleObstacles,
   nextObstacle,
+  worldSpeedFor,
 } from "../../src/course/cadence"
 import { advanceCourse, createCourseState } from "../../src/course/progression"
 import type { ObstacleKind, Term } from "../../src/course/types"
@@ -25,6 +27,14 @@ describe("production course calibration", () => {
       expect.arrayContaining(["cold-climate", "leak"]),
     )
     expect(eligibleObstacles(3)).toContain("heat-climate")
+  })
+
+  it("shares one pressure curve between world speed and cadence", () => {
+    expect(difficultyPressure(1, 0, 60_000)).toBe(0)
+    expect(difficultyPressure(3, 60_000, 60_000)).toBe(1)
+    expect(worldSpeedFor(3, 60_000, 60_000)).toBeGreaterThan(
+      worldSpeedFor(1, 0, 60_000),
+    )
   })
 
   it("can produce all six obstacle variants across deterministic seeds", () => {
