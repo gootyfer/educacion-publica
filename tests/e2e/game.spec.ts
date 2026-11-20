@@ -121,7 +121,7 @@ test("keeps one active game and a bounded obstacle pool after retries", async ({
     const diagnostics = await page.evaluate(() => window.__gameDiagnostics)
     expect(diagnostics?.activeScenes).toBe(1)
     expect(diagnostics?.inputBindings).toBe(3)
-    expect(diagnostics?.obstaclePoolSize).toBe(1)
+    expect(diagnostics?.obstaclePoolSize).toBe(4)
     expect(diagnostics?.frameMs.length).toBeLessThanOrEqual(120)
 
     if (attempt < 4) {

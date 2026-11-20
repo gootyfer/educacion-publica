@@ -2,11 +2,15 @@ import Phaser from "phaser"
 
 import {
   COURSE_GEOMETRY,
-  SPEED_BY_BAND,
   SeededRandom,
   nextObstacle,
+  type GapBand,
 } from "../../course/cadence"
 import type { CourseState, ObstacleKind } from "../../course/types"
+
+const POOL_SIZE = 4
+const SPAWN_X = 680
+const INITIAL_GRACE_DISTANCE = 360
 
 const FRAME_BY_KIND: Readonly<Record<ObstacleKind, number>> = {
   "paper-stack": 0,
@@ -17,87 +21,153 @@ const FRAME_BY_KIND: Readonly<Record<ObstacleKind, number>> = {
   wall: 5,
 }
 
+export interface ActiveObstacleSnapshot {
+  readonly kind: ObstacleKind
+  readonly x: number
+}
+
 export class ObstaclePool {
-  private readonly obstacle: Phaser.Physics.Arcade.Image
+  private readonly group: Phaser.Physics.Arcade.Group
+  private readonly members: Phaser.Physics.Arcade.Image[]
   private readonly random: SeededRandom
-  private kind: ObstacleKind = "paper-stack"
   private previousKind?: ObstacleKind
+  private previousGapBand?: GapBand
+  private shortStreak = 0
+  private distanceUntilSpawn = INITIAL_GRACE_DISTANCE
 
   constructor(
     scene: Phaser.Scene,
     private readonly groundY: number,
-    state: CourseState,
+    _state: CourseState,
     seed = 2_026,
   ) {
     this.random = new SeededRandom(seed)
-    this.obstacle = scene.physics.add
-      .image(720, groundY, "obstacles", FRAME_BY_KIND[this.kind])
-      .setOrigin(0.5, 1)
-      .setDepth(18)
-      .setImmovable(true)
-    const body = this.obstacle.body as Phaser.Physics.Arcade.Body
-    body.setAllowGravity(false)
-    this.reset(state, 540)
+    this.group = scene.physics.add.group({ allowGravity: false, immovable: true })
+    this.members = Array.from({ length: POOL_SIZE }, () => {
+      const obstacle = scene.physics.add
+        .image(SPAWN_X, groundY, "obstacles", 0)
+        .setOrigin(0.5, 1)
+        .setDepth(18)
+        .setImmovable(true)
+        .setActive(false)
+        .setVisible(false)
+      const body = obstacle.body as Phaser.Physics.Arcade.Body
+      body.setAllowGravity(false)
+      body.enable = false
+      this.group.add(obstacle)
+      return obstacle
+    })
   }
 
-  active(): Phaser.Physics.Arcade.Image {
-    return this.obstacle
+  colliders(): Phaser.Physics.Arcade.Group {
+    return this.group
   }
 
-  activeKind(): ObstacleKind {
-    return this.kind
+  kindFor(obstacle: Phaser.GameObjects.GameObject): ObstacleKind | undefined {
+    return obstacle.getData("kind") as ObstacleKind | undefined
   }
 
-  update(state: CourseState): void {
-    if (this.obstacle.x >= -80) return
-    this.reset(state)
+  update(state: CourseState, deltaMs: number, worldSpeed: number): void {
+    for (const obstacle of this.members) {
+      if (!obstacle.active) continue
+      if (obstacle.x < -80) {
+        this.deactivate(obstacle)
+        continue
+      }
+      obstacle.setVelocityX(-worldSpeed)
+      ;(obstacle.body as Phaser.Physics.Arcade.Body).setVelocityX(-worldSpeed)
+    }
+
+    this.distanceUntilSpawn -= worldSpeed * (Math.max(0, deltaMs) / 1000)
+    if (this.distanceUntilSpawn > 0) return
+    const available = this.members.find((obstacle) => !obstacle.active)
+    if (!available) {
+      this.distanceUntilSpawn = 0
+      return
+    }
+    this.spawn(available, state, worldSpeed)
   }
 
   size(): number {
-    return 1
+    return this.members.length
+  }
+
+  activeCount(): number {
+    return this.members.filter(({ active }) => active).length
+  }
+
+  activeSnapshots(): readonly ActiveObstacleSnapshot[] {
+    return this.members
+      .filter(({ active }) => active)
+      .map((obstacle) => ({
+        kind: this.kindFor(obstacle) ?? "paper-stack",
+        x: Math.round(obstacle.x),
+      }))
+  }
+
+  activeKind(): ObstacleKind {
+    return this.activeSnapshots()[0]?.kind ?? "paper-stack"
   }
 
   activeX(): number {
-    return this.obstacle.x
+    return this.activeSnapshots()[0]?.x ?? SPAWN_X
   }
 
   collisionTop(): number {
-    return (this.obstacle.body as Phaser.Physics.Arcade.Body).top
+    const active = this.members.find(({ active }) => active)
+    return active
+      ? (active.body as Phaser.Physics.Arcade.Body).top
+      : this.groundY
   }
 
   destroy(): void {
-    this.obstacle.destroy()
+    this.group.destroy(true, true)
   }
 
-  private reset(state: CourseState, initialX?: number): void {
+  private spawn(
+    obstacle: Phaser.Physics.Arcade.Image,
+    state: CourseState,
+    worldSpeed: number,
+  ): void {
     const decision = nextObstacle(
       {
         term: state.term,
         energy: state.energy,
-        worldSpeed: SPEED_BY_BAND.medium,
+        worldSpeed,
         jumpAirtimeMs: COURSE_GEOMETRY.jumpAirtimeMs,
         obstacleWidth: COURSE_GEOMETRY.obstacleWidth,
+        elapsedMs: state.elapsedMs,
+        targetTermDurationMs: state.profile.targetTermDurationMs[state.term],
         previousKind: this.previousKind,
+        previousGapBand: this.previousGapBand,
+        shortStreak: this.shortStreak,
       },
       this.random,
     )
-    this.kind = decision.kind
     this.previousKind = decision.kind
-    const speed = SPEED_BY_BAND[decision.speedBand]
-    const spawnX = initialX ?? 640 + decision.gap
+    this.previousGapBand = decision.gapBand
+    this.shortStreak = decision.gapBand === "short" ? this.shortStreak + 1 : 0
+    this.distanceUntilSpawn = decision.gap
 
-    this.obstacle
-      .setFrame(FRAME_BY_KIND[this.kind])
+    obstacle
+      .setData("kind", decision.kind)
+      .setFrame(FRAME_BY_KIND[decision.kind])
       .setDisplaySize(62, 76)
-      .setPosition(spawnX, this.groundY)
-      .setVelocityX(-speed)
+      .setPosition(SPAWN_X, this.groundY)
+      .setVelocityX(-worldSpeed)
       .setActive(true)
       .setVisible(true)
-
-    const body = this.obstacle.body as Phaser.Physics.Arcade.Body
+    const body = obstacle.body as Phaser.Physics.Arcade.Body
     body.enable = true
     body.setSize(42, 28, true)
-    body.reset(spawnX, this.groundY)
-    body.setVelocityX(-speed)
+    body.reset(SPAWN_X, this.groundY)
+    body.setVelocityX(-worldSpeed)
+  }
+
+  private deactivate(obstacle: Phaser.Physics.Arcade.Image): void {
+    obstacle.setVelocityX(0).setActive(false).setVisible(false)
+    const body = obstacle.body as Phaser.Physics.Arcade.Body
+    body.setVelocityX(0)
+    body.enable = false
   }
 }

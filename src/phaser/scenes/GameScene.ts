@@ -1,5 +1,6 @@
 import Phaser from "phaser"
 
+import { worldSpeedFor } from "../../course/cadence"
 import { advanceCourse, createCourseState } from "../../course/progression"
 import type { CourseState, Term } from "../../course/types"
 import { registerGameAnimations } from "../animations"
@@ -29,6 +30,8 @@ export interface GameDebugState {
   readonly backgroundTexture: string
   readonly backgroundOffset: number
   readonly obstaclePoolSize: number
+  readonly activeObstacleCount: number
+  readonly obstacles: readonly { kind: string; x: number }[]
   readonly obstacleX: number
   readonly impactCount: number
   readonly teacherCollisionBottom: number
@@ -46,7 +49,7 @@ export class GameScene extends Phaser.Scene {
   private obstacles!: ObstaclePool
   private energyHud!: EnergyHud
   private backdrop!: ScrollingBackdrop
-  private pendingImpact = false
+  private pendingImpact?: import("../../course/types").ObstacleKind
   private lastEnergyBucket = 10
 
   constructor() {
@@ -89,9 +92,11 @@ export class GameScene extends Phaser.Scene {
 
     this.physics.add.overlap(
       this.teacher,
-      this.obstacles.active(),
-      () => {
-        this.pendingImpact = true
+      this.obstacles.colliders(),
+      (_teacher, obstacle) => {
+        this.pendingImpact = this.obstacles.kindFor(
+          obstacle as Phaser.GameObjects.GameObject,
+        )
       },
     )
 
@@ -103,14 +108,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
-    this.backdrop.update(delta, 150)
-    this.obstacles.update(this.courseState)
+    const elapsedMs = this.difficultyElapsedMs()
+    const worldSpeed = worldSpeedFor(
+      this.courseState.term,
+      elapsedMs,
+      this.courseState.profile.targetTermDurationMs[this.courseState.term],
+    )
+    this.backdrop.update(delta, worldSpeed)
+    this.obstacles.update(this.courseState, delta, worldSpeed)
     const step = advanceCourse(
       this.courseState,
-      this.pendingImpact ? { impact: this.obstacles.activeKind() } : {},
+      this.pendingImpact ? { impact: this.pendingImpact } : {},
       delta,
     )
-    this.pendingImpact = false
+    this.pendingImpact = undefined
     this.courseState = step.state
     this.companions.setCount(this.courseState.companionCount)
     this.energyHud.setEnergy(this.courseState.energy)
@@ -178,6 +189,8 @@ export class GameScene extends Phaser.Scene {
       backgroundTexture: this.backdrop.texture,
       backgroundOffset: this.backdrop.offset(),
       obstaclePoolSize: this.obstacles.size(),
+      activeObstacleCount: this.obstacles.activeCount(),
+      obstacles: this.obstacles.activeSnapshots(),
       obstacleX: Math.round(this.obstacles.activeX()),
       impactCount: Object.values(this.courseState.impacts).reduce(
         (total, count) => total + count,
@@ -204,6 +217,16 @@ export class GameScene extends Phaser.Scene {
       new URLSearchParams(window.location.search).get("backgroundOffset"),
     )
     return Number.isFinite(offset) ? offset : 0
+  }
+
+  private difficultyElapsedMs(): number {
+    if (!import.meta.env.DEV || typeof window === "undefined") {
+      return this.courseState.elapsedMs
+    }
+    const pressure = new URLSearchParams(window.location.search).get("pressure")
+    return pressure === "1"
+      ? this.courseState.profile.targetTermDurationMs[this.courseState.term]
+      : this.courseState.elapsedMs
   }
 
   private shutdown(): void {

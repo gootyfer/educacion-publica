@@ -91,3 +91,26 @@ test("a collision lowers energy without ending the slice", async ({ page }) => {
   expect(state?.energy).toBeLessThan(100)
   expect(state?.phase).toBe("running")
 })
+
+test("shows multiple but never more than four obstacles at high pressure", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/?slice=1&term=3&perf=1&pressure=1&seed=2026")
+  await expect(page.locator("canvas")).toBeVisible()
+  let maximumActive = 0
+  for (let index = 0; index < 24; index += 1) {
+    await page.waitForTimeout(250)
+    maximumActive = Math.max(
+      maximumActive,
+      (await page.evaluate(
+        () => window.__phaserSlice?.activeObstacleCount,
+      )) ?? 0,
+    )
+  }
+  expect(maximumActive).toBeGreaterThanOrEqual(2)
+  const state = await page.evaluate(() => window.__phaserSlice)
+  expect(state?.obstaclePoolSize).toBe(4)
+  expect(state?.activeObstacleCount).toBeLessThanOrEqual(4)
+  expect(state?.obstacles.every(({ kind }) => Boolean(kind))).toBe(true)
+})
