@@ -1,6 +1,6 @@
 import Phaser from "phaser"
 
-import { worldSpeedFor } from "../../course/cadence"
+import { difficultyPressure, worldSpeedFor } from "../../course/cadence"
 import { advanceCourse, createCourseState } from "../../course/progression"
 import type { CourseState, Term } from "../../course/types"
 import { registerGameAnimations } from "../animations"
@@ -37,6 +37,7 @@ export interface GameDebugState {
   readonly teacherCollisionBottom: number
   readonly obstacleCollisionTop: number
   readonly inputBindingCount: number
+  readonly pressure: number
 }
 
 const GROUND_Y = 318
@@ -51,6 +52,7 @@ export class GameScene extends Phaser.Scene {
   private backdrop!: ScrollingBackdrop
   private pendingImpact?: import("../../course/types").ObstacleKind
   private lastEnergyBucket = 10
+  private lastPressureBucket = -1
 
   constructor() {
     super("game")
@@ -58,6 +60,7 @@ export class GameScene extends Phaser.Scene {
 
   init(data: Partial<GameSceneData>): void {
     this.courseState = data.state ?? createCourseState()
+    this.lastPressureBucket = -1
   }
 
   preload(): void {
@@ -114,6 +117,16 @@ export class GameScene extends Phaser.Scene {
       elapsedMs,
       this.courseState.profile.targetTermDurationMs[this.courseState.term],
     )
+    const pressure = difficultyPressure(
+      this.courseState.term,
+      elapsedMs,
+      this.courseState.profile.targetTermDurationMs[this.courseState.term],
+    )
+    const pressureBucket = Math.round(pressure * 100)
+    if (pressureBucket !== this.lastPressureBucket) {
+      this.lastPressureBucket = pressureBucket
+      this.game.events.emit("game:pressure", pressureBucket / 100)
+    }
     this.backdrop.update(delta, worldSpeed)
     this.obstacles.update(this.courseState, delta, worldSpeed)
     const step = advanceCourse(
@@ -202,6 +215,7 @@ export class GameScene extends Phaser.Scene {
         this.input.listenerCount("pointerdown") +
         (this.input.keyboard?.listenerCount("keydown-SPACE") ?? 0) +
         (this.input.keyboard?.listenerCount("keydown-UP") ?? 0),
+      pressure: this.lastPressureBucket / 100,
     }
   }
 

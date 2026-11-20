@@ -15,6 +15,7 @@ interface SoundLike {
   readonly isPlaying?: boolean
   play(): unknown
   stop(): unknown
+  setRate(rate: number): unknown
   destroy(): unknown
 }
 
@@ -38,6 +39,8 @@ export class GameAudio {
   private activeTerm: Term | null = null
   private inTransition = false
   private destroyed = false
+  private desiredThemeRate = 1
+  private appliedThemeRate = 1
 
   constructor(
     private readonly manager: SoundManagerLike,
@@ -57,6 +60,7 @@ export class GameAudio {
     if (this.destroyed) return
     this.activeTerm = term
     this.inTransition = false
+    this.resetThemeRate()
     this.stopEffects()
     this.resumeTheme()
   }
@@ -72,6 +76,7 @@ export class GameAudio {
   playHoliday(term: 1 | 2): void {
     if (this.destroyed) return
     this.inTransition = true
+    this.resetThemeRate()
     this.stop("audio-theme")
     this.playEffect(term === 1 ? "audio-christmas" : "audio-spring")
   }
@@ -80,6 +85,7 @@ export class GameAudio {
     if (this.destroyed) return
     this.activeTerm = null
     this.inTransition = true
+    this.resetThemeRate()
     this.stop("audio-theme")
     this.playEffect("audio-course-end")
   }
@@ -101,8 +107,21 @@ export class GameAudio {
     return this.muted
   }
 
+  setPressure(pressure: number): void {
+    if (this.destroyed) return
+    const nextRate = Math.round((1 + clamp(pressure, 0, 1) * 0.24) * 100) / 100
+    if (nextRate === this.desiredThemeRate) return
+    this.desiredThemeRate = nextRate
+    this.applyThemeRate()
+  }
+
+  currentRate(): number {
+    return this.desiredThemeRate
+  }
+
   destroy(): void {
     if (this.destroyed) return
+    this.resetThemeRate()
     this.destroyed = true
     for (const sound of this.sounds.values()) {
       safely(() => sound.stop())
@@ -158,6 +177,10 @@ export class GameAudio {
         volume: key === "audio-theme" ? 0.32 : 0.78,
       })
       this.sounds.set(key, sound)
+      if (key === "audio-theme") {
+        this.appliedThemeRate = 1
+        this.applyThemeRate()
+      }
       return sound
     } catch {
       return undefined
@@ -178,6 +201,23 @@ export class GameAudio {
       return false
     }
   }
+
+  private resetThemeRate(): void {
+    this.desiredThemeRate = 1
+    this.applyThemeRate()
+  }
+
+  private applyThemeRate(): void {
+    const theme = this.sounds.get("audio-theme")
+    if (!theme || this.appliedThemeRate === this.desiredThemeRate) return
+    safely(() => theme.setRate(this.desiredThemeRate))
+    this.appliedThemeRate = this.desiredThemeRate
+    const source = (theme as unknown as { source?: Record<string, unknown> }).source
+    if (!source) return
+    for (const property of ["preservesPitch", "mozPreservesPitch", "webkitPreservesPitch"]) {
+      if (property in source) source[property] = true
+    }
+  }
 }
 
 function browserStorage(): StorageLike | null {
@@ -195,4 +235,8 @@ function safely(action: () => unknown): void {
   } catch {
     // La reproducción nunca controla el estado del juego.
   }
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
 }

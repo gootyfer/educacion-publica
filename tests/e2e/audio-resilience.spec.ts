@@ -3,8 +3,28 @@ import { expect, test } from "@playwright/test"
 declare global {
   interface Window {
     __audioStarts?: number
+    __audioRate?: number
+    __pressureSamples?: number[]
   }
 }
+
+test("acelera gradualmente el tema y restaura 1x durante las vacaciones", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/?pressure=1&fast=1")
+  await page.getByRole("button", { name: "Empezar" }).click()
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        (window.__pressureSamples ?? []).some((pressure) => pressure === 1),
+      ),
+    )
+    .toBe(true)
+  await expect(page.getByRole("button", { name: "Continuar el curso" })).toBeVisible()
+  expect(await page.evaluate(() => window.__audioRate)).toBe(1)
+  expect(await page.evaluate(() => Math.max(...(window.__pressureSamples ?? [0])))).toBe(1)
+})
 
 test("reproduce el tema y el salto después de la interacción", async ({
   page,

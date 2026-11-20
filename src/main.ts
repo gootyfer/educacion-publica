@@ -30,6 +30,8 @@ declare global {
       obstaclePoolSize: number
       frameMs: number[]
     }
+    __audioRate?: number
+    __pressureSamples?: number[]
   }
 }
 
@@ -77,6 +79,7 @@ async function startApplication(): Promise<void> {
     game.events.on("scene:term-break", (term: 1 | 2) => {
       shell.setScreen("term-break")
       audio.playHoliday(term)
+      if (import.meta.env.DEV) window.__audioRate = audio.currentRate()
     })
     game.events.on("term-break:refilled", () => shell.setContinueReady(true))
     game.events.on("scene:results", (state: CourseState) => {
@@ -84,8 +87,16 @@ async function startApplication(): Promise<void> {
       shell.setResults(state)
       shell.setScreen("results")
       audio.playCourseEnd()
+      if (import.meta.env.DEV) window.__audioRate = audio.currentRate()
     })
     game.events.on("game:energy", (energy: number) => shell.setEnergy(energy))
+    game.events.on("game:pressure", (pressure: number) => {
+      audio.setPressure(pressure)
+      if (import.meta.env.DEV) {
+        window.__audioRate = audio.currentRate()
+        ;(window.__pressureSamples ??= []).push(pressure)
+      }
+    })
     game.events.on("game:jump", () => {
       shell.announce(announcementFor("jump"))
       audio.playJump()

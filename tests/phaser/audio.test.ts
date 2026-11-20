@@ -7,6 +7,8 @@ class FakeSound {
   playCount = 0
   stopCount = 0
   destroyCount = 0
+  rate = 1
+  setRateCount = 0
 
   play() {
     this.isPlaying = true
@@ -22,6 +24,12 @@ class FakeSound {
 
   destroy() {
     this.destroyCount += 1
+  }
+
+  setRate(rate: number) {
+    this.rate = rate
+    this.setRateCount += 1
+    return this
   }
 }
 
@@ -79,6 +87,46 @@ describe("Phaser audio lifecycle", () => {
     audio.startTerm(2)
     audio.startTerm(2)
     expect(sounds.get("audio-theme")?.playCount).toBe(1)
+  })
+
+  it("maps pressure to hundredth-quantized theme rates after unlock", () => {
+    const { audio, sounds, manager } = setup()
+    audio.startTerm(1)
+    audio.setPressure(0.5)
+    expect(manager.add).not.toHaveBeenCalled()
+
+    audio.unlock()
+    const theme = sounds.get("audio-theme")!
+    expect(theme.rate).toBe(1.12)
+    expect(theme.setRateCount).toBe(1)
+
+    audio.setPressure(0.501)
+    expect(theme.setRateCount).toBe(1)
+    audio.setPressure(2)
+    expect(theme.rate).toBe(1.24)
+    audio.setPressure(-1)
+    expect(theme.rate).toBe(1)
+  })
+
+  it("resets theme rate for new terms, holidays, course end, and destroy", () => {
+    const { audio, sounds } = setup()
+    audio.startTerm(1)
+    audio.unlock()
+    audio.setPressure(1)
+    const theme = sounds.get("audio-theme")!
+    expect(theme.rate).toBe(1.24)
+
+    audio.startTerm(2)
+    expect(theme.rate).toBe(1)
+    audio.setPressure(1)
+    audio.playHoliday(1)
+    expect(theme.rate).toBe(1)
+    audio.startTerm(3)
+    audio.setPressure(1)
+    audio.playCourseEnd()
+    expect(theme.rate).toBe(1)
+    audio.destroy()
+    expect(theme.rate).toBe(1)
   })
 
   it("persists mute and suppresses effects", () => {
