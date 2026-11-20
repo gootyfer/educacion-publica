@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "art:panoramas": "node scripts/prepare-panoramas.mjs",
     "build": "tsc --noEmit && vite build",
     "budget": "node scripts/check-game-budget.mjs dist",
     "typecheck": "tsc --noEmit",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@axe-core/playwright": "latest",
     "@playwright/test": "latest",
+    "sharp": "^0.35.5",
     "typescript": "latest",
     "vite": "latest",
     "vitest": "latest"

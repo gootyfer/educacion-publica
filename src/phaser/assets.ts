@@ -36,6 +36,22 @@ export const GAME_ASSETS = {
   term1: { kind: "image", url: `${GAME_BASE}backgrounds/term-1.png` },
   term2: { kind: "image", url: `${GAME_BASE}backgrounds/term-2.png` },
   term3: { kind: "image", url: `${GAME_BASE}backgrounds/term-3.png` },
+  panoramaTerm1: {
+    kind: "image",
+    url: `${GAME_BASE}backgrounds/panorama-term-1.webp`,
+  },
+  panoramaTerm2: {
+    kind: "image",
+    url: `${GAME_BASE}backgrounds/panorama-term-2.webp`,
+  },
+  panoramaTerm3: {
+    kind: "image",
+    url: `${GAME_BASE}backgrounds/panorama-term-3.webp`,
+  },
+  springBreak: {
+    kind: "image",
+    url: `${GAME_BASE}backgrounds/spring-break.webp`,
+  },
   energy: {
     kind: "spritesheet",
     url: `${GAME_BASE}ui/energy.png`,

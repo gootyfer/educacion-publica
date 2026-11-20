@@ -16,12 +16,25 @@ describe("production game asset manifest", () => {
       "term1",
       "term2",
       "term3",
+      "panoramaTerm1",
+      "panoramaTerm2",
+      "panoramaTerm3",
+      "springBreak",
       "energy",
       "panels",
     ])
 
     for (const asset of Object.values(GAME_ASSETS)) {
       expect(asset.url).toMatch(/\/game\//)
+    }
+
+    for (const key of [
+      "panoramaTerm1",
+      "panoramaTerm2",
+      "panoramaTerm3",
+      "springBreak",
+    ] as const) {
+      expect(GAME_ASSETS[key].url).toMatch(/\.webp$/)
     }
   })
 
