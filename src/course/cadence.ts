@@ -2,12 +2,6 @@ import type { ObstacleKind, Term } from "./types"
 
 export type SpeedBand = "slow" | "medium" | "fast"
 
-export const TERM_BACKGROUNDS = {
-  1: "term1",
-  2: "term2",
-  3: "term3",
-} as const satisfies Readonly<Record<Term, string>>
-
 export const COURSE_GEOMETRY = {
   jumpAirtimeMs: 980,
   obstacleWidth: 62,

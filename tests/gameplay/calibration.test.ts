@@ -4,16 +4,20 @@ import { DEFAULT_CALIBRATION } from "../../src/course/calibration"
 import {
   COURSE_GEOMETRY,
   SeededRandom,
-  TERM_BACKGROUNDS,
   eligibleObstacles,
   nextObstacle,
 } from "../../src/course/cadence"
 import { advanceCourse, createCourseState } from "../../src/course/progression"
 import type { ObstacleKind, Term } from "../../src/course/types"
+import { panoramaTextureFor } from "../../src/phaser/backgrounds/PanoramaModel"
 
 describe("production course calibration", () => {
   it("maps the three terms to their approved seasonal Madrid backgrounds", () => {
-    expect(TERM_BACKGROUNDS).toEqual({ 1: "term1", 2: "term2", 3: "term3" })
+    expect([1, 2, 3].map((term) => panoramaTextureFor(term as Term))).toEqual([
+      "panoramaTerm1",
+      "panoramaTerm2",
+      "panoramaTerm3",
+    ])
   })
 
   it("uses cold and leak obstacles in winter and heat in June", () => {

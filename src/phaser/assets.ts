@@ -33,9 +33,6 @@ export const GAME_ASSETS = {
     frameWidth: 128,
     frameHeight: 128,
   },
-  term1: { kind: "image", url: `${GAME_BASE}backgrounds/term-1.png` },
-  term2: { kind: "image", url: `${GAME_BASE}backgrounds/term-2.png` },
-  term3: { kind: "image", url: `${GAME_BASE}backgrounds/term-3.png` },
   panoramaTerm1: {
     kind: "image",
     url: `${GAME_BASE}backgrounds/panorama-term-1.webp`,

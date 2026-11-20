@@ -6,6 +6,7 @@ import { TERM_BREAK_COPY, refillSchedule } from "../scene-contracts"
 import { EnergyHud } from "../ui/EnergyHud"
 import { PixelPanel } from "../ui/PixelPanel"
 import { AUDIO_ASSETS } from "../audio/GameAudio"
+import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
 
 export interface TermBreakSceneData {
   readonly completedTerm: 1 | 2
@@ -40,7 +41,11 @@ export class TermBreakScene extends Phaser.Scene {
 
   create(): void {
     const copy = TERM_BREAK_COPY[this.sceneData.completedTerm]
-    this.add.image(320, 180, `term${this.sceneData.completedTerm}`)
+    const background =
+      this.sceneData.completedTerm === 1 ? "christmas" : "spring-break"
+    this.add
+      .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor(background))
+      .setOrigin(0, 0)
     this.panel = new PixelPanel(this, 460, 280)
     this.panel.addLabel(copy.eyebrow, 13, { color: "#f3d765" })
     this.panel.addLabel(copy.title, 23, { gap: 50 })

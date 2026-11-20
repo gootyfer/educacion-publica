@@ -23,7 +23,11 @@ test("uses the three seasonal school backgrounds in course order", async ({
     )
   }
 
-  expect(backgrounds).toEqual(["term1", "term2", "term3"])
+  expect(backgrounds).toEqual([
+    "panoramaTerm1",
+    "panoramaTerm2",
+    "panoramaTerm3",
+  ])
 })
 
 test("deterministic impacts are recoverable and followers stay grounded", async ({

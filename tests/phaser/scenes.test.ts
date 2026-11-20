@@ -7,6 +7,7 @@ import {
   TITLE_COPY,
   refillSchedule,
 } from "../../src/phaser/scene-contracts"
+import { staticBackgroundTextureFor } from "../../src/phaser/backgrounds/PanoramaModel"
 
 describe("Phaser course scenes", () => {
   it("keeps the approved scene order", () => {
@@ -59,5 +60,11 @@ describe("Phaser course scenes", () => {
       "COMPARTIR",
     ])
     expect(JSON.stringify(RESULTS_COPY)).not.toContain("RECUPERADA")
+  })
+
+  it("uses winter for Christmas, spring for Easter, and June for results", () => {
+    expect(staticBackgroundTextureFor("christmas")).toBe("panoramaTerm2")
+    expect(staticBackgroundTextureFor("spring-break")).toBe("springBreak")
+    expect(staticBackgroundTextureFor("results")).toBe("panoramaTerm3")
   })
 })

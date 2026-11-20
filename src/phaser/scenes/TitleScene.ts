@@ -4,6 +4,7 @@ import { createCourseState } from "../../course/progression"
 import { TITLE_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
 import type { CourseState } from "../../course/types"
+import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
 
 interface TitleSceneData {
   readonly state?: CourseState
@@ -24,7 +25,9 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.add.image(320, 180, "term1")
+    this.add
+      .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor("title"))
+      .setOrigin(0, 0)
     this.panel = new PixelPanel(this, 450, 290)
     this.panel.addLabel(TITLE_COPY.eyebrow, 13, { color: "#f3d765" })
     this.panel.addLabel(TITLE_COPY.title, 28, { gap: 48 })

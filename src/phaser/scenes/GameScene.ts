@@ -1,6 +1,5 @@
 import Phaser from "phaser"
 
-import { TERM_BACKGROUNDS } from "../../course/cadence"
 import { advanceCourse, createCourseState } from "../../course/progression"
 import type { CourseState, Term } from "../../course/types"
 import { registerGameAnimations } from "../animations"
@@ -9,6 +8,8 @@ import { ObstaclePool } from "../entities/ObstaclePool"
 import { Teacher } from "../entities/Teacher"
 import { EnergyHud } from "../ui/EnergyHud"
 import { AUDIO_ASSETS } from "../audio/GameAudio"
+import { panoramaTextureFor } from "../backgrounds/PanoramaModel"
+import { ScrollingBackdrop } from "../entities/ScrollingBackdrop"
 
 export interface GameSceneData {
   readonly term: Term
@@ -25,6 +26,8 @@ export interface GameDebugState {
   readonly companionCount: number
   readonly obstacleKind: string
   readonly background: string
+  readonly backgroundTexture: string
+  readonly backgroundOffset: number
   readonly obstaclePoolSize: number
   readonly obstacleX: number
   readonly impactCount: number
@@ -42,6 +45,7 @@ export class GameScene extends Phaser.Scene {
   private companions!: CompanionGroup
   private obstacles!: ObstaclePool
   private energyHud!: EnergyHud
+  private backdrop!: ScrollingBackdrop
   private pendingImpact = false
   private lastEnergyBucket = 10
 
@@ -60,8 +64,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
-    const background = TERM_BACKGROUNDS[this.courseState.term]
-    this.add.image(320, 180, background).setDepth(0)
+    const background = panoramaTextureFor(this.courseState.term)
+    this.backdrop = new ScrollingBackdrop(
+      this,
+      background,
+      this.initialBackgroundOffset(),
+    )
     this.physics.world.gravity.y = 980
     registerGameAnimations(this)
 
@@ -95,6 +103,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number): void {
+    this.backdrop.update(delta, 150)
     this.obstacles.update(this.courseState)
     const step = advanceCourse(
       this.courseState,
@@ -165,7 +174,9 @@ export class GameScene extends Phaser.Scene {
       term: this.courseState.term,
       companionCount: this.companions.visibleCount(),
       obstacleKind: this.obstacles.activeKind(),
-      background: TERM_BACKGROUNDS[this.courseState.term],
+      background: panoramaTextureFor(this.courseState.term),
+      backgroundTexture: this.backdrop.texture,
+      backgroundOffset: this.backdrop.offset(),
       obstaclePoolSize: this.obstacles.size(),
       obstacleX: Math.round(this.obstacles.activeX()),
       impactCount: Object.values(this.courseState.impacts).reduce(
@@ -187,6 +198,14 @@ export class GameScene extends Phaser.Scene {
     return Number.isFinite(seed) && seed > 0 ? seed : 2_026
   }
 
+  private initialBackgroundOffset(): number {
+    if (!import.meta.env.DEV || typeof window === "undefined") return 0
+    const offset = Number(
+      new URLSearchParams(window.location.search).get("backgroundOffset"),
+    )
+    return Number.isFinite(offset) ? offset : 0
+  }
+
   private shutdown(): void {
     this.input.off("pointerdown", this.requestJump, this)
     this.input.keyboard?.off("keydown-SPACE", this.requestKeyboardJump, this)
@@ -194,5 +213,6 @@ export class GameScene extends Phaser.Scene {
     this.companions.destroy()
     this.obstacles.destroy()
     this.energyHud.destroy()
+    this.backdrop.destroy()
   }
 }

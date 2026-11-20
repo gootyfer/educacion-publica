@@ -15,6 +15,40 @@ async function openSlice(page: Page, width: number, height: number) {
   await expect.poll(() => page.evaluate(() => window.__phaserSlice)).toBeTruthy()
 }
 
+test("scrolls and wraps the September panorama on integer pixels", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/?slice=1&backgroundOffset=3199")
+  await expect(page.locator("canvas")).toBeVisible()
+  await expect.poll(() => page.evaluate(() => window.__phaserSlice)).toBeTruthy()
+  await expect
+    .poll(() => page.evaluate(() => window.__phaserSlice?.backgroundOffset))
+    .toBeGreaterThan(0)
+  await expect
+    .poll(() => page.evaluate(() => window.__phaserSlice?.backgroundOffset ?? 999))
+    .toBeLessThan(100)
+  const state = await page.evaluate(() => window.__phaserSlice)
+  expect(state?.backgroundTexture).toBe("panoramaTerm1")
+  expect(Number.isInteger(state?.backgroundOffset)).toBe(true)
+})
+
+test("starts each term at its matching seasonal panorama", async ({ page }) => {
+  for (const [term, texture] of [
+    [1, "panoramaTerm1"],
+    [2, "panoramaTerm2"],
+    [3, "panoramaTerm3"],
+  ] as const) {
+    await page.goto(`/?slice=1&term=${term}`)
+    await expect
+      .poll(() => page.evaluate(() => window.__phaserSlice?.backgroundTexture))
+      .toBe(texture)
+    expect(await page.evaluate(() => window.__phaserSlice?.backgroundOffset)).toBeLessThan(
+      100,
+    )
+  }
+})
+
 for (const viewport of [
   { name: "mobile landscape", width: 844, height: 390 },
   { name: "desktop", width: 1280, height: 800 },

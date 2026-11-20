@@ -5,6 +5,7 @@ import { createCourseState } from "../../course/progression"
 import { RESULTS_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
 import { AUDIO_ASSETS } from "../audio/GameAudio"
+import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
 
 export interface ResultsSceneData {
   readonly result: CourseResult
@@ -32,7 +33,9 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.add.image(320, 180, "term3")
+    this.add
+      .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor("results"))
+      .setOrigin(0, 0)
     this.panel = new PixelPanel(this, 470, 310)
     this.panel.addLabel(RESULTS_COPY.title, 27, { color: "#f3d765", gap: 44 })
     const totalSeconds = Math.floor(
