@@ -1,7 +1,7 @@
 :root {
   color: #fff8de;
   background: #123e34;
-  font-family: "Courier New", Courier, monospace;
+  font-family: "Jersey 10", "Courier New", Courier, monospace;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -68,10 +68,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 
 .semantic-action {
   position: absolute;
-  left: 50%;
-  width: 34%;
-  height: 11%;
-  translate: -50% 0;
   border: 0;
   color: transparent;
   background: transparent;
@@ -80,13 +76,6 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 }
 .semantic-action:focus-visible { outline: 4px solid #f3d765; background: rgb(243 215 101 / 15%); }
 .semantic-action:disabled { cursor: wait; pointer-events: none; }
-.action-start { top: 40.6%; }
-.action-how { top: 53.3%; }
-.action-continue { top: 60.8%; width: 40%; }
-.action-retry { top: 42.5%; width: 38%; }
-.action-why { top: 55.3%; width: 34%; }
-.action-share { top: 68.1%; width: 30%; }
-
 .sound-toggle {
   position: fixed;
   z-index: 40;

@@ -5,6 +5,7 @@ import {
   MOTIVATION_SECTIONS,
   announcementFor,
 } from "../../src/ui/GameShell"
+import { SCREEN_LAYOUTS } from "../../src/phaser/ui/ScreenLayout"
 
 describe("accessible Phaser shell contracts", () => {
   it("exposes semantic controls for every non-game screen", () => {
@@ -20,6 +21,14 @@ describe("accessible Phaser shell contracts", () => {
       "Por qué este juego",
       "Compartir",
     ])
+  })
+
+  it("gives every semantic control a rectangle from the painted layout", () => {
+    for (const screen of ["title", "term-break", "results"] as const) {
+      expect(CONTROLS_BY_SCREEN[screen].map(({ action }) => action).sort()).toEqual(
+        Object.keys(SCREEN_LAYOUTS[screen].actions).sort(),
+      )
+    }
   })
 
   it("explains the metaphors without blaming students", () => {

@@ -7,6 +7,7 @@ import { EnergyHud } from "../ui/EnergyHud"
 import { PixelPanel } from "../ui/PixelPanel"
 import { AUDIO_ASSETS } from "../audio/GameAudio"
 import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
+import { SCREEN_LAYOUTS } from "../ui/ScreenLayout"
 
 export interface TermBreakSceneData {
   readonly completedTerm: 1 | 2
@@ -46,17 +47,17 @@ export class TermBreakScene extends Phaser.Scene {
     this.add
       .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor(background))
       .setOrigin(0, 0)
-    this.panel = new PixelPanel(this, 460, 280)
-    this.panel.addLabel(copy.eyebrow, 13, { color: "#f3d765" })
-    this.panel.addLabel(copy.title, 23, { gap: 50 })
-    this.panel.addLabel(copy.energy, 14, { gap: 36 })
-    this.panel.addGap(35)
+    const layout = SCREEN_LAYOUTS["term-break"]
+    this.panel = new PixelPanel(this, layout.panel)
+    this.panel.addText(copy.eyebrow, 320, 91, 19)
+    this.panel.addBand(copy.title, { x: 126, y: 112, width: 388, height: 48 }, 28)
+    this.panel.addText(copy.energy, 320, 230, 21)
     this.continueButton = this.panel
-      .addButton(copy.continue, this.continueCourse, 240)
+      .addButton(copy.continue, this.continueCourse, layout.actions.continue)
       .setAlpha(0.5)
       .disableInteractive()
 
-    this.hud = new EnergyHud(this, 233, 185)
+    this.hud = new EnergyHud(this, 233, 180)
     this.hud.setEnergy(0)
     this.startRefill()
     this.game.events.on("ui:continue", this.continueCourse)

@@ -1,4 +1,5 @@
 import "./styles.css"
+import "@fontsource/jersey-10/latin-400.css"
 
 import type Phaser from "phaser"
 
@@ -18,6 +19,7 @@ import {
   type ShellAction,
 } from "./ui/GameShell"
 import { shareResult } from "./ui/share"
+import { waitForPixelFont } from "./phaser/ui/ScreenLayout"
 
 declare global {
   interface Window {
@@ -47,6 +49,7 @@ async function startApplication(): Promise<void> {
   app!.dataset.appReady = "true"
 
   try {
+    await waitForPixelFont(document.fonts)
     const { createPhaserGame } = await import("./phaser/create-game")
     const game = createPhaserGame(shell.gameRoot)
     const audio = new GameAudio(game.sound)

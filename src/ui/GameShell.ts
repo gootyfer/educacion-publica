@@ -4,6 +4,12 @@ import {
   MOTIVATION_SECTIONS,
   MotivationPanel,
 } from "./MotivationPanel"
+import {
+  SCREEN_LAYOUTS,
+  screenLayout,
+  semanticRectStyle,
+  type LayoutScreen,
+} from "../phaser/ui/ScreenLayout"
 
 export { MOTIVATION_SECTIONS }
 
@@ -153,6 +159,10 @@ export class GameShell implements GameShellHandle {
       button.dataset.shellAction = control.action
       button.setAttribute("aria-label", control.label)
       button.textContent = control.label
+      if (screen in SCREEN_LAYOUTS) {
+        const rect = screenLayout(screen as LayoutScreen).actions[control.action]
+        if (rect) Object.assign(button.style, semanticRectStyle(rect))
+      }
       if (control.action === "continue") button.disabled = true
       button.addEventListener("click", this.handleAction)
       this.controls.append(button)

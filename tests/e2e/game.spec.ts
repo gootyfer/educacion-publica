@@ -18,6 +18,40 @@ test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 844, height: 390 })
 })
 
+for (const viewport of [
+  { width: 844, height: 390 },
+  { width: 740, height: 360 },
+]) {
+  test(`aligns title actions with the canvas at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }, testInfo) => {
+    await page.setViewportSize(viewport)
+    await page.goto("/")
+    const canvas = page.locator("canvas")
+    await expect(canvas).toBeVisible()
+    const canvasBox = await canvas.boundingBox()
+    const startBox = await page
+      .getByRole("button", { name: "Empezar" })
+      .boundingBox()
+    if (!canvasBox || !startBox) throw new Error("Missing title bounds")
+    expect(startBox.x + startBox.width / 2).toBeCloseTo(
+      canvasBox.x + (320 / 640) * canvasBox.width,
+      0,
+    )
+    expect(startBox.y + startBox.height / 2).toBeCloseTo(
+      canvasBox.y + (215 / 360) * canvasBox.height,
+      0,
+    )
+    await page.screenshot({
+      path: testInfo.outputPath(`title-${viewport.width}x${viewport.height}.png`),
+    })
+    await page.getByRole("button", { name: "Cómo funciona" }).click()
+    await expect(
+      page.getByRole("heading", { name: "Por qué este juego" }),
+    ).toBeVisible()
+  })
+}
+
 test("completes three terms, both refills and nine grounded followers", async ({
   page,
 }) => {
@@ -69,7 +103,7 @@ test("painted results controls activate the matching semantic action", async ({
   if (!box) throw new Error("Canvas without bounds")
   await page.mouse.click(
     box.x + (320 / 640) * box.width,
-    box.y + (203 / 360) * box.height,
+    box.y + (286 / 360) * box.height,
   )
   await expect(
     page.getByRole("heading", { name: "Por qué este juego" }),

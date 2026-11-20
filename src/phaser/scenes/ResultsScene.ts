@@ -6,6 +6,7 @@ import { RESULTS_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
 import { AUDIO_ASSETS } from "../audio/GameAudio"
 import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
+import { SCREEN_LAYOUTS } from "../ui/ScreenLayout"
 
 export interface ResultsSceneData {
   readonly result: CourseResult
@@ -36,8 +37,11 @@ export class ResultsScene extends Phaser.Scene {
     this.add
       .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor("results"))
       .setOrigin(0, 0)
-    this.panel = new PixelPanel(this, 470, 310)
-    this.panel.addLabel(RESULTS_COPY.title, 27, { color: "#f3d765", gap: 44 })
+    const layout = SCREEN_LAYOUTS.results
+    this.panel = new PixelPanel(this, layout.panel)
+    this.panel.addText(RESULTS_COPY.title, 320, 77, 39)
+    this.panel.addDivider({ x: 202, y: 103, width: 236, height: 4 })
+    this.panel.addText("HAS COMPLETADO LOS TRES TRIMESTRES", 320, 121, 17)
     const totalSeconds = Math.floor(
       this.sceneData.state.courseElapsedMs / 1000,
     )
@@ -45,15 +49,36 @@ export class ResultsScene extends Phaser.Scene {
       this.sceneData.result.maxRatio,
       ...this.sceneData.state.completedTerms.map((result) => result.maxRatio),
     )
-    this.panel.addLabel(`TIEMPO ${totalSeconds} S · RATIO MÁXIMA ${maxRatio}`, 13, {
-      gap: 34,
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = String(totalSeconds % 60).padStart(2, "0")
+    this.panel.addStatBox("TIEMPO", `${minutes}:${seconds}`, {
+      x: 184,
+      y: 139,
+      width: 128,
+      height: 58,
     })
-    this.panel.addButton(RESULTS_COPY.actions[0], this.retryCourse, 230)
-    this.panel.addButton(RESULTS_COPY.actions[1], () =>
-      this.game.events.emit("ui:why"),
+    this.panel.addStatBox("RATIO MÁXIMA", String(maxRatio), {
+      x: 328,
+      y: 139,
+      width: 128,
+      height: 58,
+    })
+    this.panel.addButton(
+      RESULTS_COPY.actions[0],
+      this.retryCourse,
+      layout.actions.retry,
     )
-    this.panel.addButton(RESULTS_COPY.actions[2], () =>
-      this.game.events.emit("ui:share", this.sceneData.state),
+    this.panel.addButton(
+      RESULTS_COPY.actions[1],
+      () => this.game.events.emit("ui:why"),
+      layout.actions.why,
+      "secondary",
+    )
+    this.panel.addButton(
+      RESULTS_COPY.actions[2],
+      () => this.game.events.emit("ui:share", this.sceneData.state),
+      layout.actions.share,
+      "text",
     )
     this.game.events.on("ui:retry", this.retryCourse)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)

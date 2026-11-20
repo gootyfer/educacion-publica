@@ -5,6 +5,7 @@ import { TITLE_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
 import type { CourseState } from "../../course/types"
 import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
+import { SCREEN_LAYOUTS } from "../ui/ScreenLayout"
 
 interface TitleSceneData {
   readonly state?: CourseState
@@ -28,12 +29,21 @@ export class TitleScene extends Phaser.Scene {
     this.add
       .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor("title"))
       .setOrigin(0, 0)
-    this.panel = new PixelPanel(this, 450, 290)
-    this.panel.addLabel(TITLE_COPY.eyebrow, 13, { color: "#f3d765" })
-    this.panel.addLabel(TITLE_COPY.title, 28, { gap: 48 })
-    this.panel.addButton(TITLE_COPY.start, this.startCourse)
-    this.panel.addButton(TITLE_COPY.how, () => this.game.events.emit("ui:how"))
-    this.panel.addLabel(TITLE_COPY.help, 12)
+    const layout = SCREEN_LAYOUTS.title
+    this.panel = new PixelPanel(this, layout.panel)
+    this.panel.addText(TITLE_COPY.eyebrow, 320, 78, 18)
+    this.panel.addDivider({ x: 204, y: 105, width: 232, height: 4 })
+    this.panel.addText("UNA JORNADA\nDECENTE", 320, 145, 36, {
+      lineSpacing: -8,
+    })
+    this.panel.addButton(TITLE_COPY.start, this.startCourse, layout.actions.start)
+    this.panel.addButton(
+      TITLE_COPY.how,
+      () => this.game.events.emit("ui:how"),
+      layout.actions.how,
+      "secondary",
+    )
+    this.panel.addText(TITLE_COPY.help, 320, 300, 16)
 
     this.game.events.on("ui:start", this.startCourse)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
