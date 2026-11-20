@@ -41,3 +41,47 @@ test("deterministic impacts are recoverable and followers stay grounded", async 
   expect(state?.phase).toBe("running")
   expect(state?.companionYs.every((y) => y === state.groundY)).toBe(true)
 })
+
+test("the same obstacle can be cleared by jumping or hit deliberately", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/?term=1&seed=2026")
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            (window.__phaserSlice as unknown as { obstacleX?: number })
+              ?.obstacleX,
+        ),
+      { intervals: [10], timeout: 5_000 },
+    )
+    .toBeLessThan(290)
+  await page.locator("canvas").click()
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            (window.__phaserSlice as unknown as { obstacleX?: number })
+              ?.obstacleX,
+        ),
+      { intervals: [10], timeout: 5_000 },
+    )
+    .toBeLessThan(120)
+  expect(
+    await page.evaluate(
+      () => (window.__phaserSlice as unknown as { impactCount?: number })?.impactCount,
+    ),
+  ).toBe(0)
+
+  await page.goto("/?term=1&seed=2026")
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window.__phaserSlice as unknown as { impactCount?: number })?.impactCount,
+      ),
+    )
+    .toBe(1)
+})

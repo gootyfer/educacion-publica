@@ -86,7 +86,10 @@ export function advanceCourse(
     state.profile.initialRatios[state.term] +
     Math.floor(elapsedMs / state.profile.ratioIntervalMs) *
       state.profile.ratioStep
-  const ratio = Math.min(state.profile.maxRatio, scheduledRatio)
+  const ratio = Math.max(
+    state.ratio,
+    Math.min(state.profile.maxRatio, scheduledRatio),
+  )
   const companionCount = companionCountForProfile(ratio, state.profile)
   const events: CourseEvent[] = []
 
@@ -157,7 +160,7 @@ export function advanceCourse(
 
 function startNextTerm(state: CourseState): CourseStep {
   const term = Math.min(3, state.term + 1) as Term
-  const ratio = state.profile.initialRatios[term]
+  const ratio = Math.max(state.ratio, state.profile.initialRatios[term])
   return {
     state: {
       ...state,

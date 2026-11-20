@@ -29,12 +29,29 @@ test("opens motivation and real source links, then restores focus", async ({
     page.getByRole("heading", { name: "Por qué este juego" }),
   ).toBeFocused()
   await expect(page.getByText(/alumnado no es el problema/i)).toBeVisible()
+  await page.keyboard.press("Shift+Tab")
+  await expect(page.getByRole("button", { name: "Volver" })).toBeFocused()
   await page.getByRole("button", { name: "Datos y fuentes" }).click()
   const sources = page.locator(".source-list a")
   await expect(sources).toHaveCount(4)
   await expect(sources.first()).toHaveAttribute("href", /^https:\/\//)
   await page.getByRole("button", { name: "Volver" }).click()
   await expect(how).toBeFocused()
+})
+
+test("space on the mute control does not also jump", async ({ page }) => {
+  await page.getByRole("button", { name: "Empezar" }).click()
+  await expect(page.locator("#phaser-root")).toBeFocused()
+  const mute = page.getByRole("button", { name: "Silenciar sonido" })
+  await mute.focus()
+  await page.keyboard.press("Space")
+  await expect(page.getByRole("button", { name: "Activar sonido" })).toBeFocused()
+  await page.waitForTimeout(100)
+  expect(
+    await page.evaluate(
+      () => window.__phaserSlice?.teacherY === window.__phaserSlice?.groundY,
+    ),
+  ).toBe(true)
 })
 
 test("shows useful guidance and information access in portrait", async ({
@@ -75,6 +92,17 @@ test("keeps the motivation and sources available without JavaScript", async ({
     page.getByRole("heading", { name: "Una jornada decente" }),
   ).toBeVisible()
   await expect(page.getByText(/alumnado no es el problema/i)).toBeVisible()
-  await expect(page.locator("noscript a")).toHaveCount(4)
+  await expect(page.locator(".initial-fallback a")).toHaveCount(4)
   await context.close()
+})
+
+test("shows useful content when no graphics renderer is available", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    HTMLCanvasElement.prototype.getContext = () => null
+  })
+  await page.goto("/")
+  await expect(page.getByRole("alert")).toContainText(/no ha podido iniciar/i)
+  await expect(page.locator("[role='alert'] a")).toHaveCount(4)
 })

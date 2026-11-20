@@ -57,6 +57,14 @@ export class ObstaclePool {
     return 1
   }
 
+  activeX(): number {
+    return this.obstacle.x
+  }
+
+  collisionTop(): number {
+    return (this.obstacle.body as Phaser.Physics.Arcade.Body).top
+  }
+
   destroy(): void {
     this.obstacle.destroy()
   }
@@ -88,8 +96,8 @@ export class ObstaclePool {
 
     const body = this.obstacle.body as Phaser.Physics.Arcade.Body
     body.enable = true
-    body.setSize(46, 64, true)
-    body.reset(spawnX, this.groundY - 38)
+    body.setSize(42, 28, true)
+    body.reset(spawnX, this.groundY)
     body.setVelocityX(-speed)
   }
 }

@@ -42,10 +42,37 @@ function setup(missing = new Set<string>()) {
 }
 
 describe("Phaser audio lifecycle", () => {
+  it("migrates the mute preference from the previous release", () => {
+    const manager = { mute: false, add: vi.fn(() => new FakeSound()) }
+    const storage = {
+      getItem: vi.fn((key: string) =>
+        key === "curso-docente-audio-muted-v1" ? "true" : null,
+      ),
+      setItem: vi.fn(),
+    }
+    const audio = new GameAudio(manager, storage)
+
+    expect(audio.isMuted()).toBe(true)
+    expect(storage.setItem).toHaveBeenCalledWith("jornada-muted", "true")
+  })
+
+  it("creates Phaser sounds lazily after their files can be cached", () => {
+    const { audio, manager } = setup()
+    expect(manager.add).not.toHaveBeenCalled()
+
+    audio.startTerm(1)
+    expect(manager.add).not.toHaveBeenCalled()
+    audio.unlock()
+    expect(manager.add).toHaveBeenCalledWith(
+      "audio-theme",
+      expect.objectContaining({ loop: true }),
+    )
+  })
+
   it("does not play before interaction and does not layer themes", () => {
     const { audio, sounds } = setup()
     audio.startTerm(1)
-    expect(sounds.get("audio-theme")?.playCount).toBe(0)
+    expect(sounds.has("audio-theme")).toBe(false)
 
     audio.unlock()
     expect(sounds.get("audio-theme")?.playCount).toBe(1)
@@ -63,8 +90,8 @@ describe("Phaser audio lifecycle", () => {
 
     expect(audio.isMuted()).toBe(true)
     expect(storage.setItem).toHaveBeenCalledWith("jornada-muted", "true")
-    expect(sounds.get("audio-jump")?.playCount).toBe(0)
-    expect(sounds.get("audio-impact")?.playCount).toBe(0)
+    expect(sounds.get("audio-jump")?.playCount ?? 0).toBe(0)
+    expect(sounds.get("audio-impact")?.playCount ?? 0).toBe(0)
   })
 
   it("survives when every audio file is missing", () => {

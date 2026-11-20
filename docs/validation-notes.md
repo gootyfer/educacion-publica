@@ -1,6 +1,6 @@
 # Validación de la reimplementación Phaser
 
-**Revisión interna:** 16 de noviembre de 2026  
+**Revisión interna:** 20 de noviembre de 2026  
 **Motor y formato:** Phaser 3, 640×360, móvil horizontal
 
 ## Comprobado automáticamente

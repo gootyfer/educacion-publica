@@ -4,6 +4,7 @@ import type { CourseResult, CourseState } from "../../course/types"
 import { createCourseState } from "../../course/progression"
 import { RESULTS_COPY } from "../scene-contracts"
 import { PixelPanel } from "../ui/PixelPanel"
+import { AUDIO_ASSETS } from "../audio/GameAudio"
 
 export interface ResultsSceneData {
   readonly result: CourseResult
@@ -22,6 +23,12 @@ export class ResultsScene extends Phaser.Scene {
   init(data: ResultsSceneData): void {
     this.sceneData = data
     this.retried = false
+  }
+
+  preload(): void {
+    if (!this.cache.audio.exists("audio-course-end")) {
+      this.load.audio("audio-course-end", AUDIO_ASSETS["audio-course-end"])
+    }
   }
 
   create(): void {

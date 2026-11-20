@@ -8,6 +8,7 @@ import { CompanionGroup } from "../entities/CompanionGroup"
 import { ObstaclePool } from "../entities/ObstaclePool"
 import { Teacher } from "../entities/Teacher"
 import { EnergyHud } from "../ui/EnergyHud"
+import { AUDIO_ASSETS } from "../audio/GameAudio"
 
 export interface GameSceneData {
   readonly term: Term
@@ -25,6 +26,11 @@ export interface GameDebugState {
   readonly obstacleKind: string
   readonly background: string
   readonly obstaclePoolSize: number
+  readonly obstacleX: number
+  readonly impactCount: number
+  readonly teacherCollisionBottom: number
+  readonly obstacleCollisionTop: number
+  readonly inputBindingCount: number
 }
 
 const GROUND_Y = 318
@@ -37,6 +43,7 @@ export class GameScene extends Phaser.Scene {
   private obstacles!: ObstaclePool
   private energyHud!: EnergyHud
   private pendingImpact = false
+  private lastEnergyBucket = 10
 
   constructor() {
     super("game")
@@ -44,6 +51,12 @@ export class GameScene extends Phaser.Scene {
 
   init(data: Partial<GameSceneData>): void {
     this.courseState = data.state ?? createCourseState()
+  }
+
+  preload(): void {
+    for (const key of ["audio-theme", "audio-jump", "audio-impact"] as const) {
+      if (!this.cache.audio.exists(key)) this.load.audio(key, AUDIO_ASSETS[key])
+    }
   }
 
   create(): void {
@@ -63,6 +76,8 @@ export class GameScene extends Phaser.Scene {
     )
     this.energyHud = new EnergyHud(this)
     this.energyHud.setEnergy(this.courseState.energy)
+    this.lastEnergyBucket = Math.ceil(this.courseState.energy / 10)
+    this.game.events.emit("game:energy", this.courseState.energy)
 
     this.physics.add.overlap(
       this.teacher,
@@ -73,8 +88,8 @@ export class GameScene extends Phaser.Scene {
     )
 
     this.input.on("pointerdown", this.requestJump, this)
-    this.input.keyboard?.on("keydown-SPACE", this.requestJump, this)
-    this.input.keyboard?.on("keydown-UP", this.requestJump, this)
+    this.input.keyboard?.on("keydown-SPACE", this.requestKeyboardJump, this)
+    this.input.keyboard?.on("keydown-UP", this.requestKeyboardJump, this)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)
     this.game.events.emit("scene:game", this.courseState.term)
   }
@@ -90,6 +105,11 @@ export class GameScene extends Phaser.Scene {
     this.courseState = step.state
     this.companions.setCount(this.courseState.companionCount)
     this.energyHud.setEnergy(this.courseState.energy)
+    const energyBucket = Math.ceil(this.courseState.energy / 10)
+    if (energyBucket !== this.lastEnergyBucket) {
+      this.lastEnergyBucket = energyBucket
+      this.game.events.emit("game:energy", this.courseState.energy)
+    }
     this.teacher.setTiredness(this.courseState.energy)
 
     for (const event of step.events) {
@@ -127,6 +147,14 @@ export class GameScene extends Phaser.Scene {
     this.game.events.emit("game:jump")
   }
 
+  private readonly requestKeyboardJump = (): void => {
+    if (typeof document !== "undefined") {
+      const gameSurface = this.game.canvas.parentElement
+      if (document.activeElement !== gameSurface) return
+    }
+    this.requestJump()
+  }
+
   private debugState(): GameDebugState {
     return {
       teacherY: Math.round(this.teacher.y),
@@ -139,6 +167,17 @@ export class GameScene extends Phaser.Scene {
       obstacleKind: this.obstacles.activeKind(),
       background: TERM_BACKGROUNDS[this.courseState.term],
       obstaclePoolSize: this.obstacles.size(),
+      obstacleX: Math.round(this.obstacles.activeX()),
+      impactCount: Object.values(this.courseState.impacts).reduce(
+        (total, count) => total + count,
+        0,
+      ),
+      teacherCollisionBottom: Math.round(this.teacher.collisionBottom()),
+      obstacleCollisionTop: Math.round(this.obstacles.collisionTop()),
+      inputBindingCount:
+        this.input.listenerCount("pointerdown") +
+        (this.input.keyboard?.listenerCount("keydown-SPACE") ?? 0) +
+        (this.input.keyboard?.listenerCount("keydown-UP") ?? 0),
     }
   }
 
@@ -150,8 +189,8 @@ export class GameScene extends Phaser.Scene {
 
   private shutdown(): void {
     this.input.off("pointerdown", this.requestJump, this)
-    this.input.keyboard?.off("keydown-SPACE", this.requestJump, this)
-    this.input.keyboard?.off("keydown-UP", this.requestJump, this)
+    this.input.keyboard?.off("keydown-SPACE", this.requestKeyboardJump, this)
+    this.input.keyboard?.off("keydown-UP", this.requestKeyboardJump, this)
     this.companions.destroy()
     this.obstacles.destroy()
     this.energyHud.destroy()

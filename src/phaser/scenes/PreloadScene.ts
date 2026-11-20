@@ -1,19 +1,28 @@
 import Phaser from "phaser"
 
 import { GAME_ASSETS } from "../assets"
-import { AUDIO_ASSETS } from "../audio/GameAudio"
 import { createCourseStateAtTerm } from "../../course/progression"
 import type { Term } from "../../course/types"
 import {
   DEFAULT_CALIBRATION,
   type CalibrationProfile,
 } from "../../course/calibration"
+import {
+  PRELOAD_COMPLETE_EVENT,
+  PRELOAD_ERROR_EVENT,
+  PRELOAD_FATAL_EVENT,
+  PRELOAD_PROGRESS_EVENT,
+} from "../events"
 
-export const PRELOAD_PROGRESS_EVENT = "preload:progress"
-export const PRELOAD_COMPLETE_EVENT = "preload:complete"
-export const PRELOAD_ERROR_EVENT = "preload:error"
+export {
+  PRELOAD_COMPLETE_EVENT,
+  PRELOAD_ERROR_EVENT,
+  PRELOAD_FATAL_EVENT,
+  PRELOAD_PROGRESS_EVENT,
+} from "../events"
 
 export class PreloadScene extends Phaser.Scene {
+  private readonly failedRequiredAssets = new Set<string>()
   constructor() {
     super("preload")
   }
@@ -25,10 +34,11 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on(
       Phaser.Loader.Events.FILE_LOAD_ERROR,
       (file: Phaser.Loader.File) => {
-      this.game.events.emit(PRELOAD_ERROR_EVENT, {
-        key: file.key,
-        url: file.src,
-      })
+        if (file.key in GAME_ASSETS) this.failedRequiredAssets.add(file.key)
+        this.game.events.emit(PRELOAD_ERROR_EVENT, {
+          key: file.key,
+          url: file.src,
+        })
       },
     )
 
@@ -42,12 +52,15 @@ export class PreloadScene extends Phaser.Scene {
         })
       }
     }
-    for (const [key, url] of Object.entries(AUDIO_ASSETS)) {
-      this.load.audio(key, url)
-    }
   }
 
   create(): void {
+    if (this.failedRequiredAssets.size > 0) {
+      this.game.events.emit(PRELOAD_FATAL_EVENT, [
+        ...this.failedRequiredAssets,
+      ])
+      return
+    }
     this.game.events.emit(PRELOAD_COMPLETE_EVENT)
     const term = this.developmentTermFromLocation()
     const state = createCourseStateAtTerm(
@@ -73,6 +86,18 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   private developmentProfile(): CalibrationProfile {
+    if (
+      import.meta.env.DEV &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("perf") === "1"
+    ) {
+      return {
+        ...DEFAULT_CALIBRATION,
+        ratioIntervalMs: 60_000,
+        energyDrainPerSecond: { 1: 0.01, 2: 0.01, 3: 0.01 },
+        initialRatios: { 1: 52, 2: 52, 3: 52 },
+      }
+    }
     if (
       !import.meta.env.DEV ||
       typeof window === "undefined" ||

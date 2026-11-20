@@ -22,10 +22,14 @@ test("completes three terms, both refills and nine grounded followers", async ({
   page,
 }) => {
   await page.goto("/?slice=1&fast=1&seed=2026")
+  await expect(page.locator("[data-energy-status]")).toContainText(/Energía:/)
   await expect
     .poll(() => page.evaluate(() => window.__phaserSlice?.companionCount))
     .toBe(9)
   await finishFastCourse(page)
+  await expect(page.locator("[data-results-summary]")).toContainText(
+    /Tiempo total:.*Ratio máxima:/,
+  )
 
   await page.getByRole("button", { name: "Por qué este juego" }).click()
   await expect(page.getByText(/alumnado no es el problema/i)).toBeVisible()
@@ -55,6 +59,23 @@ test("uses the share fallback and returns to the title on retry", async ({
   await expect(page.getByRole("button", { name: "Empezar" })).toBeVisible()
 })
 
+test("painted results controls activate the matching semantic action", async ({
+  page,
+}) => {
+  await page.goto("/?slice=1&fast=1")
+  await finishFastCourse(page)
+  const canvas = page.locator("canvas")
+  const box = await canvas.boundingBox()
+  if (!box) throw new Error("Canvas without bounds")
+  await page.mouse.click(
+    box.x + (320 / 640) * box.width,
+    box.y + (203 / 360) * box.height,
+  )
+  await expect(
+    page.getByRole("heading", { name: "Por qué este juego" }),
+  ).toBeVisible()
+})
+
 test("keeps one active game and a bounded obstacle pool after retries", async ({
   page,
 }) => {
@@ -79,6 +100,6 @@ test("keeps one active game and a bounded obstacle pool after retries", async ({
 test("continues when one visual asset is unavailable", async ({ page }) => {
   await page.route("**/game/obstacles/obstacles.png", (route) => route.abort())
   await page.goto("/")
-  await expect(page.getByRole("button", { name: "Empezar" })).toBeVisible()
-  await expect(page.getByRole("status")).toContainText(/intentará continuar/i)
+  await expect(page.getByRole("alert")).toContainText(/no ha podido cargar/i)
+  await expect(page.locator("[role='alert'] a")).toHaveCount(4)
 })

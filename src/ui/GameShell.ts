@@ -1,4 +1,5 @@
 import { AccessibleStatus } from "./AccessibleStatus"
+import type { CourseState } from "../course/types"
 import {
   MOTIVATION_SECTIONS,
   MotivationPanel,
@@ -64,7 +65,10 @@ export interface GameShellHandle {
   setLoading(progress: number): void
   announce(message: string): void
   setMuted(muted: boolean): void
+  setAudioReady(): void
   setContinueReady(ready: boolean): void
+  setEnergy(energy: number): void
+  setResults(state: CourseState): void
   onAction(listener: (action: ShellAction, invoker: HTMLElement) => void): void
   showMotivation(invoker?: HTMLElement | null): void
   showSources(invoker?: HTMLElement | null): void
@@ -78,6 +82,8 @@ export class GameShell implements GameShellHandle {
   private readonly loading: HTMLProgressElement
   private readonly status: AccessibleStatus
   private readonly information: MotivationPanel
+  private readonly energyStatus: HTMLElement
+  private readonly resultsSummary: HTMLElement
   private readonly actionListeners = new Set<
     (action: ShellAction, invoker: HTMLElement) => void
   >()
@@ -102,12 +108,16 @@ export class GameShell implements GameShellHandle {
         <button type="button" data-portrait-motivation>Por qué este juego</button>
         <button type="button" data-portrait-sources>Datos y fuentes</button>
       </aside>
-      <button class="sound-toggle" type="button" data-shell-action="mute" aria-label="Silenciar sonido"><span aria-hidden="true">🔊</span></button>
+      <button class="sound-toggle" type="button" data-shell-action="mute" aria-label="Silenciar sonido" disabled><span aria-hidden="true">🔊</span></button>
+      <p class="visually-hidden" data-energy-status>Energía: 100 de 100.</p>
+      <section class="visually-hidden" data-results-summary aria-label="Resultado del curso"></section>
     `
     this.stage = root.querySelector<HTMLElement>(".game-stage")!
     this.gameRoot = root.querySelector<HTMLElement>("#phaser-root")!
     this.controls = root.querySelector<HTMLElement>("[data-semantic-controls]")!
     this.loading = root.querySelector<HTMLProgressElement>("progress")!
+    this.energyStatus = root.querySelector<HTMLElement>("[data-energy-status]")!
+    this.resultsSummary = root.querySelector<HTMLElement>("[data-results-summary]")!
     this.status = new AccessibleStatus(root)
     this.information = new MotivationPanel(root)
 
@@ -172,11 +182,31 @@ export class GameShell implements GameShellHandle {
     button.innerHTML = `<span aria-hidden="true">${muted ? "🔇" : "🔊"}</span>`
   }
 
+  setAudioReady(): void {
+    const button = this.root.querySelector<HTMLButtonElement>(
+      "[data-shell-action='mute']",
+    )
+    if (button) button.disabled = false
+  }
+
   setContinueReady(ready: boolean): void {
     const button = this.controls.querySelector<HTMLButtonElement>(
       "[data-shell-action='continue']",
     )
     if (button) button.disabled = !ready
+  }
+
+  setEnergy(energy: number): void {
+    this.energyStatus.textContent = `Energía: ${Math.max(0, Math.round(energy))} de 100.`
+  }
+
+  setResults(state: CourseState): void {
+    const seconds = Math.floor(state.courseElapsedMs / 1000)
+    const maxRatio = Math.max(
+      state.maxRatio,
+      ...state.completedTerms.map((result) => result.maxRatio),
+    )
+    this.resultsSummary.textContent = `Tiempo total: ${seconds} segundos. Ratio máxima: ${maxRatio}.`
   }
 
   onAction(listener: (action: ShellAction, invoker: HTMLElement) => void): void {

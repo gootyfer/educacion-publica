@@ -29,6 +29,7 @@ interface StorageLike {
 }
 
 const MUTE_KEY = "jornada-muted"
+const LEGACY_MUTE_KEY = "curso-docente-audio-muted-v1"
 
 export class GameAudio {
   private readonly sounds = new Map<keyof typeof AUDIO_ASSETS, SoundLike>()
@@ -44,21 +45,6 @@ export class GameAudio {
   ) {
     this.muted = this.readMuted()
     this.manager.mute = this.muted
-    for (const key of Object.keys(AUDIO_ASSETS) as Array<
-      keyof typeof AUDIO_ASSETS
-    >) {
-      try {
-        this.sounds.set(
-          key,
-          manager.add(key, {
-            loop: key === "audio-theme",
-            volume: key === "audio-theme" ? 0.32 : 0.78,
-          }),
-        )
-      } catch {
-        // El audio es opcional: Phaser puede omitir una carga fallida.
-      }
-    }
   }
 
   unlock(): void {
@@ -135,14 +121,14 @@ export class GameAudio {
     ) {
       return
     }
-    const theme = this.sounds.get("audio-theme")
+    const theme = this.soundFor("audio-theme")
     if (!theme || theme.isPlaying) return
     safely(() => theme.play())
   }
 
   private playEffect(key: keyof typeof AUDIO_ASSETS): void {
     if (this.destroyed || !this.unlocked || this.muted) return
-    const sound = this.sounds.get(key)
+    const sound = this.soundFor(key)
     if (!sound) return
     safely(() => sound.stop())
     safely(() => sound.play())
@@ -163,9 +149,31 @@ export class GameAudio {
     for (const key of this.sounds.keys()) this.stop(key)
   }
 
+  private soundFor(key: keyof typeof AUDIO_ASSETS): SoundLike | undefined {
+    const existing = this.sounds.get(key)
+    if (existing) return existing
+    try {
+      const sound = this.manager.add(key, {
+        loop: key === "audio-theme",
+        volume: key === "audio-theme" ? 0.32 : 0.78,
+      })
+      this.sounds.set(key, sound)
+      return sound
+    } catch {
+      return undefined
+    }
+  }
+
   private readMuted(): boolean {
     try {
-      return this.storage?.getItem(MUTE_KEY) === "true"
+      const current = this.storage?.getItem(MUTE_KEY)
+      if (current !== null && current !== undefined) return current === "true"
+      const legacy = this.storage?.getItem(LEGACY_MUTE_KEY)
+      if (legacy !== null && legacy !== undefined) {
+        this.storage?.setItem(MUTE_KEY, legacy)
+        return legacy === "true"
+      }
+      return false
     } catch {
       return false
     }

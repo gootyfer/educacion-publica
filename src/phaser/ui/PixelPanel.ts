@@ -58,6 +58,10 @@ export class PixelPanel {
     return button
   }
 
+  addGap(pixels: number): void {
+    this.nextY += pixels
+  }
+
   destroy(): void {
     this.container.destroy(true)
   }

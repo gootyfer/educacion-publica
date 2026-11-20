@@ -12,11 +12,13 @@ html, body { min-width: 320px; min-height: 100%; margin: 0; }
 
 body {
   min-height: 100dvh;
-  overflow: hidden;
+  overflow: auto;
   background:
     linear-gradient(rgb(9 42 34 / 90%), rgb(18 62 52 / 96%)),
     repeating-linear-gradient(0deg, #173f35 0 4px, #0d3028 4px 8px);
 }
+
+body.app-ready { overflow: hidden; }
 
 button, a { font: inherit; }
 
@@ -78,12 +80,12 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
 }
 .semantic-action:focus-visible { outline: 4px solid #f3d765; background: rgb(243 215 101 / 15%); }
 .semantic-action:disabled { cursor: wait; pointer-events: none; }
-.action-start { top: 43%; }
-.action-how { top: 57%; }
-.action-continue { top: 64%; width: 40%; }
-.action-retry { top: 48%; width: 38%; }
-.action-why { top: 61%; width: 34%; }
-.action-share { top: 74%; width: 30%; }
+.action-start { top: 40.6%; }
+.action-how { top: 53.3%; }
+.action-continue { top: 60.8%; width: 40%; }
+.action-retry { top: 42.5%; width: 38%; }
+.action-why { top: 55.3%; width: 34%; }
+.action-share { top: 68.1%; width: 30%; }
 
 .sound-toggle {
   position: fixed;
@@ -141,7 +143,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   cursor: pointer;
 }
 
-.fallback-panel, .noscript-panel {
+.fallback-panel, .initial-fallback {
   width: min(680px, calc(100% - 32px));
   margin: 32px auto;
   padding: 24px;
@@ -149,7 +151,7 @@ button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   color: #173f35;
   background: #fff8de;
 }
-.noscript-panel a { color: #006a48; }
+.fallback-panel a, .initial-fallback a { color: #006a48; }
 
 .visually-hidden {
   position: absolute !important;

@@ -9,7 +9,7 @@ export const TERM_BACKGROUNDS = {
 } as const satisfies Readonly<Record<Term, string>>
 
 export const COURSE_GEOMETRY = {
-  jumpAirtimeMs: 835,
+  jumpAirtimeMs: 980,
   obstacleWidth: 62,
   readabilityPadding: 48,
 } as const

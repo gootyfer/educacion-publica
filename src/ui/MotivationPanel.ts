@@ -37,6 +37,7 @@ export class MotivationPanel {
     this.title = this.element.querySelector("h2")!
     this.content = this.element.querySelector("[data-information-content]")!
     parent.append(this.element)
+    this.element.addEventListener("keydown", this.trapFocus)
   }
 
   openMotivation(invoker?: HTMLElement | null): void {
@@ -90,10 +91,13 @@ export class MotivationPanel {
 
   close(): void {
     this.element.hidden = true
+    this.setBackgroundInert(false)
     this.restoreFocus?.focus()
   }
 
   destroy(): void {
+    this.element.removeEventListener("keydown", this.trapFocus)
+    this.setBackgroundInert(false)
     this.element.remove()
   }
 
@@ -105,6 +109,40 @@ export class MotivationPanel {
 
   private show(): void {
     this.element.hidden = false
+    this.setBackgroundInert(true)
     this.title.focus()
+  }
+
+  private readonly trapFocus = (event: KeyboardEvent): void => {
+    if (event.key === "Escape") {
+      event.preventDefault()
+      this.close()
+      return
+    }
+    if (event.key !== "Tab") return
+    const focusable = [
+      this.title,
+      ...this.element.querySelectorAll<HTMLElement>("button, a[href]"),
+    ]
+    const first = focusable[0]
+    const last = focusable.at(-1)
+    if (!first || !last) return
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
+  private setBackgroundInert(inert: boolean): void {
+    const parent = this.element.parentElement
+    if (!parent) return
+    for (const sibling of parent.children) {
+      if (sibling instanceof HTMLElement && sibling !== this.element) {
+        sibling.inert = inert
+      }
+    }
   }
 }

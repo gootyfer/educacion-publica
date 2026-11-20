@@ -21,7 +21,7 @@ export class Teacher extends Phaser.Physics.Arcade.Sprite {
   requestJump(): boolean {
     if (!this.grounded) return false
     this.grounded = false
-    this.setVelocityY(-410)
+    this.setVelocityY(-480)
     this.play("teacher-jump", true)
     return true
   }
@@ -44,6 +44,10 @@ export class Teacher extends Phaser.Physics.Arcade.Sprite {
 
   isGrounded(): boolean {
     return this.grounded
+  }
+
+  collisionBottom(): number {
+    return (this.body as Phaser.Physics.Arcade.Body).bottom
   }
 
   override preUpdate(time: number, delta: number): void {

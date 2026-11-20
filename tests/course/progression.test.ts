@@ -96,6 +96,28 @@ describe("course progression", () => {
     expect(step.events).toContainEqual({ type: "term-started", term: 3 })
   })
 
+  it("never shrinks the companion group across term breaks", () => {
+    const termOneEnded = {
+      ...createCourseState(),
+      phase: "term-break" as const,
+      energy: 0,
+      ratio: 52,
+      maxRatio: 52,
+      companionCount: 9,
+    }
+    const winter = advanceCourse(
+      termOneEnded,
+      { startNextTerm: true },
+      0,
+    ).state
+    const nextFrame = advanceCourse(winter, {}, 16).state
+
+    expect(winter.ratio).toBe(52)
+    expect(winter.companionCount).toBe(9)
+    expect(nextFrame.ratio).toBeGreaterThanOrEqual(winter.ratio)
+    expect(nextFrame.companionCount).toBe(9)
+  })
+
   it("emits course end when energy reaches zero in term three", () => {
     const step = advanceCourse(
       { ...createCourseState(), term: 3, energy: 0 },

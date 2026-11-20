@@ -5,6 +5,7 @@ import type { CourseState } from "../../course/types"
 import { TERM_BREAK_COPY, refillSchedule } from "../scene-contracts"
 import { EnergyHud } from "../ui/EnergyHud"
 import { PixelPanel } from "../ui/PixelPanel"
+import { AUDIO_ASSETS } from "../audio/GameAudio"
 
 export interface TermBreakSceneData {
   readonly completedTerm: 1 | 2
@@ -31,6 +32,12 @@ export class TermBreakScene extends Phaser.Scene {
     this.continued = false
   }
 
+  preload(): void {
+    const key =
+      this.sceneData.completedTerm === 1 ? "audio-christmas" : "audio-spring"
+    if (!this.cache.audio.exists(key)) this.load.audio(key, AUDIO_ASSETS[key])
+  }
+
   create(): void {
     const copy = TERM_BREAK_COPY[this.sceneData.completedTerm]
     this.add.image(320, 180, `term${this.sceneData.completedTerm}`)
@@ -38,6 +45,7 @@ export class TermBreakScene extends Phaser.Scene {
     this.panel.addLabel(copy.eyebrow, 13, { color: "#f3d765" })
     this.panel.addLabel(copy.title, 23, { gap: 50 })
     this.panel.addLabel(copy.energy, 14, { gap: 36 })
+    this.panel.addGap(35)
     this.continueButton = this.panel
       .addButton(copy.continue, this.continueCourse, 240)
       .setAlpha(0.5)
