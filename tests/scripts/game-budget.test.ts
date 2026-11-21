@@ -18,12 +18,14 @@ describe("production game budget", () => {
       await mkdir(join(root, "audio"))
       await writeFile(join(root, "assets", "app.js"), randomBytes(8_000))
       await writeFile(join(root, "game", "teacher.png"), randomBytes(8_000))
+      await writeFile(join(root, "game", "panorama.webp"), randomBytes(8_000))
       await writeFile(join(root, "audio", "theme.mp3"), randomBytes(40_000))
 
       const result = await checkGameBudget(root, 4_000)
       expect(result.ok).toBe(false)
       expect(result.files).toEqual([
         "assets/app.js",
+        "game/panorama.webp",
         "game/teacher.png",
       ])
       expect(result.files).not.toContain("audio/theme.mp3")

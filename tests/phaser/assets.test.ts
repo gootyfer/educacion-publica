@@ -18,8 +18,8 @@ describe("production game asset manifest", () => {
       "panoramaTerm3",
       "springBreak",
       "energy",
-      "panels",
     ])
+    expect("panels" in GAME_ASSETS).toBe(false)
 
     for (const asset of Object.values(GAME_ASSETS)) {
       expect(asset.url).toMatch(/\/game\//)

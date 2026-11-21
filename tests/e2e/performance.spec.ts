@@ -13,7 +13,8 @@ test("keeps a bounded pool and stable frame samples at 740 by 360", async ({
 
   const diagnostics = await page.evaluate(() => window.__gameDiagnostics)
   expect(diagnostics?.activeScenes).toBe(1)
-  expect(diagnostics?.obstaclePoolSize).toBe(1)
+  expect(diagnostics?.obstaclePoolSize).toBe(4)
+  expect(diagnostics?.activeObstacleCount).toBeLessThanOrEqual(4)
   expect(await page.evaluate(() => window.__phaserSlice?.companionCount)).toBe(9)
   expect(diagnostics?.frameMs.length).toBeLessThanOrEqual(120)
   const regularFrames = diagnostics?.frameMs.slice(-60) ?? []

@@ -55,12 +55,6 @@ export const GAME_ASSETS = {
     frameWidth: 100,
     frameHeight: 100,
   },
-  panels: {
-    kind: "spritesheet",
-    url: `${GAME_BASE}ui/panels.png`,
-    frameWidth: 100,
-    frameHeight: 100,
-  },
 } as const satisfies Record<string, GameAsset>
 
 export const TEACHER_ANIMATIONS = {

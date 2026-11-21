@@ -18,7 +18,8 @@ Controles: toque o clic en el juego, `Espacio` o `Flecha arriba`. La interfaz in
 - `src/course/`: progresión, ratio, energía y cadencia determinista independientes del motor.
 - `src/phaser/`: escenas, entidades, audio y configuración Phaser 3 a 640×360.
 - `src/ui/`: controles HTML semánticos, motivación, fuentes y estado accesible.
-- `public/game/`: sprites, UI y los tres fondos estacionales de producción.
+- `art-source/panoramas/`: maestros PNG del recorrido madrileño y manifiesto con el orden de sus cinco tramos.
+- `public/game/`: sprites, UI y panoramas WebP optimizados de producción.
 - `public/audio/approved/`: música y efectos aprobados; el juego no depende de ellos.
 - `tests/`: contratos puros, integración Phaser y recorridos Playwright.
 
@@ -33,6 +34,16 @@ npm run test:e2e
 ```
 
 `npm run ci` reúne todas las comprobaciones. El presupuesto comprime JavaScript, CSS, HTML y recursos visuales críticos y falla por encima de 3 MB; el audio queda excluido y se carga por separado.
+
+## Panoramas estacionales
+
+Cada trimestre reutiliza el mismo recorrido continuo de Madrid capital transformado por la estación. Los cinco maestros de 640×360 se ordenan en `art-source/panoramas/manifest.json` y se preparan como una tira de 3200×360; el descanso de primavera usa una imagen estática de 640×360.
+
+```bash
+npm run art:panoramas
+```
+
+El comando genera los WebP de `public/game/backgrounds/` sin alterar los maestros. Antes de sustituir el arte, revisa la hoja de contacto y los bucles de continuidad de `docs/art-direction/una-jornada-decente/panorama-review/`; el último tramo debe enlazar visualmente con el primero.
 
 ## Calibración
 

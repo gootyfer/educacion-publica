@@ -28,10 +28,22 @@ declare global {
       activeScenes: number
       inputBindings: number
       obstaclePoolSize: number
+      activeObstacleCount: number
       frameMs: number[]
     }
     __audioRate?: number
     __pressureSamples?: number[]
+    __courseSamples?: Array<{
+      term: number
+      companionCount: number
+      pressure: number
+    }>
+    __sceneHistory?: Array<{
+      screen: string
+      term?: number
+      background?: string
+      backgroundOffset?: number
+    }>
   }
 }
 
@@ -55,6 +67,10 @@ async function startApplication(): Promise<void> {
     const { createPhaserGame } = await import("./phaser/create-game")
     const game = createPhaserGame(shell.gameRoot)
     const audio = new GameAudio(game.sound)
+    if (import.meta.env.DEV) {
+      window.__courseSamples = []
+      window.__sceneHistory = []
+    }
     document.body.classList.add("app-ready")
     shell.setMuted(audio.isMuted())
 
@@ -70,15 +86,29 @@ async function startApplication(): Promise<void> {
       game.destroy(true)
       showFallback("El juego no ha podido cargar sus imágenes necesarias.")
     })
-    game.events.on("scene:title", () => shell.setScreen("title"))
-    game.events.on("scene:game", (term: 1 | 2 | 3) => {
+    game.events.on("scene:title", () => {
+      shell.setScreen("title")
+      recordScene({ screen: "title", background: "panoramaTerm1" })
+    })
+    game.events.on("scene:game", (term: 1 | 2 | 3, backgroundOffset: number) => {
       shell.setScreen("game")
       shell.announce(announcementFor("term", term))
       audio.startTerm(term)
+      recordScene({
+        screen: "game",
+        term,
+        background: `panoramaTerm${term}`,
+        backgroundOffset,
+      })
     })
     game.events.on("scene:term-break", (term: 1 | 2) => {
       shell.setScreen("term-break")
       audio.playHoliday(term)
+      recordScene({
+        screen: "term-break",
+        term,
+        background: term === 1 ? "panoramaTerm2" : "springBreak",
+      })
       if (import.meta.env.DEV) window.__audioRate = audio.currentRate()
     })
     game.events.on("term-break:refilled", () => shell.setContinueReady(true))
@@ -87,6 +117,7 @@ async function startApplication(): Promise<void> {
       shell.setResults(state)
       shell.setScreen("results")
       audio.playCourseEnd()
+      recordScene({ screen: "results", background: "panoramaTerm3" })
       if (import.meta.env.DEV) window.__audioRate = audio.currentRate()
     })
     game.events.on("game:energy", (energy: number) => shell.setEnergy(energy))
@@ -174,6 +205,7 @@ async function handleAction(
 function attachDiagnostics(game: Phaser.Game): void {
   const frameMs: number[] = []
   let previousSample = performance.now()
+  let previousCourseSample = ""
   game.events.on("game:debug", (state: GameDebugState) => {
     const now = performance.now()
     frameMs.push(now - previousSample)
@@ -184,9 +216,26 @@ function attachDiagnostics(game: Phaser.Game): void {
       activeScenes: game.scene.getScenes(true).length,
       inputBindings: state.inputBindingCount,
       obstaclePoolSize: state.obstaclePoolSize,
+      activeObstacleCount: state.activeObstacleCount,
       frameMs: [...frameMs],
     }
+    const courseSample = `${state.term}:${state.companionCount}:${state.pressure}`
+    if (courseSample !== previousCourseSample) {
+      previousCourseSample = courseSample
+      const samples = (window.__courseSamples ??= [])
+      samples.push({
+        term: state.term,
+        companionCount: state.companionCount,
+        pressure: state.pressure,
+      })
+      if (samples.length > 500) samples.shift()
+    }
   })
+}
+
+function recordScene(entry: NonNullable<Window["__sceneHistory"]>[number]): void {
+  if (!import.meta.env.DEV) return
+  ;(window.__sceneHistory ??= []).push(entry)
 }
 
 function hasGraphicsRenderer(): boolean {

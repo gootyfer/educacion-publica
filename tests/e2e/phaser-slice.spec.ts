@@ -40,12 +40,22 @@ test("starts each term at its matching seasonal panorama", async ({ page }) => {
     [3, "panoramaTerm3"],
   ] as const) {
     await page.goto(`/?slice=1&term=${term}`)
-    await expect
-      .poll(() => page.evaluate(() => window.__phaserSlice?.backgroundTexture))
-      .toBe(texture)
-    expect(await page.evaluate(() => window.__phaserSlice?.backgroundOffset)).toBeLessThan(
-      100,
+    await page.waitForFunction(
+      (expectedTexture) =>
+        window.__phaserSlice?.backgroundTexture === expectedTexture,
+      texture,
     )
+    await expect
+      .poll(() =>
+        page.evaluate(
+          (currentTerm) =>
+            window.__sceneHistory?.find(
+              ({ screen, term }) => screen === "game" && term === currentTerm,
+            )?.backgroundOffset,
+          term,
+        ),
+      )
+      .toBe(0)
   }
 })
 
