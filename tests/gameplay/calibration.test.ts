@@ -67,18 +67,18 @@ describe("production course calibration", () => {
     )
   })
 
-  it("grows the symbolic ratio to nine grounded companions", () => {
+  it("grows the symbolic ratio to ten grounded companions", () => {
     let state = createCourseState()
     const counts = [state.companionCount]
 
-    for (let frame = 0; frame < 4_000 && state.companionCount < 9; frame += 1) {
+    for (let frame = 0; frame < 4_000 && state.companionCount < 10; frame += 1) {
       state = advanceCourse(state, {}, DEFAULT_CALIBRATION.maxDeltaMs).state
       counts.push(state.companionCount)
     }
 
     expect(counts[0]).toBe(2)
-    expect(Math.max(...counts)).toBe(9)
-    expect(counts.every((count) => count >= 2 && count <= 9)).toBe(true)
+    expect(Math.max(...counts)).toBe(10)
+    expect(counts.every((count) => count >= 2 && count <= 10)).toBe(true)
   })
 
   it("keeps every generated gap traversable at minimum energy", () => {

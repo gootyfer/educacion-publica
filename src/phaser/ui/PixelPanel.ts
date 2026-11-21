@@ -74,21 +74,27 @@ export class PixelPanel {
     label: string,
     onActivate: () => void,
     rect: Rect,
-    variant: "primary" | "secondary" | "text" = "primary",
+    variant: "primary" | "secondary" | "accent" | "text" = "primary",
   ): Phaser.GameObjects.Container {
     const graphics = this.scene.add.graphics()
     if (variant !== "text") {
+      const fill =
+        variant === "primary"
+          ? COLORS.green
+          : variant === "accent"
+            ? COLORS.mustard
+            : COLORS.cream
       drawSteppedBox(
         graphics,
         rect,
-        variant === "primary" ? COLORS.green : COLORS.cream,
+        fill,
         COLORS.darkest,
         3,
-        variant === "primary" ? 5 : 0,
+        variant === "primary" || variant === "accent" ? 5 : 0,
       )
-      if (variant === "primary") {
+      if (variant === "primary" || variant === "accent") {
         graphics
-          .fillStyle(COLORS.greenLight)
+          .fillStyle(variant === "primary" ? COLORS.greenLight : COLORS.cream)
           .fillRect(rect.x + 8, rect.y + 5, rect.width - 16, 3)
       }
     }
@@ -96,7 +102,12 @@ export class PixelPanel {
       .text(0, 0, label, {
         fontFamily: PIXEL_FONT_FAMILY,
         fontSize: `${variant === "primary" ? 27 : 20}px`,
-        color: variant === "primary" ? "#fff4d6" : "#123e34",
+        color:
+          variant === "primary"
+            ? "#fff4d6"
+            : variant === "accent"
+              ? "#071f1a"
+              : "#123e34",
         align: "center",
       })
       .setOrigin(0.5)

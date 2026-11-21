@@ -40,7 +40,7 @@ export interface GameDebugState {
   readonly pressure: number
 }
 
-const GROUND_Y = 318
+export const GAME_GROUND_Y = 340
 const TEACHER_X = 198
 
 export class GameScene extends Phaser.Scene {
@@ -79,12 +79,12 @@ export class GameScene extends Phaser.Scene {
     this.physics.world.gravity.y = 980
     registerGameAnimations(this)
 
-    this.teacher = new Teacher(this, TEACHER_X, GROUND_Y)
-    this.companions = new CompanionGroup(this, TEACHER_X, GROUND_Y)
+    this.teacher = new Teacher(this, TEACHER_X, GAME_GROUND_Y)
+    this.companions = new CompanionGroup(this, TEACHER_X, GAME_GROUND_Y)
     this.companions.setCount(this.courseState.companionCount)
     this.obstacles = new ObstaclePool(
       this,
-      GROUND_Y,
+      GAME_GROUND_Y,
       this.courseState,
       this.seedFromLocation(),
       this.stressFixtureEnabled(),
@@ -197,7 +197,7 @@ export class GameScene extends Phaser.Scene {
   private debugState(): GameDebugState {
     return {
       teacherY: Math.round(this.teacher.y),
-      groundY: GROUND_Y,
+      groundY: GAME_GROUND_Y,
       companionYs: this.companions.visibleGroundPositions(),
       energy: this.courseState.energy,
       phase: this.courseState.phase,

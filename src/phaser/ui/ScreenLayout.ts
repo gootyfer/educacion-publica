@@ -29,11 +29,11 @@ export const SCREEN_LAYOUTS = {
     },
   },
   results: {
-    panel: { x: 164, y: 42, width: 312, height: 288 },
+    panel: { x: 164, y: 42, width: 312, height: 306 },
     actions: {
       retry: { x: 183, y: 210, width: 274, height: 48 },
-      why: { x: 198, y: 269, width: 244, height: 34 },
-      share: { x: 210, y: 307, width: 220, height: 28 },
+      why: { x: 198, y: 265, width: 244, height: 34 },
+      share: { x: 210, y: 306, width: 220, height: 32 },
     },
   },
 } as const satisfies Readonly<Record<LayoutScreen, ScreenLayout>>

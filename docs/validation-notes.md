@@ -6,7 +6,7 @@
 ## Comprobado automáticamente
 
 - El profesorado salta mientras los acompañantes permanecen agrupados y apoyados en el suelo.
-- La ratio crece simbólicamente hasta nueve identidades diversas y nunca crea colisiones del alumnado.
+- La ratio crece simbólicamente hasta diez identidades diversas y nunca crea colisiones del alumnado.
 - Septiembre, invierno y junio usan fondos propios; frío y goteras aparecen en invierno y calor en junio.
 - Los seis obstáculos pueden aparecer y sus huecos respetan la geometría mínima de salto.
 - Un choque reduce energía sin terminar inmediatamente el trimestre.

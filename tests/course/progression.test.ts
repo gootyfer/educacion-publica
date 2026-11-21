@@ -50,13 +50,13 @@ describe("course progression", () => {
     expect(drained.state.energy).toBeLessThanOrEqual(100)
   })
 
-  it("maps ratio growth monotonically to at most nine companions", () => {
+  it("maps ratio growth monotonically to at most ten companions", () => {
     const counts = [0, 20, 24, 28, 36, 44, 52, 60, 80, 200].map(
       companionCountForRatio,
     )
 
     expect(counts[0]).toBe(2)
-    expect(counts.at(-1)).toBe(9)
+    expect(counts.at(-1)).toBe(10)
     expect(counts.every((count, index) => index === 0 || count >= counts[index - 1]!)).toBe(true)
   })
 
@@ -109,7 +109,7 @@ describe("course progression", () => {
       energy: 0,
       ratio: 52,
       maxRatio: 52,
-      companionCount: 9,
+      companionCount: 10,
     }
     const winter = advanceCourse(
       termOneEnded,
@@ -125,14 +125,14 @@ describe("course progression", () => {
     expect(nextFrame.companionCount).toBe(2)
   })
 
-  it("reaches nine companions at roughly two thirds of every normal term", () => {
+  it("reaches ten companions by three quarters of every normal term", () => {
     for (const term of [1, 2, 3] as const) {
       for (const withImpacts of [false, true]) {
         let state = createCourseStateAtTerm(term)
         const target = state.profile.targetTermDurationMs[term]
         let sentFirstImpact = false
         let sentSecondImpact = false
-        while (state.phase === "running" && state.companionCount < 9) {
+        while (state.phase === "running" && state.companionCount < 10) {
           const input =
             withImpacts && !sentFirstImpact && state.elapsedMs >= target * 0.2
               ? ((sentFirstImpact = true), { impact: "paper-stack" as const })
@@ -143,14 +143,14 @@ describe("course progression", () => {
                 : {}
           state = advanceCourse(state, input, state.profile.maxDeltaMs).state
         }
-        expect(state.companionCount).toBe(9)
+        expect(state.companionCount).toBe(10)
         expect(state.elapsedMs / target).toBeGreaterThanOrEqual(0.64)
         expect(state.elapsedMs / target).toBeLessThanOrEqual(0.75)
       }
     }
   })
 
-  it("allows repeated impacts to end a term before the group reaches nine", () => {
+  it("allows repeated impacts to end a term before the group reaches ten", () => {
     let state = createCourseStateAtTerm(1)
     while (state.phase === "running") {
       state = advanceCourse(
@@ -159,7 +159,7 @@ describe("course progression", () => {
         state.profile.maxDeltaMs,
       ).state
     }
-    expect(state.companionCount).toBeLessThan(9)
+    expect(state.companionCount).toBeLessThan(10)
   })
 
   it("emits course end when energy reaches zero in term three", () => {

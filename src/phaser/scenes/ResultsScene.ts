@@ -78,7 +78,7 @@ export class ResultsScene extends Phaser.Scene {
       RESULTS_COPY.actions[2],
       () => this.game.events.emit("ui:share", this.sceneData.state),
       layout.actions.share,
-      "text",
+      "accent",
     )
     this.game.events.on("ui:retry", this.retryCourse)
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this)

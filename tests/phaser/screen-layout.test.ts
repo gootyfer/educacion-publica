@@ -16,6 +16,15 @@ describe("shared screen layout", () => {
     expect(termBreak.width).toBeGreaterThan(title.width)
   })
 
+  it("keeps the framed share action inside the taller results panel", () => {
+    const { panel, actions } = SCREEN_LAYOUTS.results
+    const share = actions.share!
+
+    expect(panel.y + panel.height).toBeLessThanOrEqual(352)
+    expect(share.y + share.height).toBeLessThan(panel.y + panel.height)
+    expect(share.height).toBeGreaterThanOrEqual(32)
+  })
+
   it("converts logical action rectangles to literal canvas percentages", () => {
     expect(semanticRectStyle(SCREEN_LAYOUTS.title.actions.start!)).toEqual({
       left: "31.875%",

@@ -65,7 +65,7 @@ export const TEACHER_ANIMATIONS = {
 } as const
 
 export const COMPANION_DEFINITIONS = Array.from(
-  { length: 9 },
+  { length: 10 },
   (_, index) => ({
     id: `companion-${index + 1}`,
     frames: [

@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest"
 
-import { companionFormation } from "../../src/phaser/entities/CompanionGroup"
+import {
+  COMPANION_APPEARANCE_ORDER,
+  companionFormation,
+} from "../../src/phaser/entities/CompanionGroup"
 
 describe("companion formation", () => {
-  it("spreads nine companions across three grounded perspective rows", () => {
-    const slots = companionFormation(9)
+  it("spreads ten companions across three grounded perspective rows", () => {
+    const slots = companionFormation(10)
     const rows = [...new Set(slots.map(({ y }) => y))].sort((a, b) => a - b)
 
-    expect(slots).toHaveLength(9)
+    expect(slots).toHaveLength(10)
     expect(rows).toEqual([-20, -10, 0])
     expect(rows[1]! - rows[0]!).toBeGreaterThanOrEqual(8)
     expect(rows[2]! - rows[1]!).toBeLessThanOrEqual(14)
@@ -20,8 +23,15 @@ describe("companion formation", () => {
     }
   })
 
+  it("puts the baby in the first row and wheelchair student before the end", () => {
+    expect(COMPANION_APPEARANCE_ORDER).toHaveLength(10)
+    expect(COMPANION_APPEARANCE_ORDER.indexOf(9)).toBeLessThan(3)
+    expect(COMPANION_APPEARANCE_ORDER.indexOf(10)).toBe(5)
+    expect(COMPANION_APPEARANCE_ORDER.at(-1)).not.toBe(10)
+  })
+
   it("reduces scale and depth for rows farther from the foreground", () => {
-    const slots = companionFormation(9)
+    const slots = companionFormation(10)
     const scaleAt = (y: number) => slots.find((slot) => slot.y === y)!.scale
     const depthAt = (y: number) => slots.find((slot) => slot.y === y)!.depth
 

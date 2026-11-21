@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 test("keeps a bounded pool and stable frame samples at 740 by 360", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.setViewportSize({ width: 740, height: 360 })
   await page.goto("/?term=3&perf=1&stress=1&pressure=1&seed=2026")
   await expect
@@ -20,7 +20,10 @@ test("keeps a bounded pool and stable frame samples at 740 by 360", async ({
   expect(diagnostics?.activeScenes).toBe(1)
   expect(diagnostics?.obstaclePoolSize).toBe(4)
   expect(diagnostics?.activeObstacleCount).toBe(4)
-  expect(await page.evaluate(() => window.__phaserSlice?.companionCount)).toBe(9)
+  expect(await page.evaluate(() => window.__phaserSlice?.companionCount)).toBe(10)
+  await page.screenshot({
+    path: testInfo.outputPath("gameplay-ten-companions.png"),
+  })
   expect(diagnostics?.frameMs.length).toBeLessThanOrEqual(120)
   const regularFrames = diagnostics?.frameMs.slice(-60) ?? []
   const average =

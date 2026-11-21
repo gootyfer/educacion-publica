@@ -17,10 +17,11 @@ describe("Phaser animation and HUD contracts", () => {
     expect(TEACHER_FRAME_INDEXES.tired).toEqual([18, 19, 20, 21, 22, 23])
   })
 
-  it("maps nine companions to two grounded run frames each", () => {
-    expect(COMPANION_FRAME_INDEXES).toHaveLength(9)
+  it("maps ten companions to two grounded run frames each", () => {
+    expect(COMPANION_FRAME_INDEXES).toHaveLength(10)
     expect(COMPANION_FRAME_INDEXES[0]).toEqual([0, 1])
     expect(COMPANION_FRAME_INDEXES[8]).toEqual([16, 17])
+    expect(COMPANION_FRAME_INDEXES[9]).toEqual([18, 19])
   })
 
   it.each([

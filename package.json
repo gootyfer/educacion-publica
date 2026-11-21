@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "art:companions": "node scripts/prepare-companions.mjs",
     "art:panoramas": "node scripts/prepare-panoramas.mjs",
     "build": "tsc --noEmit && vite build",
     "budget": "node scripts/check-game-budget.mjs dist",

@@ -19,10 +19,15 @@ const FORMATION: readonly CompanionSlot[] = [
   { x: -72, y: -20, scale: 0.76, depth: 10 },
   { x: -104, y: -20, scale: 0.76, depth: 10 },
   { x: -136, y: -20, scale: 0.76, depth: 10 },
+  { x: -168, y: -20, scale: 0.76, depth: 10 },
 ]
 
+export const COMPANION_APPEARANCE_ORDER = [
+  1, 2, 9, 3, 4, 10, 5, 6, 7, 8,
+] as const
+
 export function companionFormation(count: number): readonly CompanionSlot[] {
-  return FORMATION.slice(0, Math.min(9, Math.max(0, Math.floor(count))))
+  return FORMATION.slice(0, Math.min(10, Math.max(0, Math.floor(count))))
 }
 
 export class CompanionGroup {
@@ -34,19 +39,20 @@ export class CompanionGroup {
     private readonly teacherX: number,
     private readonly groundY: number,
   ) {
-    this.sprites = COMPANION_FRAME_INDEXES.map((frames, index) =>
-      scene.add
+    this.sprites = COMPANION_APPEARANCE_ORDER.map((identity) => {
+      const frames = COMPANION_FRAME_INDEXES[identity - 1]!
+      return scene.add
         .sprite(0, groundY, "companions", frames[0])
         .setOrigin(0.5, 1)
         .setScale(0.88)
         .setDepth(10)
         .setVisible(false)
-        .play(`companion-${index + 1}-run`),
-    )
+        .play(`companion-${identity}-run`)
+    })
   }
 
   setCount(count: number): void {
-    this.count = Math.min(9, Math.max(0, Math.floor(count)))
+    this.count = Math.min(10, Math.max(0, Math.floor(count)))
     const slots = companionFormation(this.count)
     this.sprites.forEach((sprite, index) => {
       const visible = index < this.count

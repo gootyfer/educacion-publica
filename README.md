@@ -1,6 +1,6 @@
 # Una jornada decente
 
-Runner horizontal en pixel art sobre la educación pública madrileña. El curso recorre tres trimestres: la energía docente disminuye, la ratio se representa con hasta nueve estudiantes que acompañan al profesorado y los obstáculos simbolizan burocracia, clima e infraestructura. El alumnado nunca tiene físicas ni funciona como obstáculo.
+Runner horizontal en pixel art sobre la educación pública madrileña. El curso recorre tres trimestres: la energía docente disminuye, la ratio se representa con hasta diez estudiantes que acompañan al profesorado y los obstáculos simbolizan burocracia, clima e infraestructura. El alumnado nunca tiene físicas ni funciona como obstáculo.
 
 ## Desarrollo
 

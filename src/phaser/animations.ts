@@ -8,7 +8,7 @@ export const TEACHER_FRAME_INDEXES = {
 } as const
 
 export const COMPANION_FRAME_INDEXES = Array.from(
-  { length: 9 },
+  { length: 10 },
   (_, index) => [index * 2, index * 2 + 1] as const,
 )
 

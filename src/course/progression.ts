@@ -65,7 +65,7 @@ function companionCountForProfile(
   const growth = Math.floor(
     (ratio - profile.companionBaselineRatio) / profile.companionRatioStep,
   )
-  return clamp(2 + growth, 2, 9)
+  return clamp(2 + growth, 2, 10)
 }
 
 export function advanceCourse(

@@ -49,9 +49,9 @@ describe("production game asset manifest", () => {
     expect(TEACHER_ANIMATIONS.tired.length).toBeGreaterThan(0)
   })
 
-  it("defines nine grounded companion identities without jump states", () => {
-    expect(COMPANION_DEFINITIONS).toHaveLength(9)
-    expect(new Set(COMPANION_DEFINITIONS.map(({ id }) => id)).size).toBe(9)
+  it("defines ten grounded companion identities without jump states", () => {
+    expect(COMPANION_DEFINITIONS).toHaveLength(10)
+    expect(new Set(COMPANION_DEFINITIONS.map(({ id }) => id)).size).toBe(10)
     for (const companion of COMPANION_DEFINITIONS) {
       expect(companion.frames.length).toBeGreaterThan(1)
       expect(companion.frames.every((frame) => frame.includes("-run-"))).toBe(

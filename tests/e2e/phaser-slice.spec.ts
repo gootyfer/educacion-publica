@@ -69,6 +69,7 @@ for (const viewport of [
 
     await expect(canvas).toHaveAttribute("width", "640")
     await expect(canvas).toHaveAttribute("height", "360")
+    expect(await page.evaluate(() => window.__phaserSlice?.groundY)).toBe(340)
     await canvas.click()
     await expect(page.getByRole("status")).toContainText("saltado")
     await expect

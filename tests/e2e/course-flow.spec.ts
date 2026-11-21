@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-test("completes the fast course with 2→9 resets and seasonal breaks", async ({
+test("completes the fast course with 2→10 resets and seasonal breaks", async ({
   page,
 }, testInfo) => {
   await page.setViewportSize({ width: 844, height: 390 })
@@ -36,7 +36,7 @@ test("completes the fast course with 2→9 resets and seasonal breaks", async ({
           (currentTerm) =>
             window.__courseSamples?.some(
               ({ term, companionCount }) =>
-                term === currentTerm && companionCount === 9,
+                term === currentTerm && companionCount === 10,
             ) ?? false,
           term,
         ),
@@ -66,7 +66,7 @@ test("completes the fast course with 2→9 resets and seasonal breaks", async ({
   const samples = await page.evaluate(() => window.__courseSamples ?? [])
   for (const term of [1, 2, 3]) {
     expect(samples.some((sample) => sample.term === term && sample.companionCount === 2)).toBe(true)
-    expect(samples.some((sample) => sample.term === term && sample.companionCount === 9)).toBe(true)
+    expect(samples.some((sample) => sample.term === term && sample.companionCount === 10)).toBe(true)
   }
   const history = await page.evaluate(() => window.__sceneHistory ?? [])
   expect(history).toEqual(

@@ -52,14 +52,14 @@ for (const viewport of [
   })
 }
 
-test("completes three terms, both refills and nine grounded followers", async ({
+test("completes three terms, both refills and ten grounded followers", async ({
   page,
 }) => {
   await page.goto("/?slice=1&fast=1&seed=2026")
   await expect(page.locator("[data-energy-status]")).toContainText(/Energía:/)
   await expect
     .poll(() => page.evaluate(() => window.__phaserSlice?.companionCount))
-    .toBe(9)
+    .toBe(10)
   await finishFastCourse(page)
   await expect(page.locator("[data-results-summary]")).toContainText(
     /Tiempo total:.*Ratio máxima:/,
