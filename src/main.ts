@@ -1,368 +1,274 @@
-import "@fontsource/schoolbell/400.css"
 import "./styles.css"
+import "@fontsource/jersey-10/latin-400.css"
 
-import { createAudioController } from "./audio/controller"
-import { EVIDENCE_FACTS } from "./content/facts"
-import { worldSpeedFor } from "./game/mechanics"
-import { createGameRuntime } from "./game/runtime"
-import type { DamageKind, GameState, TermResult } from "./game/types"
+import type Phaser from "phaser"
+
+import type { CourseState, ObstacleKind } from "./course/types"
+import { GameAudio } from "./phaser/audio/GameAudio"
 import {
-  buildResultViewModel,
-  readRecord,
-  writeRecord,
-  type ResultViewModel,
-} from "./ui/results"
+  PRELOAD_COMPLETE_EVENT,
+  PRELOAD_ERROR_EVENT,
+  PRELOAD_FATAL_EVENT,
+  PRELOAD_PROGRESS_EVENT,
+} from "./phaser/events"
+import type { GameDebugState } from "./phaser/scenes/GameScene"
+import {
+  GameShell,
+  announcementFor,
+  type GameShellHandle,
+  type ShellAction,
+} from "./ui/GameShell"
 import { shareResult } from "./ui/share"
-import { buildTransitionViewModel } from "./ui/transitions"
+import { waitForPixelFont } from "./phaser/ui/ScreenLayout"
+
+declare global {
+  interface Window {
+    __phaserSlice?: GameDebugState
+    __gameDiagnostics?: {
+      activeScenes: number
+      inputBindings: number
+      obstaclePoolSize: number
+      activeObstacleCount: number
+      frameMs: number[]
+    }
+    __audioRate?: number
+    __pressureSamples?: number[]
+    __courseSamples?: Array<{
+      term: number
+      companionCount: number
+      pressure: number
+    }>
+    __sceneHistory?: Array<{
+      screen: string
+      term?: number
+      background?: string
+      backgroundOffset?: number
+    }>
+  }
+}
 
 const app = document.querySelector<HTMLElement>("#app")
+if (!app) throw new Error("No se encontró el contenedor de la aplicación")
 
-if (!app) {
-  throw new Error("No se encontró el contenedor principal de la aplicación")
-}
+let resultState: CourseState | null = null
+void startApplication()
 
-app.dataset.appReady = "true"
-
-const intro = requiredElement<HTMLElement>("#intro")
-const loadingScreen = requiredElement<HTMLElement>("#loading-screen")
-const loadingStatus = requiredElement<HTMLElement>("#loading-status")
-const loadingProgress = requiredElement<HTMLProgressElement>(
-  "#loading-progress",
-)
-const gameRegion = requiredElement<HTMLElement>("#game-region")
-const canvas = requiredElement<HTMLCanvasElement>("#game-canvas")
-const results = requiredElement<HTMLElement>("#results")
-const startButton = requiredElement<HTMLButtonElement>("#start-button")
-const readJourneyButton = requiredElement<HTMLButtonElement>(
-  "#read-journey-button",
-)
-const statusLive = requiredElement<HTMLElement>("#status-live")
-const audioController = createAudioController({ storage: getOptionalStorage() })
-const soundButton = document.createElement("button")
-soundButton.id = "sound-toggle"
-soundButton.className = "sound-toggle"
-soundButton.type = "button"
-app.append(soundButton)
-updateSoundButton()
-
-let previousState: GameState | null = null
-let preparingStart = false
-
-const runtime = createGameRuntime({
-  canvas,
-  onStateChange(state) {
-    if (previousState?.grounded && !state.grounded) {
-      statusLive.textContent = "El docente ha saltado."
-      audioController.playJump()
-    } else if (previousState && state.ratio > previousState.ratio) {
-      statusLive.textContent = `Se incorporan ${state.ratio - previousState.ratio} alumnos. Ratio ${state.ratio}; apoyos adicionales: cero.`
-    }
-    if (previousState) {
-      playNewCollisions(previousState, state)
-    }
-    audioController.setWorldSpeed(worldSpeedFor(state))
-    previousState = state
-  },
-  onTermEnd(_state, result) {
-    renderTransition(result)
-  },
-  onCourseFinish(state) {
-    audioController.playCourseEnd()
-    gameRegion.classList.add("is-hidden")
-    results.classList.remove("is-hidden")
-    const storage = getOptionalStorage()
-    const previousRecord = readRecord(storage)
-    const viewModel = buildResultViewModel(state, previousRecord)
-    writeRecord(storage, viewModel.durationSeconds)
-    renderResults(viewModel)
-    results.querySelector<HTMLElement>("#results-title")?.focus()
-  },
-})
-
-startButton.addEventListener("click", () => {
-  void prepareAndStartJornada()
-})
-
-readJourneyButton.addEventListener("click", renderTextJourney)
-soundButton.addEventListener("click", () => {
-  const nextMuted = !audioController.isMuted()
-  audioController.setMuted(nextMuted)
-  if (!nextMuted) void audioController.unlock()
-  updateSoundButton()
-  statusLive.textContent = nextMuted ? "Sonido desactivado." : "Sonido activado."
-})
-
-function startJornada() {
-  intro.classList.add("is-hidden")
-  loadingScreen.classList.add("is-hidden")
-  results.classList.add("is-hidden")
-  gameRegion.classList.remove("is-hidden")
-  previousState = null
-  audioController.startTerm(1)
-  void audioController.unlock()
-  statusLive.textContent =
-    "Curso en marcha. Primer trimestre. Energía 100. Ratio 20."
-  runtime.start()
-  canvas.focus()
-}
-
-async function prepareAndStartJornada() {
-  if (preparingStart) return
-  preparingStart = true
-  intro.classList.add("is-hidden")
-  results.classList.add("is-hidden")
-  loadingScreen.classList.remove("is-hidden")
-  loadingProgress.value = 0
-  loadingStatus.textContent = "Cargando sonido 0 de 3"
-  statusLive.textContent = "Preparando la jornada. Cargando sonido."
-
-  const unlock = audioController.unlock()
-  const essentials = audioController.prepareEssentialAudio((loaded, total) => {
-    if (!preparingStart) return
-    loadingProgress.max = total
-    loadingProgress.value = loaded
-    loadingStatus.textContent = `Cargando sonido ${loaded} de ${total}`
-    statusLive.textContent = `Preparando la jornada. Sonido ${loaded} de ${total}.`
-  })
-
-  await Promise.race([Promise.all([unlock, essentials]), wait(8_000)])
-  startJornada()
-  void audioController.prepareDeferredAudio()
-  preparingStart = false
-}
-
-function wait(milliseconds: number) {
-  return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds))
-}
-
-function renderResults(viewModel: ResultViewModel) {
-  const recordBadge = viewModel.isRecord
-    ? '<span class="record-badge">Nuevo récord</span>'
-    : ""
-  const damageRows = viewModel.damageRows
-    .map(
-      (row) => `
-        <li>
-          <span>${row.label}</span>
-          <strong>${row.hits} ${row.hits === 1 ? "golpe" : "golpes"}</strong>
-        </li>`,
-    )
-    .join("")
-  const factCards = renderFactCards(viewModel.facts)
-  const termRows = viewModel.termRows
-    .map(
-      (row) => `
-        <li class="term-result">
-          <span>${row.label}</span>
-          <strong>${row.durationLabel}</strong>
-          <small>Ratio máxima ${row.maxRatio}</small>
-        </li>`,
-    )
-    .join("")
-  results.innerHTML = `
-    <header class="results-header panel-masthead">
-      <span class="screen-mark" aria-hidden="true">@</span>
-      <p class="eyebrow">Tu resultado</p>
-      <h2 id="results-title" tabindex="-1">${viewModel.title}</h2>
-      ${recordBadge}
-    </header>
-    <button id="retry-button" class="primary-action" type="button">Volver a intentarlo</button>
-    <div class="result-score" aria-label="Resumen de la partida">
-      <p><span>Tiempo total</span><strong>${viewModel.durationLabel}</strong></p>
-      <p><span>Ratio máxima</span><strong>${viewModel.maxRatio}</strong></p>
-    </div>
-    <ol class="term-results" aria-label="Resultado por trimestre">${termRows}</ol>
-    <ul class="damage-list">${damageRows}</ul>
-    <p class="result-message">${viewModel.message}</p>
-    <section id="evidence" class="evidence-section" aria-labelledby="evidence-title">
-      <p class="eyebrow">La realidad detrás del juego</p>
-      <h2 id="evidence-title">Cuatro datos para entender la protesta</h2>
-      <div class="fact-grid">${factCards}</div>
-    </section>
-    <section id="how-to-support" class="support-section" aria-labelledby="support-title">
-      <h2 id="support-title">Ahora ya sabes por qué correr más no resuelve el problema</h2>
-      <p>Consulta las reivindicaciones completas, contrasta las fuentes y comparte la experiencia si te ha ayudado a entenderlas.</p>
-      <div class="result-actions">
-        <button id="share-button" class="secondary-action" type="button">Compartir resultado</button>
-        <a class="text-action" href="https://menoslectivas.org/" target="_blank" rel="noreferrer">Informarme y apoyar</a>
-      </div>
-    </section>
-  `
-
-  requiredElement<HTMLButtonElement>("#retry-button").addEventListener(
-    "click",
-    startJornada,
-  )
-  requiredElement<HTMLButtonElement>("#share-button").addEventListener(
-    "click",
-    async () => {
-      const outcome = await shareResult(
-        {
-          title: "Una jornada decente",
-          text: `Completé el curso en ${viewModel.durationLabel} con una ratio máxima de ${viewModel.maxRatio}. ¿Tú cuánto aguantarías?`,
-          url: window.location.href,
-        },
-        {
-          share: navigator.share?.bind(navigator),
-          clipboard: navigator.clipboard,
-        },
-      )
-      statusLive.textContent =
-        outcome === "shared"
-          ? "Resultado compartido."
-          : outcome === "copied"
-            ? "Resultado copiado al portapapeles."
-            : "No se pudo compartir automáticamente. Puedes copiar la dirección de esta página."
-    },
-  )
-}
-
-function renderTransition(result: TermResult) {
-  const viewModel = buildTransitionViewModel(result)
-  if (!viewModel) return
-
-  gameRegion.classList.add("is-hidden")
-  results.classList.remove("is-hidden")
-  results.innerHTML = `
-    <section class="holiday-transition" aria-labelledby="results-title">
-      <header class="panel-masthead">
-        <span class="screen-mark" aria-hidden="true">@</span>
-        <p class="eyebrow">${viewModel.eyebrow}</p>
-        <h2 id="results-title" tabindex="-1">${viewModel.title}</h2>
-      </header>
-      <div class="panel-body">
-        <p class="holiday-duration">Has aguantado ${viewModel.durationLabel}</p>
-        <p class="result-message">${viewModel.message}</p>
-        <button id="continue-course" class="primary-action" type="button">
-          Continuar el curso
-        </button>
-      </div>
-    </section>
-  `
-  results.querySelector<HTMLElement>("#results-title")?.focus()
-  statusLive.textContent = viewModel.accessibleSummary
-
-  const continueButton = requiredElement<HTMLButtonElement>("#continue-course")
-  let continued = false
-  const continueOnce = () => {
-    if (continued) return
-    continued = true
-    results.classList.add("is-hidden")
-    gameRegion.classList.remove("is-hidden")
-    previousState = null
-    audioController.startTerm(viewModel.nextTerm)
-    statusLive.textContent = `${termName(viewModel.nextTerm)} trimestre. Energía 100. Ratio en aumento.`
-    runtime.resumeNextTerm()
-    canvas.focus()
+async function startApplication(): Promise<void> {
+  if (!hasGraphicsRenderer()) {
+    showFallback("Este navegador no ha podido iniciar el juego gráfico.")
+    return
   }
 
-  continueButton.addEventListener("click", continueOnce)
-  audioController.playHoliday(result.term as 1 | 2)
+  const shell = GameShell.mount(app!)
+  app!.dataset.appReady = "true"
+
+  try {
+    await waitForPixelFont(document.fonts)
+    const { createPhaserGame } = await import("./phaser/create-game")
+    const game = createPhaserGame(shell.gameRoot)
+    const audio = new GameAudio(game.sound)
+    if (import.meta.env.DEV) {
+      window.__courseSamples = []
+      window.__sceneHistory = []
+    }
+    document.body.classList.add("app-ready")
+    shell.setMuted(audio.isMuted())
+
+    game.events.on(PRELOAD_PROGRESS_EVENT, (progress: number) => {
+      shell.setLoading(progress)
+    })
+    game.events.on(PRELOAD_COMPLETE_EVENT, () => shell.setLoading(1))
+    game.events.on(PRELOAD_ERROR_EVENT, () => {
+      shell.announce("No se pudo cargar un recurso.")
+    })
+    game.events.once(PRELOAD_FATAL_EVENT, () => {
+      audio.destroy()
+      game.destroy(true)
+      showFallback("El juego no ha podido cargar sus imágenes necesarias.")
+    })
+    game.events.on("scene:title", () => {
+      shell.setScreen("title")
+      recordScene({ screen: "title", background: "panoramaTerm1" })
+    })
+    game.events.on("scene:game", (term: 1 | 2 | 3, backgroundOffset: number) => {
+      shell.setScreen("game")
+      shell.announce(announcementFor("term", term))
+      audio.startTerm(term)
+      recordScene({
+        screen: "game",
+        term,
+        background: `panoramaTerm${term}`,
+        backgroundOffset,
+      })
+    })
+    game.events.on("scene:term-break", (term: 1 | 2) => {
+      shell.setScreen("term-break")
+      audio.playHoliday(term)
+      recordScene({
+        screen: "term-break",
+        term,
+        background: term === 1 ? "panoramaTerm2" : "springBreak",
+      })
+      if (import.meta.env.DEV) window.__audioRate = audio.currentRate()
+    })
+    game.events.on("term-break:refilled", () => shell.setContinueReady(true))
+    game.events.on("scene:results", (state: CourseState) => {
+      resultState = state
+      shell.setResults(state)
+      shell.setScreen("results")
+      audio.playCourseEnd()
+      recordScene({ screen: "results", background: "panoramaTerm3" })
+      if (import.meta.env.DEV) window.__audioRate = audio.currentRate()
+    })
+    game.events.on("game:energy", (energy: number) => shell.setEnergy(energy))
+    game.events.on("game:pressure", (pressure: number) => {
+      audio.setPressure(pressure)
+      if (import.meta.env.DEV) {
+        window.__audioRate = audio.currentRate()
+        ;(window.__pressureSamples ??= []).push(pressure)
+      }
+    })
+    game.events.on("game:jump", () => {
+      shell.announce(announcementFor("jump"))
+      audio.playJump()
+    })
+    game.events.on("game:impact", (kind: ObstacleKind) => {
+      shell.announce(announcementFor("impact"))
+      audio.playImpact(kind)
+    })
+    game.events.on("game:companions-added", (count: number) =>
+      shell.announce(announcementFor("companions", count)),
+    )
+
+    if (import.meta.env.DEV) attachDiagnostics(game)
+
+    shell.onAction((action, invoker) => {
+      if (action === "start" || action === "continue" || action === "retry") {
+        audio.unlock()
+      }
+      void handleAction(action, invoker, game, audio, shell)
+    })
+    shell.setAudioReady()
+  } catch {
+    shell.destroy()
+    showFallback("Este navegador no ha podido iniciar el juego gráfico.")
+  }
 }
 
-function termName(term: 2 | 3) {
-  return term === 2 ? "Segundo" : "Tercer"
+async function handleAction(
+  action: ShellAction,
+  invoker: HTMLElement,
+  game: Phaser.Game,
+  audio: GameAudio,
+  shell: GameShellHandle,
+): Promise<void> {
+  if (action === "how" || action === "why") {
+    shell.showMotivation(invoker)
+    return
+  }
+  if (action === "mute") {
+    const muted = !audio.isMuted()
+    audio.setMuted(muted)
+    shell.setMuted(muted)
+    shell.announce(muted ? "Sonido desactivado." : "Sonido activado.")
+    return
+  }
+  if (action === "share") {
+    const maxRatio = Math.max(
+      20,
+      ...(resultState?.completedTerms.map((result) => result.maxRatio) ?? []),
+    )
+    const outcome = await shareResult(
+      {
+        title: "Una jornada decente",
+        text: `He terminado el curso con una ratio máxima de ${maxRatio}.`,
+        url: window.location.href,
+      },
+      {
+        share: navigator.share?.bind(navigator),
+        clipboard: navigator.clipboard,
+      },
+    )
+    shell.announce(
+      outcome === "shared"
+        ? "Resultado compartido."
+        : outcome === "copied"
+          ? "Resultado copiado."
+          : "No se pudo compartir automáticamente.",
+    )
+    return
+  }
+
+  game.events.emit(`ui:${action}`)
 }
 
-function renderTextJourney() {
-  audioController.stop()
-  intro.classList.add("is-hidden")
-  gameRegion.classList.add("is-hidden")
-  results.classList.remove("is-hidden")
-  results.innerHTML = `
-    <header class="results-header panel-masthead">
-      <span class="screen-mark" aria-hidden="true">@</span>
-      <p class="eyebrow">Cómo funciona</p>
-      <h2 id="results-title" tabindex="-1">Una jornada decente</h2>
-    </header>
-    <section id="text-journey" class="text-journey" aria-labelledby="course-summary-title">
-      <h2 id="course-summary-title">Un curso en tres trimestres</h2>
-      <p class="result-message">Atender a más alumn@s consume más energía. El salto se hace más corto y los obstáculos siguen llegando. En vacaciones recuperas energía, pero los obstáculos siguen.</p>
-      <ol class="term-summary-list">
-        <li data-term-summary><strong>Primer trimestre.</strong> Empiezan el papeleo, los archivadores y el frío; al final llegan las vacaciones de Navidad.</li>
-        <li data-term-summary><strong>Segundo trimestre.</strong> El curso vuelve algo más rápido; continúan los trámites y aparecen goteras antes de Semana Santa.</li>
-        <li data-term-summary><strong>Tercer trimestre.</strong> La exigencia inicial es mayor y se suman el calor y el papeleo de cierre de curso.</li>
-      </ol>
-      <h3>Los seis obstáculos</h3>
-      <ul class="obstacle-summary-list">
-        <li data-obstacle>Pila de formularios</li>
-        <li data-obstacle>Carro archivador desbordado</li>
-        <li data-obstacle>Climatización averiada por frío</li>
-        <li data-obstacle>Gotera con cubo</li>
-        <li data-obstacle>Ventilador averiado por calor</li>
-        <li data-obstacle>Pared agrietada y obra</li>
+function attachDiagnostics(game: Phaser.Game): void {
+  const frameMs: number[] = []
+  let previousSample = performance.now()
+  let previousCourseSample = ""
+  game.events.on("game:debug", (state: GameDebugState) => {
+    const now = performance.now()
+    frameMs.push(now - previousSample)
+    previousSample = now
+    if (frameMs.length > 120) frameMs.shift()
+    window.__phaserSlice = state
+    window.__gameDiagnostics = {
+      activeScenes: game.scene.getScenes(true).length,
+      inputBindings: state.inputBindingCount,
+      obstaclePoolSize: state.obstaclePoolSize,
+      activeObstacleCount: state.activeObstacleCount,
+      frameMs: [...frameMs],
+    }
+    const courseSample = `${state.term}:${state.companionCount}:${state.pressure}`
+    if (courseSample !== previousCourseSample) {
+      previousCourseSample = courseSample
+      const samples = (window.__courseSamples ??= [])
+      samples.push({
+        term: state.term,
+        companionCount: state.companionCount,
+        pressure: state.pressure,
+      })
+      if (samples.length > 500) samples.shift()
+    }
+  })
+}
+
+function recordScene(entry: NonNullable<Window["__sceneHistory"]>[number]): void {
+  if (!import.meta.env.DEV) return
+  ;(window.__sceneHistory ??= []).push(entry)
+}
+
+function hasGraphicsRenderer(): boolean {
+  try {
+    const canvas = document.createElement("canvas")
+    return Boolean(
+      canvas.getContext("2d") ||
+        canvas.getContext("webgl2") ||
+        canvas.getContext("webgl"),
+    )
+  } catch {
+    return false
+  }
+}
+
+function showFallback(message: string): void {
+  document.body.classList.remove("app-ready")
+  app!.innerHTML = fallbackMarkup(message)
+}
+
+function fallbackMarkup(message: string): string {
+  return `
+    <section class="fallback-panel" role="alert">
+      <h1>Una jornada decente</h1>
+      <p>${message}</p>
+      <p>La ratio crece, la energía baja y los obstáculos representan burocracia, clima e infraestructura; el alumnado no es el problema.</p>
+      <h2>Datos y fuentes</h2>
+      <ul>
+        <li><a href="https://www.comunidad.madrid/publicacion/ref/51717">Consejo Escolar de la Comunidad de Madrid: ratios</a></li>
+        <li><a href="https://www.ine.es/dyngs/Prensa/EPF2025.htm">INE: gasto medio por persona</a></li>
+        <li><a href="https://ugt-sp.es/wp-content/uploads/boletin-retribuciones-profesorado-comparativa-europa-2026_web-1.pdf">UGT: retribuciones docentes</a></li>
+        <li><a href="https://cadenaser.com/cmadrid/2026/02/02/una-veintena-de-centros-educativos-de-madrid-con-aulas-a-menos-de-17-grados-en-pleno-invierno-radio-madrid/">Cadena SER: climatización</a></li>
       </ul>
     </section>
-    <section id="evidence" class="evidence-section" aria-labelledby="evidence-title">
-      <p class="eyebrow">La realidad detrás del juego</p>
-      <h2 id="evidence-title">Cuatro datos para entender la protesta</h2>
-      <div class="fact-grid">${renderFactCards(EVIDENCE_FACTS)}</div>
-    </section>
-    <button id="back-to-intro" class="secondary-action" type="button">Volver al inicio</button>
   `
-  results.querySelector<HTMLElement>("#results-title")?.focus()
-  requiredElement<HTMLButtonElement>("#back-to-intro").addEventListener(
-    "click",
-    () => {
-      results.classList.add("is-hidden")
-      intro.classList.remove("is-hidden")
-      startButton.focus()
-    },
-  )
-}
-
-function playNewCollisions(previous: GameState, current: GameState) {
-  const kinds: DamageKind[] = ["paperwork", "heat", "infrastructure"]
-  for (const kind of kinds) {
-    if (current.hitsByKind[kind] <= previous.hitsByKind[kind]) continue
-    audioController.playCollision()
-  }
-}
-
-function updateSoundButton() {
-  const muted = audioController.isMuted()
-  soundButton.setAttribute(
-    "aria-label",
-    muted ? "Activar sonido" : "Silenciar sonido",
-  )
-  soundButton.title = muted ? "Activar sonido" : "Silenciar sonido"
-  soundButton.innerHTML = `<span aria-hidden="true">${muted ? "🔇" : "🔊"}</span>`
-}
-
-function renderFactCards(facts: ResultViewModel["facts"]): string {
-  return facts
-    .map(
-      (fact) => `
-        <article class="fact-card">
-          <p class="fact-kicker">${sourceLabel(fact.sourceKind)} · ${fact.period}</p>
-          <h3>${fact.title}</h3>
-          <p class="fact-value">${fact.value}</p>
-          <p>${fact.explanation}</p>
-          <p class="fact-caveat">${fact.caveat}</p>
-          <a href="${fact.sourceUrl}" target="_blank" rel="noreferrer">Ver fuente: ${fact.sourceName}</a>
-        </article>`,
-    )
-    .join("")
-}
-
-function sourceLabel(sourceKind: "official" | "union" | "press-reporting") {
-  if (sourceKind === "official") return "Fuente oficial"
-  if (sourceKind === "union") return "Fuente sindical"
-  return "Información de prensa"
-}
-
-function getOptionalStorage(): Storage | null {
-  try {
-    return window.localStorage
-  } catch {
-    return null
-  }
-}
-
-function requiredElement<T extends Element>(selector: string): T {
-  const element = document.querySelector<T>(selector)
-  if (!element) {
-    throw new Error(`Falta el elemento requerido: ${selector}`)
-  }
-  return element
 }

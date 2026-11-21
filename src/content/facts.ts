@@ -1,5 +1,8 @@
 import type { EvidenceFact } from "./types"
 
+export const RATIO_METAPHOR_NOTE =
+  "Cada trimestre vuelve a representar desde el principio cómo crece la presión de ratio dentro de esa etapa. El alumnado acompaña al profesorado: no es un obstáculo ni una carga."
+
 export const EVIDENCE_FACTS = [
   {
     id: "ratio",

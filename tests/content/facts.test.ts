@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { EVIDENCE_FACTS } from "../../src/content/facts"
+import { EVIDENCE_FACTS, RATIO_METAPHOR_NOTE } from "../../src/content/facts"
 
 describe("EVIDENCE_FACTS", () => {
   it("publishes four distinct, attributable evidence cards", () => {
@@ -30,5 +30,11 @@ describe("EVIDENCE_FACTS", () => {
     expect(byId.cost?.caveat).toMatch(/no equivale/i)
     expect(byId.salary?.caveat).toMatch(/pagas extraordinarias/i)
     expect(byId.climate?.caveat).toMatch(/no es un censo/i)
+  })
+
+  it("explains the term reset without presenting students as a burden", () => {
+    expect(RATIO_METAPHOR_NOTE).toMatch(/cada trimestre/i)
+    expect(RATIO_METAPHOR_NOTE).toMatch(/acompaña/i)
+    expect(RATIO_METAPHOR_NOTE).toMatch(/no.*obstáculo/i)
   })
 })

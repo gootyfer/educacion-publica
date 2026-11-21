@@ -2,102 +2,26 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Una jornada decente: un juego breve para entender las reivindicaciones de la educación pública madrileña."
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Una jornada decente: un juego sobre la educación pública madrileña." />
+    <meta name="theme-color" content="#143f35" />
     <title>Una jornada decente</title>
   </head>
   <body>
     <main id="app" class="app-shell">
-      <section id="intro" class="panel intro-panel" aria-labelledby="page-title">
-        <header class="panel-masthead">
-          <span class="screen-mark" aria-hidden="true">@</span>
-          <p class="eyebrow">Educación pública y de calidad</p>
-          <h1 id="page-title">Una jornada decente</h1>
-        </header>
-        <div class="panel-body">
-          <p class="lede">
-            Un curso en tres trimestres para entender las reivindicaciones del
-            profesorado: corre y salta mientras la ratio crece.
-          </p>
-          <div class="intro-actions">
-            <button id="start-button" class="primary-action" type="button">
-              Empezar la jornada
-            </button>
-            <button id="read-journey-button" class="read-action" type="button">
-              Cómo funciona
-            </button>
-          </div>
-          <p class="control-hint">Un toque para saltar · también funciona con espacio</p>
-        </div>
-      </section>
-
-      <section
-        id="loading-screen"
-        class="panel loading-panel is-hidden"
-        aria-labelledby="loading-title"
-      >
-        <header class="panel-masthead">
-          <span class="screen-mark" aria-hidden="true">@</span>
-          <p class="eyebrow">El curso está a punto de empezar</p>
-          <h2 id="loading-title">Preparando la jornada</h2>
-        </header>
-        <div class="panel-body">
-          <p id="loading-status" role="status" aria-live="polite">
-            Cargando sonido 0 de 3
-          </p>
-          <progress
-            id="loading-progress"
-            max="3"
-            value="0"
-            aria-label="Progreso de carga del sonido"
-          ></progress>
-          <p class="control-hint">Solo debería tardar unos segundos.</p>
-        </div>
-      </section>
-
-      <section
-        id="game-region"
-        class="panel game-panel is-hidden"
-        aria-label="Juego de carrera sobre una jornada decente"
-      >
-        <canvas
-          id="game-canvas"
-          width="390"
-          height="700"
-          tabindex="0"
-          aria-label="El docente corre con su clase. Toca o pulsa espacio para saltar."
-        ></canvas>
-      </section>
-
-      <section
-        id="results"
-        class="panel results-panel is-hidden"
-        aria-labelledby="results-title"
-      ></section>
-
-      <p id="status-live" class="visually-hidden" aria-live="polite"></p>
-    </main>
-    <noscript>
-      <section class="noscript-panel">
-        <h2>Una jornada decente</h2>
-        <p>
-          Esta experiencia recorre un curso en tres trimestres para ayudar a
-          entender las reivindicaciones del profesorado de la educación pública
-          madrileña mediante ratio, cansancio, burocracia y condiciones de las
-          aulas.
-        </p>
-        <h3>Fuentes</h3>
+      <section class="initial-fallback">
+        <h1>Una jornada decente</h1>
+        <p>Un curso en tres trimestres para entender las reivindicaciones del profesorado de la educación pública madrileña.</p>
+        <p>La ratio crece, la energía baja y los obstáculos representan burocracia, clima e infraestructura. El alumnado no es el problema.</p>
+        <h2>Datos y fuentes</h2>
         <ul>
-          <li><a data-fallback-source href="https://www.comunidad.madrid/publicacion/ref/51717">Consejo Escolar de la Comunidad de Madrid: ratios</a></li>
-          <li><a data-fallback-source href="https://www.ine.es/dyngs/Prensa/EPF2025.htm">INE: gasto medio por persona</a></li>
-          <li><a data-fallback-source href="https://ugt-sp.es/wp-content/uploads/boletin-retribuciones-profesorado-comparativa-europa-2026_web-1.pdf">UGT: comparativa de retribuciones docentes</a></li>
-          <li><a data-fallback-source href="https://cadenaser.com/cmadrid/2026/02/02/una-veintena-de-centros-educativos-de-madrid-con-aulas-a-menos-de-17-grados-en-pleno-invierno-radio-madrid/">Cadena SER: centros con problemas de climatización</a></li>
+          <li><a href="https://www.comunidad.madrid/publicacion/ref/51717">Consejo Escolar de la Comunidad de Madrid: ratios</a></li>
+          <li><a href="https://www.ine.es/dyngs/Prensa/EPF2025.htm">INE: gasto medio por persona</a></li>
+          <li><a href="https://ugt-sp.es/wp-content/uploads/boletin-retribuciones-profesorado-comparativa-europa-2026_web-1.pdf">UGT: retribuciones docentes</a></li>
+          <li><a href="https://cadenaser.com/cmadrid/2026/02/02/una-veintena-de-centros-educativos-de-madrid-con-aulas-a-menos-de-17-grados-en-pleno-invierno-radio-madrid/">Cadena SER: climatización en centros públicos</a></li>
         </ul>
       </section>
-    </noscript>
+    </main>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

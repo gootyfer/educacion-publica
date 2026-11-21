@@ -1,0 +1,29 @@
+{
+  "frameWidth": 640,
+  "frameHeight": 360,
+  "seamWidth": 32,
+  "seasons": {
+    "september": [
+      "september-01.png",
+      "september-02.png",
+      "september-03.png",
+      "september-04.png",
+      "september-05.png"
+    ],
+    "winter": [
+      "winter-01.png",
+      "winter-02.png",
+      "winter-03.png",
+      "winter-04.png",
+      "winter-05.png"
+    ],
+    "june": [
+      "june-01.png",
+      "june-02.png",
+      "june-03.png",
+      "june-04.png",
+      "june-05.png"
+    ]
+  },
+  "springBreak": "spring-break.png"
+}
