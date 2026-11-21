@@ -5,6 +5,7 @@ import {
   SeededRandom,
   nextObstacle,
   type GapBand,
+  type SpawnDecision,
 } from "../../course/cadence"
 import type { CourseState, ObstacleKind } from "../../course/types"
 
@@ -24,6 +25,7 @@ const FRAME_BY_KIND: Readonly<Record<ObstacleKind, number>> = {
 export interface ActiveObstacleSnapshot {
   readonly kind: ObstacleKind
   readonly x: number
+  readonly gapBandBefore: GapBand
 }
 
 export class ObstaclePool {
@@ -34,12 +36,14 @@ export class ObstaclePool {
   private previousGapBand?: GapBand
   private shortStreak = 0
   private distanceUntilSpawn = INITIAL_GRACE_DISTANCE
+  private pendingDecision?: SpawnDecision
 
   constructor(
     scene: Phaser.Scene,
     private readonly groundY: number,
     _state: CourseState,
     seed = 2_026,
+    stressFixture = false,
   ) {
     this.random = new SeededRandom(seed)
     this.group = scene.physics.add.group({ allowGravity: false, immovable: true })
@@ -57,6 +61,7 @@ export class ObstaclePool {
       this.group.add(obstacle)
       return obstacle
     })
+    if (stressFixture) this.prefillStressFixture()
   }
 
   colliders(): Phaser.Physics.Arcade.Group {
@@ -67,7 +72,12 @@ export class ObstaclePool {
     return obstacle.getData("kind") as ObstacleKind | undefined
   }
 
-  update(state: CourseState, deltaMs: number, worldSpeed: number): void {
+  update(
+    state: CourseState,
+    deltaMs: number,
+    worldSpeed: number,
+    cadenceElapsedMs = state.elapsedMs,
+  ): void {
     for (const obstacle of this.members) {
       if (!obstacle.active) continue
       if (obstacle.x < -80) {
@@ -85,7 +95,7 @@ export class ObstaclePool {
       this.distanceUntilSpawn = 0
       return
     }
-    this.spawn(available, state, worldSpeed)
+    this.spawn(available, state, worldSpeed, cadenceElapsedMs)
   }
 
   size(): number {
@@ -102,6 +112,8 @@ export class ObstaclePool {
       .map((obstacle) => ({
         kind: this.kindFor(obstacle) ?? "paper-stack",
         x: Math.round(obstacle.x),
+        gapBandBefore:
+          (obstacle.getData("gapBandBefore") as GapBand | undefined) ?? "long",
       }))
   }
 
@@ -128,15 +140,34 @@ export class ObstaclePool {
     obstacle: Phaser.Physics.Arcade.Image,
     state: CourseState,
     worldSpeed: number,
+    cadenceElapsedMs: number,
   ): void {
-    const decision = nextObstacle(
+    const decision =
+      this.pendingDecision ??
+      nextObstacle(
+        {
+          term: state.term,
+          energy: state.energy,
+          worldSpeed,
+          jumpAirtimeMs: COURSE_GEOMETRY.jumpAirtimeMs,
+          obstacleWidth: COURSE_GEOMETRY.obstacleWidth,
+          elapsedMs: cadenceElapsedMs,
+          targetTermDurationMs: state.profile.targetTermDurationMs[state.term],
+        },
+        this.random,
+      )
+    const gapBandBefore = this.pendingDecision?.gapBand ?? "long"
+    this.previousKind = decision.kind
+    this.previousGapBand = gapBandBefore
+    this.shortStreak = gapBandBefore === "short" ? this.shortStreak + 1 : 0
+    this.pendingDecision = nextObstacle(
       {
         term: state.term,
         energy: state.energy,
         worldSpeed,
         jumpAirtimeMs: COURSE_GEOMETRY.jumpAirtimeMs,
         obstacleWidth: COURSE_GEOMETRY.obstacleWidth,
-        elapsedMs: state.elapsedMs,
+        elapsedMs: cadenceElapsedMs,
         targetTermDurationMs: state.profile.targetTermDurationMs[state.term],
         previousKind: this.previousKind,
         previousGapBand: this.previousGapBand,
@@ -144,23 +175,44 @@ export class ObstaclePool {
       },
       this.random,
     )
-    this.previousKind = decision.kind
-    this.previousGapBand = decision.gapBand
-    this.shortStreak = decision.gapBand === "short" ? this.shortStreak + 1 : 0
-    this.distanceUntilSpawn = decision.gap
+    this.distanceUntilSpawn = this.pendingDecision.gap
 
+    this.activate(obstacle, decision.kind, SPAWN_X, gapBandBefore, worldSpeed)
+  }
+
+  private prefillStressFixture(): void {
+    const kinds: readonly ObstacleKind[] = [
+      "paper-stack",
+      "leak",
+      "heat-climate",
+      "wall",
+    ]
+    this.members.forEach((obstacle, index) => {
+      this.activate(obstacle, kinds[index]!, 450 + index * 70, "long", 0)
+    })
+    this.distanceUntilSpawn = Number.POSITIVE_INFINITY
+  }
+
+  private activate(
+    obstacle: Phaser.Physics.Arcade.Image,
+    kind: ObstacleKind,
+    x: number,
+    gapBandBefore: GapBand,
+    worldSpeed: number,
+  ): void {
     obstacle
-      .setData("kind", decision.kind)
-      .setFrame(FRAME_BY_KIND[decision.kind])
+      .setData("kind", kind)
+      .setData("gapBandBefore", gapBandBefore)
+      .setFrame(FRAME_BY_KIND[kind])
       .setDisplaySize(62, 76)
-      .setPosition(SPAWN_X, this.groundY)
+      .setPosition(x, this.groundY)
       .setVelocityX(-worldSpeed)
       .setActive(true)
       .setVisible(true)
     const body = obstacle.body as Phaser.Physics.Arcade.Body
     body.enable = true
     body.setSize(42, 28, true)
-    body.reset(SPAWN_X, this.groundY)
+    body.reset(x, this.groundY)
     body.setVelocityX(-worldSpeed)
   }
 

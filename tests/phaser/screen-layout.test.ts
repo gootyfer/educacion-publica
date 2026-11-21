@@ -36,4 +36,12 @@ describe("shared screen layout", () => {
       height: "13.333333%",
     })
   })
+
+  it("falls back when the pixel font request rejects", async () => {
+    const failedFonts = {
+      load: () => Promise.reject(new Error("font unavailable")),
+    }
+
+    await expect(waitForPixelFont(failedFonts, 50)).resolves.toBeUndefined()
+  })
 })

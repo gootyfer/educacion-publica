@@ -45,7 +45,7 @@ export class TermBreakScene extends Phaser.Scene {
     const background =
       this.sceneData.completedTerm === 1 ? "christmas" : "spring-break"
     this.add
-      .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor(background))
+      .image(0, 0, staticBackgroundTextureFor(background))
       .setOrigin(0, 0)
     const layout = SCREEN_LAYOUTS["term-break"]
     this.panel = new PixelPanel(this, layout.panel)
@@ -73,7 +73,9 @@ export class TermBreakScene extends Phaser.Scene {
     const schedule = refillSchedule(reducedMotion)
     schedule.forEach((delay, index) => {
       this.time.delayedCall(delay, () => {
-        this.hud?.setEnergy((index + 1) * 10)
+        const energy = (index + 1) * 10
+        this.hud?.setEnergy(energy)
+        this.game.events.emit("game:energy", energy)
         if (index !== 9) return
         this.ready = true
         this.continueButton?.setAlpha(1).setInteractive({ useHandCursor: true })

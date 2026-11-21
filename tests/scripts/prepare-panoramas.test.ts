@@ -11,7 +11,7 @@ import sharp from "sharp"
 import { describe, expect, it } from "vitest"
 
 describe("panorama preparation", () => {
-  it("assembles five ordered frames into a lossless 3200 by 360 WebP", async () => {
+  it("removes the declared overlap from the lossless seasonal loop", async () => {
     const root = await mkdtemp(join(tmpdir(), "jornada-panorama-"))
     const sourceDir = join(root, "source")
     const outputDir = join(root, "output")
@@ -27,11 +27,26 @@ describe("panorama preparation", () => {
       ]
       const names = colors.map((_, index) => `frame-${index + 1}.png`)
       for (const [index, background] of colors.entries()) {
-        await sharp({
+        const frame = sharp({
           create: { width: 640, height: 360, channels: 4, background },
         })
-          .png()
-          .toFile(join(sourceDir, names[index]!))
+        if (index === 0) {
+          frame.composite([
+            {
+              input: {
+                create: {
+                  width: 1,
+                  height: 360,
+                  channels: 4,
+                  background: { r: 0, g: 0, b: 0, alpha: 1 },
+                },
+              },
+              left: 0,
+              top: 0,
+            },
+          ])
+        }
+        await frame.png().toFile(join(sourceDir, names[index]!))
       }
       await sharp({
         create: {
@@ -48,6 +63,7 @@ describe("panorama preparation", () => {
         JSON.stringify({
           frameWidth: 640,
           frameHeight: 360,
+          seamWidth: 32,
           seasons: {
             september: names,
             winter: names,
@@ -61,7 +77,7 @@ describe("panorama preparation", () => {
 
       const output = join(outputDir, "panorama-term-1.webp")
       const metadata = await sharp(output).metadata()
-      expect(metadata).toMatchObject({ width: 3200, height: 360, format: "webp" })
+      expect(metadata).toMatchObject({ width: 3168, height: 360, format: "webp" })
       const { data, info } = await sharp(output)
         .ensureAlpha()
         .raw()
@@ -71,8 +87,10 @@ describe("panorama preparation", () => {
         return [...data.subarray(offset, offset + 4)]
       }
       expect(pixel(320)).toEqual([255, 0, 0, 255])
+      expect(pixel(0)).toEqual([255, 0, 0, 255])
       expect(pixel(960)).toEqual([0, 255, 0, 255])
       expect(pixel(1600)).toEqual([0, 0, 255, 255])
+      expect(pixel(3167)).toEqual([255, 0, 255, 255])
       expect(
         new Set(
           data.filter((_value: number, index: number) => index % 4 === 3),

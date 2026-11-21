@@ -64,6 +64,43 @@ describe("four-member obstacle pool", () => {
     )
     expect(next.activeCount()).toBe(0)
   })
+
+  it("associates each scheduled gap with the obstacle that follows it", () => {
+    const scene = fakeScene()
+    const state = createCourseStateAtTerm(3)
+    const pool = new ObstaclePool(scene as never, 318, state, 2026)
+
+    for (let index = 0; index < 4; index += 1) {
+      pool.update(state, 5_000, 300, 60_000)
+    }
+
+    const snapshots = pool.activeSnapshots()
+    expect(snapshots).toHaveLength(4)
+    for (let index = 1; index < snapshots.length; index += 1) {
+      const previous = snapshots[index - 1]!
+      const current = snapshots[index]!
+      expect(current.gapBandBefore).toBeDefined()
+      if (current.gapBandBefore === "short") {
+        expect(
+          [previous.kind, current.kind].every((kind) =>
+            ["paper-stack", "filing-cart", "cold-climate", "wall"].includes(kind),
+          ),
+        ).toBe(false)
+      }
+    }
+  })
+
+  it("can prefill four active obstacles for the performance fixture", () => {
+    const pool = new ObstaclePool(
+      fakeScene() as never,
+      318,
+      createCourseStateAtTerm(3),
+      2026,
+      true,
+    )
+
+    expect(pool.activeCount()).toBe(4)
+  })
 })
 
 class FakeImage {

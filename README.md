@@ -37,7 +37,7 @@ npm run test:e2e
 
 ## Panoramas estacionales
 
-Cada trimestre reutiliza el mismo recorrido continuo de Madrid capital transformado por la estación. Los cinco maestros de 640×360 se ordenan en `art-source/panoramas/manifest.json` y se preparan como una tira de 3200×360; el descanso de primavera usa una imagen estática de 640×360.
+Cada trimestre reutiliza el mismo recorrido continuo de Madrid capital transformado por la estación. Los cinco maestros de 640×360 se ordenan en `art-source/panoramas/manifest.json`; el pipeline elimina el solape de costura declarado de 32 px y produce una tira nativa de 3168×360. El descanso de primavera usa una imagen estática de 640×360.
 
 ```bash
 npm run art:panoramas

@@ -53,6 +53,7 @@ test("completes the fast course with 2→9 resets and seasonal breaks", async ({
             requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
           ),
       )
+      await page.waitForTimeout(100)
       await page.screenshot({
         path: testInfo.outputPath(`break-term-${term}.png`),
       })
@@ -83,21 +84,19 @@ test("makes refill controls ready immediately with reduced motion", async ({
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await page.goto("/?slice=1&fast=1")
-  await expect
-    .poll(
-      () =>
-        page.evaluate(
-          () =>
-            window.__sceneHistory?.some(
-              ({ screen }) => screen === "term-break",
-            ) ?? false,
-        ),
-      { timeout: 5_000 },
-    )
-    .toBe(true)
+  await page.waitForFunction(
+    () =>
+      window.__sceneHistory?.some(({ screen }) => screen === "term-break") ??
+      false,
+    undefined,
+    { timeout: 5_000 },
+  )
   await expect(
     page.getByRole("button", { name: "Continuar el curso" }),
   ).toBeEnabled({ timeout: 500 })
+  await expect(page.locator("[data-energy-status]")).toContainText(
+    "Energía: 100 de 100.",
+  )
 })
 
 test("uses the three seasonal school backgrounds in course order", async ({
@@ -188,4 +187,35 @@ test("the same obstacle can be cleared by jumping or hit deliberately", async ({
       { timeout: 10_000 },
     )
     .toBe(1)
+})
+
+test("keeps the maximum-pressure obstacle sequence jumpable", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/?term=3&perf=1&pressure=1&seed=2026")
+  await page.waitForFunction(() => window.__phaserSlice !== undefined)
+  const canvas = page.locator("canvas")
+  let maximumActive = 0
+
+  for (let sample = 0; sample < 180; sample += 1) {
+    const state = await page.evaluate(() => window.__phaserSlice)
+    maximumActive = Math.max(maximumActive, state?.activeObstacleCount ?? 0)
+    const nearestAhead = Math.min(
+      ...(state?.obstacles
+        .map(({ x }) => x)
+        .filter((x) => x >= 198) ?? [680]),
+    )
+    if (
+      nearestAhead < 430 &&
+      state &&
+      Math.abs(state.teacherY - state.groundY) < 2
+    ) {
+      await canvas.click()
+    }
+    await page.waitForTimeout(50)
+  }
+
+  expect(maximumActive).toBeGreaterThanOrEqual(2)
+  expect(await page.evaluate(() => window.__phaserSlice?.impactCount)).toBe(0)
 })

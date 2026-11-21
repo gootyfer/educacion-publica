@@ -19,57 +19,66 @@ describe("seasonal panorama", () => {
     expect(staticBackgroundTextureFor("results")).toBe("panoramaTerm3")
   })
 
-  it("wraps positive and negative offsets inside the 3200 pixel route", () => {
-    expect(PANORAMA_WIDTH).toBe(3200)
-    expect(wrapPanoramaOffset(3200)).toBe(0)
-    expect(wrapPanoramaOffset(3201)).toBe(1)
-    expect(wrapPanoramaOffset(-1)).toBe(3199)
+  it("wraps positive and negative offsets inside the overlap-free route", () => {
+    expect(PANORAMA_WIDTH).toBe(3168)
+    expect(wrapPanoramaOffset(3168)).toBe(0)
+    expect(wrapPanoramaOffset(3169)).toBe(1)
+    expect(wrapPanoramaOffset(-1)).toBe(3167)
   })
 
-  it("keeps fractional motion while drawing only integer pixel offsets", () => {
-    const tile = new FakeTileSprite()
-    const scene = fakeScene(tile)
-    const backdrop = new ScrollingBackdrop(scene, "panoramaTerm1")
+  it("uses two native images and draws only integer pixel offsets", () => {
+    const scene = fakeScene()
+    const backdrop = new ScrollingBackdrop(scene as never, "panoramaTerm1")
 
     backdrop.update(3, 150)
     backdrop.update(3, 150)
     expect(backdrop.offset()).toBe(0)
-    expect(tile.tilePositionX).toBe(0)
+    expect(scene.images.map(({ x }) => x)).toEqual([0, 3168])
 
     backdrop.update(1, 150)
     expect(backdrop.offset()).toBe(1)
-    expect(tile.tilePositionX).toBe(1)
+    expect(scene.images.map(({ x }) => x)).toEqual([-1, 3167])
   })
 
   it("crosses the loop at maximum speed without a negative frame", () => {
-    const tile = new FakeTileSprite()
+    const scene = fakeScene()
     const backdrop = new ScrollingBackdrop(
-      fakeScene(tile),
+      scene as never,
       "panoramaTerm3",
-      3199,
+      3167,
     )
 
     backdrop.update(10, 320)
 
     expect(backdrop.offset()).toBe(2)
-    expect(tile.tilePositionX).toBe(2)
+    expect(scene.images.map(({ x }) => x)).toEqual([-2, 3166])
     backdrop.destroy()
-    expect(tile.destroy).toHaveBeenCalledOnce()
+    expect(scene.images.every(({ destroy }) => destroy.mock.calls.length === 1)).toBe(true)
   })
 })
 
-class FakeTileSprite {
-  tilePositionX = 0
+class FakeImage {
+  x = 0
   setOrigin = vi.fn(() => this)
   setDepth = vi.fn(() => this)
   setScrollFactor = vi.fn(() => this)
+  setPosition = vi.fn((x: number) => {
+    this.x = x
+    return this
+  })
   destroy = vi.fn()
 }
 
-function fakeScene(tile: FakeTileSprite) {
+function fakeScene() {
+  const images: FakeImage[] = []
   return {
+    images,
     add: {
-      tileSprite: vi.fn(() => tile),
+      image: vi.fn(() => {
+        const image = new FakeImage()
+        images.push(image)
+        return image
+      }),
     },
-  } as never
+  }
 }

@@ -19,7 +19,7 @@ test("scrolls and wraps the September panorama on integer pixels", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 844, height: 390 })
-  await page.goto("/?slice=1&backgroundOffset=3199")
+  await page.goto("/?slice=1&backgroundOffset=3167")
   await expect(page.locator("canvas")).toBeVisible()
   await expect.poll(() => page.evaluate(() => window.__phaserSlice)).toBeTruthy()
   await expect

@@ -35,7 +35,7 @@ export class ResultsScene extends Phaser.Scene {
 
   create(): void {
     this.add
-      .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor("results"))
+      .image(0, 0, staticBackgroundTextureFor("results"))
       .setOrigin(0, 0)
     const layout = SCREEN_LAYOUTS.results
     this.panel = new PixelPanel(this, layout.panel)

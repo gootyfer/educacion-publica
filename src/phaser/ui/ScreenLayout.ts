@@ -63,7 +63,10 @@ export async function waitForPixelFont(
 ): Promise<void> {
   if (!fonts) return
   await Promise.race([
-    fonts.load(`32px ${PIXEL_FONT_FAMILY}`).then(() => undefined),
+    fonts
+      .load(`32px ${PIXEL_FONT_FAMILY}`)
+      .then(() => undefined)
+      .catch(() => undefined),
     new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
   ])
 }

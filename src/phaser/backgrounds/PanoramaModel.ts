@@ -1,6 +1,6 @@
 import type { Term } from "../../course/types"
 
-export const PANORAMA_WIDTH = 3200
+export const PANORAMA_WIDTH = 3168
 
 export type PanoramaTextureKey =
   | "panoramaTerm1"

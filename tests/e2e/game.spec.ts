@@ -137,3 +137,14 @@ test("continues when one visual asset is unavailable", async ({ page }) => {
   await expect(page.getByRole("alert")).toContainText(/no ha podido cargar/i)
   await expect(page.locator("[role='alert'] a")).toHaveCount(4)
 })
+
+test("starts with the fallback font when the pixel font is unavailable", async ({
+  page,
+}) => {
+  await page.route(/\.woff2?(?:\?|$)/, (route) => route.abort())
+  await page.goto("/")
+
+  await expect(page.getByRole("button", { name: "Empezar" })).toBeVisible()
+  await page.getByRole("button", { name: "Empezar" }).click()
+  await expect(page.locator("[data-energy-status]")).toContainText("Energía:")
+})

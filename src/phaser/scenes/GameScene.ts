@@ -87,6 +87,7 @@ export class GameScene extends Phaser.Scene {
       GROUND_Y,
       this.courseState,
       this.seedFromLocation(),
+      this.stressFixtureEnabled(),
     )
     this.energyHud = new EnergyHud(this)
     this.energyHud.setEnergy(this.courseState.energy)
@@ -133,7 +134,7 @@ export class GameScene extends Phaser.Scene {
       this.game.events.emit("game:pressure", pressureBucket / 100)
     }
     this.backdrop.update(delta, worldSpeed)
-    this.obstacles.update(this.courseState, delta, worldSpeed)
+    this.obstacles.update(this.courseState, delta, worldSpeed, elapsedMs)
     const step = advanceCourse(
       this.courseState,
       this.pendingImpact ? { impact: this.pendingImpact } : {},
@@ -246,6 +247,14 @@ export class GameScene extends Phaser.Scene {
     return pressure === "1"
       ? this.courseState.profile.targetTermDurationMs[this.courseState.term]
       : this.courseState.elapsedMs
+  }
+
+  private stressFixtureEnabled(): boolean {
+    return (
+      import.meta.env.DEV &&
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("stress") === "1"
+    )
   }
 
   private shutdown(): void {

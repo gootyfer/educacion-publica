@@ -27,7 +27,7 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     this.add
-      .tileSprite(0, 0, 640, 360, staticBackgroundTextureFor("title"))
+      .image(0, 0, staticBackgroundTextureFor("title"))
       .setOrigin(0, 0)
     const layout = SCREEN_LAYOUTS.title
     this.panel = new PixelPanel(this, layout.panel)

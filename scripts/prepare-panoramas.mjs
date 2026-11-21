@@ -16,6 +16,10 @@ export async function preparePanoramas({ sourceDir, outputDir }) {
   )
   const frameWidth = manifest.frameWidth
   const frameHeight = manifest.frameHeight
+  const seamWidth = manifest.seamWidth ?? 0
+  if (!Number.isInteger(seamWidth) || seamWidth < 0 || seamWidth >= frameWidth) {
+    throw new Error("seamWidth must be an integer inside one frame")
+  }
   await mkdir(outputDir, { recursive: true })
 
   for (const [season, outputName] of Object.entries(OUTPUT_BY_SEASON)) {
@@ -31,6 +35,7 @@ export async function preparePanoramas({ sourceDir, outputDir }) {
           frameHeight,
           file,
         )
+      if (index === 0 && seamWidth > 0) repairLeadingDivider(pixels)
       inputs.push({
         input: pixels.data,
         raw: pixels.raw,
@@ -47,6 +52,12 @@ export async function preparePanoramas({ sourceDir, outputDir }) {
       },
     })
       .composite(inputs)
+      .extract({
+        left: 0,
+        top: 0,
+        width: frameWidth * files.length - seamWidth,
+        height: frameHeight,
+      })
       .png({ palette: true, colours: 128, dither: 0 })
       .toBuffer()
     await sharp(quantized)
@@ -69,6 +80,17 @@ export async function preparePanoramas({ sourceDir, outputDir }) {
   await sharp(springQuantized)
     .webp({ lossless: true, effort: 6 })
     .toFile(join(outputDir, "spring-break.webp"))
+}
+
+function repairLeadingDivider(pixels) {
+  const { width, height, channels } = pixels.raw
+  for (let y = 0; y < height; y += 1) {
+    const target = y * width * channels
+    const source = target + channels
+    for (let channel = 0; channel < channels; channel += 1) {
+      pixels.data[target + channel] = pixels.data[source + channel]
+    }
+  }
 }
 
 async function normalizedPixels(path, width, height, label) {

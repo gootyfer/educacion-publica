@@ -100,7 +100,7 @@ export function nextObstacle(
   const elapsedMs = request.elapsedMs ?? 0
   const targetMs = request.targetTermDurationMs ?? 60_000
   const pressure = difficultyPressure(request.term, elapsedMs, targetMs)
-  const gapBand = chooseGapBand(request, pressure, random)
+  let gapBand = chooseGapBand(request, pressure, random)
   const eligible = TERM_OBSTACLES[request.term]
   let candidates = eligible
   if (request.previousKind && TALL_OBSTACLES.includes(request.previousKind)) {
@@ -108,6 +108,12 @@ export function nextObstacle(
       gapBand === "short"
         ? eligible.filter((kind) => !TALL_OBSTACLES.includes(kind))
         : eligible.filter((kind) => kind !== request.previousKind)
+  }
+  if (candidates.length === 0 && gapBand === "short") {
+    gapBand = "medium"
+    candidates = request.previousKind
+      ? eligible.filter((kind) => kind !== request.previousKind)
+      : eligible
   }
   if (candidates.length === 0) candidates = eligible
   const kind = candidates[Math.floor(random.next() * candidates.length)]!

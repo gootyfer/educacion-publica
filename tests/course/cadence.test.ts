@@ -148,6 +148,43 @@ describe("engine-independent obstacle cadence", () => {
     expect([...seen].sort()).toEqual(["long", "medium", "short"])
   })
 
+  it("promotes a short gap when a term has no compatible obstacle", () => {
+    for (const term of [1, 2, 3] as const) {
+      const random = new SeededRandom(2026 + term)
+      let previousKind: ObstacleKind | undefined
+      let previousGapBand: GapBand | undefined
+      let shortStreak = 0
+
+      for (let index = 0; index < 2_000; index += 1) {
+        const decision = nextObstacle(
+          {
+            term,
+            energy: 50,
+            worldSpeed: 300,
+            jumpAirtimeMs: COURSE_GEOMETRY.jumpAirtimeMs,
+            obstacleWidth: COURSE_GEOMETRY.obstacleWidth,
+            elapsedMs: 60_000,
+            targetTermDurationMs: 60_000,
+            previousKind,
+            previousGapBand,
+            shortStreak,
+          },
+          random,
+        )
+        if (
+          decision.gapBand === "short" &&
+          previousKind &&
+          TALL_OBSTACLES.includes(previousKind)
+        ) {
+          expect(TALL_OBSTACLES).not.toContain(decision.kind)
+        }
+        previousKind = decision.kind
+        previousGapBand = decision.gapBand
+        shortStreak = decision.gapBand === "short" ? shortStreak + 1 : 0
+      }
+    }
+  })
+
   it("raises final third-term frequency to 1.7–2.0 times the initial rate", () => {
     const averageFrequency = (term: Term, elapsedMs: number) => {
       const random = new SeededRandom(term * 100_000 + elapsedMs)
