@@ -1,5 +1,8 @@
 import type Phaser from "phaser"
 
+import type { Term } from "../../course/types"
+import { PIXEL_FONT_FAMILY } from "./ScreenLayout"
+
 export type EnergyBlockState = "empty" | "green" | "coral"
 
 const BLOCK_COUNT = 10
@@ -30,11 +33,16 @@ export function energyBlocksFor(energy: number): EnergyBlockState[] {
   )
 }
 
+export function termLabelFor(term: Term): string {
+  return `TRIMESTRE ${term}`
+}
+
 export class EnergyHud {
   private readonly frame: Phaser.GameObjects.Rectangle
   private readonly blocks: Phaser.GameObjects.Image[]
+  private readonly termLabel?: Phaser.GameObjects.Text
 
-  constructor(scene: Phaser.Scene, x = 22, y = 20) {
+  constructor(scene: Phaser.Scene, x = 22, y = 20, term?: Term) {
     this.frame = scene.add
       .rectangle(
         x,
@@ -67,6 +75,25 @@ export class EnergyHud {
         .setScrollFactor(0)
         .setDepth(100),
     )
+
+    if (term !== undefined) {
+      this.termLabel = scene.add
+        .text(
+          x + ENERGY_HUD_LAYOUT.frameWidth + 12,
+          y + ENERGY_HUD_LAYOUT.frameHeight / 2,
+          termLabelFor(term),
+          {
+            fontFamily: PIXEL_FONT_FAMILY,
+            fontSize: "18px",
+            color: "#fff4d6",
+            stroke: "#071f1a",
+            strokeThickness: 3,
+          },
+        )
+        .setOrigin(0, 0.5)
+        .setScrollFactor(0)
+        .setDepth(100)
+    }
   }
 
   setEnergy(energy: number): void {
@@ -78,5 +105,6 @@ export class EnergyHud {
   destroy(): void {
     this.frame.destroy()
     this.blocks.forEach((block) => block.destroy())
+    this.termLabel?.destroy()
   }
 }

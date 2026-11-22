@@ -99,7 +99,7 @@ export class GameScene extends Phaser.Scene {
       this.seedFromLocation(),
       this.stressFixtureEnabled(),
     )
-    this.energyHud = new EnergyHud(this)
+    this.energyHud = new EnergyHud(this, 22, 20, this.courseState.term)
     this.energyHud.setEnergy(this.courseState.energy)
     this.lastEnergyBucket = Math.ceil(this.courseState.energy / 10)
     this.game.events.emit("game:energy", this.courseState.energy)

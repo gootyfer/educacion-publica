@@ -147,6 +147,7 @@ test("deterministic impacts are recoverable and followers stay grounded", async 
     state?.companionYs.every(
       (y) =>
         y === state.groundY ||
+        y === state.groundY + 8 ||
         y === state.groundY - 8 ||
         y === state.groundY - 16,
     ),

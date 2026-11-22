@@ -70,3 +70,35 @@ test("el silencio persiste al recargar", async ({ page }) => {
   await page.reload()
   await expect(page.getByRole("button", { name: "Activar sonido" })).toBeVisible()
 })
+
+test("carga las pistas aprobadas de los menús inicial y final", async ({
+  page,
+}) => {
+  const loadedTracks = new Set<string>()
+  page.on("response", (response) => {
+    if (!response.ok()) return
+    const fileName = new URL(response.url()).pathname.split("/").at(-1)
+    if (fileName) loadedTracks.add(fileName)
+  })
+
+  await page.goto("/?fast=1")
+  await expect
+    .poll(() => loadedTracks.has("main-theme-extended-80s.mp3"))
+    .toBe(true)
+  await page.getByRole("button", { name: "Empezar" }).click()
+
+  for (let term = 1; term <= 2; term += 1) {
+    const continueButton = page.getByRole("button", {
+      name: "Continuar el curso",
+    })
+    await expect(continueButton).toBeEnabled()
+    await continueButton.click()
+  }
+
+  await expect(
+    page.getByRole("button", { name: "Volver a intentar" }),
+  ).toBeVisible()
+  await expect
+    .poll(() => loadedTracks.has("main-theme-electronic-80s.mp3"))
+    .toBe(true)
+})

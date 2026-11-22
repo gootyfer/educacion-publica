@@ -88,6 +88,7 @@ async function startApplication(): Promise<void> {
     })
     game.events.on("scene:title", () => {
       shell.setScreen("title")
+      audio.playTitle()
       recordScene({ screen: "title", background: "panoramaTerm1" })
     })
     game.events.on("scene:game", (term: 1 | 2 | 3, backgroundOffset: number) => {
@@ -143,9 +144,7 @@ async function startApplication(): Promise<void> {
     if (import.meta.env.DEV) attachDiagnostics(game)
 
     shell.onAction((action, invoker) => {
-      if (action === "start" || action === "continue" || action === "retry") {
-        audio.unlock()
-      }
+      audio.unlock()
       void handleAction(action, invoker, game, audio, shell)
     })
     shell.setAudioReady()

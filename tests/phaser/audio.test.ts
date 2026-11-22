@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { GameAudio } from "../../src/phaser/audio/GameAudio"
+import { AUDIO_ASSETS, GameAudio } from "../../src/phaser/audio/GameAudio"
 
 class FakeSound {
   isPlaying = false
@@ -50,6 +50,15 @@ function setup(missing = new Set<string>()) {
 }
 
 describe("Phaser audio lifecycle", () => {
+  it("maps the approved intro and results menu tracks", () => {
+    expect(AUDIO_ASSETS["audio-title"]).toContain(
+      "main-theme-extended-80s.mp3",
+    )
+    expect(AUDIO_ASSETS["audio-results"]).toContain(
+      "main-theme-electronic-80s.mp3",
+    )
+  })
+
   it("migrates the mute preference from the previous release", () => {
     const manager = { mute: false, add: vi.fn(() => new FakeSound()) }
     const storage = {
@@ -87,6 +96,31 @@ describe("Phaser audio lifecycle", () => {
     audio.startTerm(2)
     audio.startTerm(2)
     expect(sounds.get("audio-theme")?.playCount).toBe(1)
+  })
+
+  it("switches between looping title, gameplay, and results music", () => {
+    const { audio, manager, sounds } = setup()
+
+    audio.playTitle()
+    expect(manager.add).not.toHaveBeenCalled()
+    audio.unlock()
+    expect(sounds.get("audio-title")?.playCount).toBe(1)
+    expect(manager.add).toHaveBeenCalledWith(
+      "audio-title",
+      expect.objectContaining({ loop: true }),
+    )
+
+    audio.startTerm(1)
+    expect(sounds.get("audio-title")?.isPlaying).toBe(false)
+    expect(sounds.get("audio-theme")?.playCount).toBe(1)
+
+    audio.playCourseEnd()
+    expect(sounds.get("audio-theme")?.isPlaying).toBe(false)
+    expect(sounds.get("audio-results")?.playCount).toBe(1)
+    expect(manager.add).toHaveBeenCalledWith(
+      "audio-results",
+      expect.objectContaining({ loop: true }),
+    )
   })
 
   it("maps pressure to hundredth-quantized theme rates after unlock", () => {
@@ -145,10 +179,11 @@ describe("Phaser audio lifecycle", () => {
   it("survives when every audio file is missing", () => {
     const { audio } = setup(
       new Set([
+        "audio-title",
         "audio-theme",
         "audio-christmas",
         "audio-spring",
-        "audio-course-end",
+        "audio-results",
         "audio-jump",
         "audio-impact",
       ]),

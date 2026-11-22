@@ -7,6 +7,7 @@ import {
 import {
   ENERGY_HUD_LAYOUT,
   energyBlocksFor,
+  termLabelFor,
 } from "../../src/phaser/ui/EnergyHud"
 
 describe("Phaser animation and HUD contracts", () => {
@@ -55,5 +56,13 @@ describe("Phaser animation and HUD contracts", () => {
     expect(ENERGY_HUD_LAYOUT.frameHeight).toBeGreaterThan(
       ENERGY_HUD_LAYOUT.blockHeight,
     )
+  })
+
+  it.each([
+    [1, "TRIMESTRE 1"],
+    [2, "TRIMESTRE 2"],
+    [3, "TRIMESTRE 3"],
+  ] as const)("labels term %s beside the energy marker", (term, label) => {
+    expect(termLabelFor(term)).toBe(label)
   })
 })

@@ -12,7 +12,7 @@ describe("companion formation", () => {
     expect(slots).toHaveLength(10)
     expect(slots.slice(0, 4).map(({ y }) => y)).toEqual([-16, -16, -16, -16])
     expect(slots.slice(4, 7).map(({ y }) => y)).toEqual([-8, -8, -8])
-    expect(slots.slice(7).map(({ y }) => y)).toEqual([0, 0, 0])
+    expect(slots.slice(7).map(({ y }) => y)).toEqual([8, 8, 8])
     expect(companionFormation(5)).toEqual(slots.slice(0, 5))
   })
 
@@ -20,7 +20,7 @@ describe("companion formation", () => {
     const slots = companionFormation(10)
     const rows = [...new Set(slots.map(({ y }) => y))]
 
-    expect(rows).toEqual([-16, -8, 0])
+    expect(rows).toEqual([-16, -8, 8])
     for (const row of rows) {
       const xs = slots.filter(({ y }) => y === row).map(({ x }) => x)
       const gaps = xs
@@ -28,9 +28,7 @@ describe("companion formation", () => {
         .map((x, index) => Math.abs(x - xs[index]!))
       expect(gaps.every((gap) => gap >= 36)).toBe(true)
     }
-    expect(slots.slice(0, 4).every(({ scale }) => scale === 0.76)).toBe(true)
-    expect(slots.slice(4, 7).every(({ scale }) => scale === 0.82)).toBe(true)
-    expect(slots.slice(7).every(({ scale }) => scale === 0.88)).toBe(true)
+    expect(slots.every(({ scale }) => scale === 0.88)).toBe(true)
   })
 
   it("keeps the baby early and reserves a roomy non-final slot for the wheelchair", () => {

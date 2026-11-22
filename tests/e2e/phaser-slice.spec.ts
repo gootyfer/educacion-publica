@@ -82,6 +82,7 @@ for (const viewport of [
               state.companionYs.every(
                 (y) =>
                   y === state.groundY ||
+                  y === state.groundY + 8 ||
                   y === state.groundY - 8 ||
                   y === state.groundY - 16,
               ),

@@ -6,6 +6,7 @@ import { PixelPanel } from "../ui/PixelPanel"
 import type { CourseState } from "../../course/types"
 import { staticBackgroundTextureFor } from "../backgrounds/PanoramaModel"
 import { SCREEN_LAYOUTS } from "../ui/ScreenLayout"
+import { AUDIO_ASSETS } from "../audio/GameAudio"
 
 interface TitleSceneData {
   readonly state?: CourseState
@@ -23,6 +24,12 @@ export class TitleScene extends Phaser.Scene {
   init(data: TitleSceneData): void {
     this.initialState = data.state ?? createCourseState()
     this.started = false
+  }
+
+  preload(): void {
+    if (!this.cache.audio.exists("audio-title")) {
+      this.load.audio("audio-title", AUDIO_ASSETS["audio-title"])
+    }
   }
 
   create(): void {

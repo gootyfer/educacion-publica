@@ -28,8 +28,8 @@ export class ResultsScene extends Phaser.Scene {
   }
 
   preload(): void {
-    if (!this.cache.audio.exists("audio-course-end")) {
-      this.load.audio("audio-course-end", AUDIO_ASSETS["audio-course-end"])
+    if (!this.cache.audio.exists("audio-results")) {
+      this.load.audio("audio-results", AUDIO_ASSETS["audio-results"])
     }
   }
 

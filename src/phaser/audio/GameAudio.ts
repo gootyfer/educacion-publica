@@ -3,13 +3,22 @@ import type { ObstacleKind, Term } from "../../course/types"
 const AUDIO_BASE = `${import.meta.env.BASE_URL}audio/approved/`
 
 export const AUDIO_ASSETS = {
+  "audio-title": `${AUDIO_BASE}main-theme-extended-80s.mp3`,
   "audio-theme": `${AUDIO_BASE}main-theme.mp3`,
   "audio-christmas": `${AUDIO_BASE}holiday-christmas.mp3`,
   "audio-spring": `${AUDIO_BASE}holiday-spring.mp3`,
-  "audio-course-end": `${AUDIO_BASE}course-end.mp3`,
+  "audio-results": `${AUDIO_BASE}main-theme-electronic-80s.mp3`,
   "audio-jump": `${AUDIO_BASE}jump.mp3`,
   "audio-impact": `${AUDIO_BASE}new-obstacle.mp3`,
 } as const
+
+type MusicKey = "audio-title" | "audio-theme" | "audio-results"
+
+const MUSIC_KEYS: readonly MusicKey[] = [
+  "audio-title",
+  "audio-theme",
+  "audio-results",
+]
 
 interface SoundLike {
   readonly isPlaying?: boolean
@@ -36,8 +45,7 @@ export class GameAudio {
   private readonly sounds = new Map<keyof typeof AUDIO_ASSETS, SoundLike>()
   private unlocked = false
   private muted: boolean
-  private activeTerm: Term | null = null
-  private inTransition = false
+  private activeMusic: MusicKey | null = null
   private destroyed = false
   private desiredThemeRate = 1
   private appliedThemeRate = 1
@@ -53,16 +61,21 @@ export class GameAudio {
   unlock(): void {
     if (this.destroyed || this.unlocked) return
     this.unlocked = true
-    this.resumeTheme()
+    this.resumeMusic()
   }
 
-  startTerm(term: Term): void {
+  playTitle(): void {
     if (this.destroyed) return
-    this.activeTerm = term
-    this.inTransition = false
     this.resetThemeRate()
     this.stopEffects()
-    this.resumeTheme()
+    this.selectMusic("audio-title")
+  }
+
+  startTerm(_term: Term): void {
+    if (this.destroyed) return
+    this.resetThemeRate()
+    this.stopEffects()
+    this.selectMusic("audio-theme")
   }
 
   playJump(): void {
@@ -75,19 +88,16 @@ export class GameAudio {
 
   playHoliday(term: 1 | 2): void {
     if (this.destroyed) return
-    this.inTransition = true
     this.resetThemeRate()
-    this.stop("audio-theme")
+    this.selectMusic(null)
     this.playEffect(term === 1 ? "audio-christmas" : "audio-spring")
   }
 
   playCourseEnd(): void {
     if (this.destroyed) return
-    this.activeTerm = null
-    this.inTransition = true
     this.resetThemeRate()
-    this.stop("audio-theme")
-    this.playEffect("audio-course-end")
+    this.stopEffects()
+    this.selectMusic("audio-results")
   }
 
   setMuted(muted: boolean): void {
@@ -100,7 +110,7 @@ export class GameAudio {
       // El almacenamiento no es necesario para jugar.
     }
     if (muted) this.stopAll()
-    else this.resumeTheme()
+    else this.resumeMusic()
   }
 
   isMuted(): boolean {
@@ -130,19 +140,13 @@ export class GameAudio {
     this.sounds.clear()
   }
 
-  private resumeTheme(): void {
-    if (
-      this.destroyed ||
-      !this.unlocked ||
-      this.muted ||
-      this.activeTerm === null ||
-      this.inTransition
-    ) {
+  private resumeMusic(): void {
+    if (this.destroyed || !this.unlocked || this.muted || !this.activeMusic) {
       return
     }
-    const theme = this.soundFor("audio-theme")
-    if (!theme || theme.isPlaying) return
-    safely(() => theme.play())
+    const music = this.soundFor(this.activeMusic)
+    if (!music || music.isPlaying) return
+    safely(() => music.play())
   }
 
   private playEffect(key: keyof typeof AUDIO_ASSETS): void {
@@ -160,8 +164,18 @@ export class GameAudio {
 
   private stopEffects(): void {
     for (const key of this.sounds.keys()) {
-      if (key !== "audio-theme") this.stop(key)
+      if (!MUSIC_KEYS.includes(key as MusicKey)) this.stop(key)
     }
+  }
+
+  private selectMusic(key: MusicKey | null): void {
+    if (this.activeMusic === key) {
+      this.resumeMusic()
+      return
+    }
+    for (const musicKey of MUSIC_KEYS) this.stop(musicKey)
+    this.activeMusic = key
+    this.resumeMusic()
   }
 
   private stopAll(): void {
@@ -173,8 +187,8 @@ export class GameAudio {
     if (existing) return existing
     try {
       const sound = this.manager.add(key, {
-        loop: key === "audio-theme",
-        volume: key === "audio-theme" ? 0.32 : 0.78,
+        loop: MUSIC_KEYS.includes(key as MusicKey),
+        volume: MUSIC_KEYS.includes(key as MusicKey) ? 0.32 : 0.78,
       })
       this.sounds.set(key, sound)
       if (key === "audio-theme") {
