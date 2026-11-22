@@ -22,6 +22,7 @@ declare global {
 test("completes the fast course with 2→10 resets and seasonal breaks", async ({
   page,
 }, testInfo) => {
+  const companionLayouts: number[][] = []
   await page.setViewportSize({ width: 844, height: 390 })
   await page.goto("/?slice=1&fast=1&seed=2026")
   await page.waitForFunction(() => window.__phaserSlice !== undefined)
@@ -42,6 +43,12 @@ test("completes the fast course with 2→10 resets and seasonal breaks", async (
         ),
       )
       .toBe(true)
+    await expect
+      .poll(() => page.evaluate(() => window.__phaserSlice?.companionCount))
+      .toBe(10)
+    companionLayouts.push(
+      await page.evaluate(() => [...(window.__phaserSlice?.companionIdentities ?? [])]),
+    )
     if (term < 3) {
       const continueButton = page.getByRole("button", {
         name: "Continuar el curso",
@@ -68,6 +75,8 @@ test("completes the fast course with 2→10 resets and seasonal breaks", async (
     expect(samples.some((sample) => sample.term === term && sample.companionCount === 2)).toBe(true)
     expect(samples.some((sample) => sample.term === term && sample.companionCount === 10)).toBe(true)
   }
+  expect(companionLayouts[1]).toEqual(companionLayouts[0])
+  expect(companionLayouts[2]).toEqual(companionLayouts[0])
   const history = await page.evaluate(() => window.__sceneHistory ?? [])
   expect(history).toEqual(
     expect.arrayContaining([
@@ -135,12 +144,7 @@ test("deterministic impacts are recoverable and followers stay grounded", async 
   expect(state?.energy).toBeLessThan(100)
   expect(state?.phase).toBe("running")
   expect(
-    state?.companionYs.every(
-      (y) =>
-        y === state.groundY ||
-        y === state.groundY - 10 ||
-        y === state.groundY - 20,
-    ),
+    state?.companionYs.every((y) => y === state.groundY),
   ).toBe(true)
 })
 

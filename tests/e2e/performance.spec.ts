@@ -35,3 +35,30 @@ test("keeps a bounded pool and stable frame samples at 740 by 360", async ({
   expect(average).toBeLessThan(25)
   expect(p95).toBeLessThan(35)
 })
+
+test("keeps a seeded group stable and changes regular positions between runs", async ({
+  page,
+}) => {
+  const layouts: number[][] = []
+
+  for (const seed of [2_026, 2_027]) {
+    await page.goto(`/?term=3&perf=1&seed=${seed}`)
+    await expect
+      .poll(() => page.evaluate(() => window.__phaserSlice?.companionCount))
+      .toBe(10)
+    layouts.push(
+      await page.evaluate(
+        () =>
+          (
+            window.__phaserSlice as unknown as {
+              companionIdentities?: number[]
+            }
+          )?.companionIdentities ?? [],
+      ),
+    )
+  }
+
+  expect(layouts[0]).toHaveLength(10)
+  expect(layouts[1]).toHaveLength(10)
+  expect(layouts[0]).not.toEqual(layouts[1])
+})

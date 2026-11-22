@@ -21,6 +21,7 @@ export interface GameDebugState {
   readonly teacherY: number
   readonly groundY: number
   readonly companionYs: number[]
+  readonly companionIdentities: readonly number[]
   readonly energy: number
   readonly phase: string
   readonly term: Term
@@ -51,6 +52,7 @@ export class GameScene extends Phaser.Scene {
   private energyHud!: EnergyHud
   private backdrop!: ScrollingBackdrop
   private pendingImpact?: import("../../course/types").ObstacleKind
+  private companionSeed = 2_026
   private lastEnergyBucket = 10
   private lastPressureBucket = -1
 
@@ -60,6 +62,9 @@ export class GameScene extends Phaser.Scene {
 
   init(data: Partial<GameSceneData>): void {
     this.courseState = data.state ?? createCourseState()
+    if (this.courseState.courseElapsedMs === 0) {
+      this.companionSeed = this.seedFromLocation(this.randomSeed())
+    }
     this.lastPressureBucket = -1
   }
 
@@ -80,7 +85,12 @@ export class GameScene extends Phaser.Scene {
     registerGameAnimations(this)
 
     this.teacher = new Teacher(this, TEACHER_X, GAME_GROUND_Y)
-    this.companions = new CompanionGroup(this, TEACHER_X, GAME_GROUND_Y)
+    this.companions = new CompanionGroup(
+      this,
+      TEACHER_X,
+      GAME_GROUND_Y,
+      this.companionSeed,
+    )
     this.companions.setCount(this.courseState.companionCount)
     this.obstacles = new ObstaclePool(
       this,
@@ -199,6 +209,7 @@ export class GameScene extends Phaser.Scene {
       teacherY: Math.round(this.teacher.y),
       groundY: GAME_GROUND_Y,
       companionYs: this.companions.visibleGroundPositions(),
+      companionIdentities: this.companions.visibleIdentities(),
       energy: this.courseState.energy,
       phase: this.courseState.phase,
       term: this.courseState.term,
@@ -225,10 +236,14 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private seedFromLocation(): number {
-    if (typeof window === "undefined") return 2_026
+  private seedFromLocation(fallback = 2_026): number {
+    if (typeof window === "undefined") return fallback
     const seed = Number(new URLSearchParams(window.location.search).get("seed"))
-    return Number.isFinite(seed) && seed > 0 ? seed : 2_026
+    return Number.isFinite(seed) && seed > 0 ? seed : fallback
+  }
+
+  private randomSeed(): number {
+    return Math.floor(Math.random() * 0xffff_ffff) + 1
   }
 
   private initialBackgroundOffset(): number {

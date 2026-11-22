@@ -47,7 +47,7 @@ export async function prepareCompanions({ sourceDir, outputPath }) {
 
   await mkdir(dirname(outputPath), { recursive: true })
   await sharp(prepared).toFile(preparedPath)
-  await sharp({
+  const assembled = await sharp({
     create: {
       width: SHEET_WIDTH,
       height: BASE_HEIGHT + FRAME_SIZE,
@@ -60,7 +60,69 @@ export async function prepareCompanions({ sourceDir, outputPath }) {
       { input: prepared, left: 0, top: BASE_HEIGHT },
     ])
     .png()
-    .toFile(outputPath)
+    .toBuffer()
+  await normalizeRunningFrames(assembled).then((sheet) =>
+    sharp(sheet).toFile(outputPath),
+  )
+}
+
+async function normalizeRunningFrames(sheet) {
+  const frames = await Promise.all(
+    Array.from({ length: 20 }, async (_, index) => {
+      const left = (index % 6) * FRAME_SIZE
+      const top = Math.floor(index / 6) * FRAME_SIZE
+      const frame = await sharp(sheet)
+        .extract({ left, top, width: FRAME_SIZE, height: FRAME_SIZE })
+        .png()
+        .toBuffer()
+      return {
+        input: await alignOpaquePixelsToBottom(frame),
+        left,
+        top,
+      }
+    }),
+  )
+
+  return sharp({
+    create: {
+      width: SHEET_WIDTH,
+      height: BASE_HEIGHT + FRAME_SIZE,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite(frames)
+    .png()
+    .toBuffer()
+}
+
+async function alignOpaquePixelsToBottom(frame) {
+  const { data, info } = await sharp(frame)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true })
+  let opaqueBottom = -1
+  for (let y = info.height - 1; y >= 0 && opaqueBottom < 0; y -= 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      if (data[(y * info.width + x) * 4 + 3] > 0) {
+        opaqueBottom = y
+        break
+      }
+    }
+  }
+  if (opaqueBottom < 0 || opaqueBottom === info.height - 1) return frame
+
+  return sharp({
+    create: {
+      width: FRAME_SIZE,
+      height: FRAME_SIZE,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([{ input: frame, left: 0, top: FRAME_SIZE - 1 - opaqueBottom }])
+    .png()
+    .toBuffer()
 }
 
 async function prepareFrame(path, extract) {

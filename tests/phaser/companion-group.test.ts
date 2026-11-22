@@ -1,44 +1,57 @@
 import { describe, expect, it } from "vitest"
 
 import {
-  COMPANION_APPEARANCE_ORDER,
+  companionAppearanceOrder,
   companionFormation,
 } from "../../src/phaser/entities/CompanionGroup"
 
 describe("companion formation", () => {
-  it("spreads ten companions across three grounded perspective rows", () => {
+  it("reveals the farthest followers first without moving existing students", () => {
     const slots = companionFormation(10)
-    const rows = [...new Set(slots.map(({ y }) => y))].sort((a, b) => a - b)
 
     expect(slots).toHaveLength(10)
-    expect(rows).toEqual([-20, -10, 0])
-    expect(rows[1]! - rows[0]!).toBeGreaterThanOrEqual(8)
-    expect(rows[2]! - rows[1]!).toBeLessThanOrEqual(14)
-    for (const row of rows) {
-      const xs = slots
-        .filter((slot) => slot.y === row)
-        .map(({ x }) => x)
-        .sort((a, b) => a - b)
-      expect(xs[1]! - xs[0]!).toBeGreaterThan(23)
+    expect(slots.every(({ y }) => y === 0)).toBe(true)
+    expect(slots.map(({ x }) => x)).toEqual([
+      -176, -161, -146, -131, -116, -101, -86, -71, -56, -41,
+    ])
+    expect(companionFormation(5)).toEqual(slots.slice(0, 5))
+  })
+
+  it("keeps every pair of feet on the floor and spaces the group horizontally", () => {
+    const slots = companionFormation(10)
+    const gaps = slots.slice(1).map((slot, index) => slot.x - slots[index]!.x)
+
+    expect(slots.every(({ y }) => y === 0)).toBe(true)
+    expect(gaps.every((gap) => gap >= 15)).toBe(true)
+    expect(slots.every(({ scale }) => scale === 0.64)).toBe(true)
+  })
+
+  it("keeps the baby early and reserves a roomy non-final slot for the wheelchair", () => {
+    for (const seed of [1, 2_026, 8_675_309]) {
+      const order = companionAppearanceOrder(seed)
+
+      expect(order).toHaveLength(10)
+      expect(order[1]).toBe(9)
+      expect(order[7]).toBe(10)
+      expect([...order].sort((a, b) => a - b)).toEqual([
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+      ])
     }
   })
 
-  it("puts the baby in the first row and wheelchair student before the end", () => {
-    expect(COMPANION_APPEARANCE_ORDER).toHaveLength(10)
-    expect(COMPANION_APPEARANCE_ORDER.indexOf(9)).toBeLessThan(3)
-    expect(COMPANION_APPEARANCE_ORDER.indexOf(10)).toBe(5)
-    expect(COMPANION_APPEARANCE_ORDER.at(-1)).not.toBe(10)
+  it("keeps a layout stable for one seed and varies regular students between runs", () => {
+    expect(companionAppearanceOrder(2_026)).toEqual(
+      companionAppearanceOrder(2_026),
+    )
+    expect(companionAppearanceOrder(2_026)).not.toEqual(
+      companionAppearanceOrder(2_027),
+    )
   })
 
-  it("reduces scale and depth for rows farther from the foreground", () => {
+  it("keeps a stable formation for partial groups", () => {
     const slots = companionFormation(10)
-    const scaleAt = (y: number) => slots.find((slot) => slot.y === y)!.scale
-    const depthAt = (y: number) => slots.find((slot) => slot.y === y)!.depth
 
-    expect(scaleAt(0)).toBeGreaterThan(scaleAt(-10))
-    expect(scaleAt(-10)).toBeGreaterThan(scaleAt(-20))
-    expect(depthAt(0)).toBeGreaterThan(depthAt(-10))
-    expect(depthAt(-10)).toBeGreaterThan(depthAt(-20))
+    expect(slots.every(({ depth }) => depth === 20)).toBe(true)
     expect(companionFormation(5)).toEqual(companionFormation(5))
   })
 })

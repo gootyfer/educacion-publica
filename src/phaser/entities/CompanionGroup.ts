@@ -1,5 +1,6 @@
 import type Phaser from "phaser"
 
+import { SeededRandom } from "../../course/cadence"
 import { COMPANION_FRAME_INDEXES } from "../animations"
 
 export interface CompanionSlot {
@@ -10,27 +11,51 @@ export interface CompanionSlot {
 }
 
 const FORMATION: readonly CompanionSlot[] = [
-  { x: -44, y: 0, scale: 0.88, depth: 30 },
-  { x: -76, y: 0, scale: 0.88, depth: 30 },
-  { x: -108, y: 0, scale: 0.88, depth: 30 },
-  { x: -58, y: -10, scale: 0.82, depth: 20 },
-  { x: -90, y: -10, scale: 0.82, depth: 20 },
-  { x: -122, y: -10, scale: 0.82, depth: 20 },
-  { x: -72, y: -20, scale: 0.76, depth: 10 },
-  { x: -104, y: -20, scale: 0.76, depth: 10 },
-  { x: -136, y: -20, scale: 0.76, depth: 10 },
-  { x: -168, y: -20, scale: 0.76, depth: 10 },
+  { x: -176, y: 0, scale: 0.64, depth: 20 },
+  { x: -161, y: 0, scale: 0.64, depth: 20 },
+  { x: -146, y: 0, scale: 0.64, depth: 20 },
+  { x: -131, y: 0, scale: 0.64, depth: 20 },
+  { x: -116, y: 0, scale: 0.64, depth: 20 },
+  { x: -101, y: 0, scale: 0.64, depth: 20 },
+  { x: -86, y: 0, scale: 0.64, depth: 20 },
+  { x: -71, y: 0, scale: 0.64, depth: 20 },
+  { x: -56, y: 0, scale: 0.64, depth: 20 },
+  { x: -41, y: 0, scale: 0.64, depth: 20 },
 ]
 
-export const COMPANION_APPEARANCE_ORDER = [
-  1, 2, 9, 3, 4, 10, 5, 6, 7, 8,
-] as const
+const BABY_SLOT = 1
+const WHEELCHAIR_SLOT = 7
+
+export function companionAppearanceOrder(seed: number): readonly number[] {
+  const random = new SeededRandom(seed)
+  const identities = [1, 2, 3, 4, 5, 6, 7, 8]
+  for (let index = identities.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random.next() * (index + 1))
+    ;[identities[index], identities[swapIndex]] = [
+      identities[swapIndex]!,
+      identities[index]!,
+    ]
+  }
+
+  const order = Array<number>(FORMATION.length)
+  order[BABY_SLOT] = 9
+  order[WHEELCHAIR_SLOT] = 10
+  const regularSlots = Array.from(
+    { length: order.length },
+    (_, index) => index,
+  ).filter((index) => order[index] === undefined)
+  regularSlots.forEach((slot, index) => {
+    order[slot] = identities[index]!
+  })
+  return order
+}
 
 export function companionFormation(count: number): readonly CompanionSlot[] {
   return FORMATION.slice(0, Math.min(10, Math.max(0, Math.floor(count))))
 }
 
 export class CompanionGroup {
+  private readonly identities: readonly number[]
   private readonly sprites: Phaser.GameObjects.Sprite[]
   private count = 0
 
@@ -38,8 +63,10 @@ export class CompanionGroup {
     scene: Phaser.Scene,
     private readonly teacherX: number,
     private readonly groundY: number,
+    seed = 2_026,
   ) {
-    this.sprites = COMPANION_APPEARANCE_ORDER.map((identity) => {
+    this.identities = companionAppearanceOrder(seed)
+    this.sprites = this.identities.map((identity) => {
       const frames = COMPANION_FRAME_INDEXES[identity - 1]!
       return scene.add
         .sprite(0, groundY, "companions", frames[0])
@@ -75,6 +102,10 @@ export class CompanionGroup {
 
   visibleCount(): number {
     return this.count
+  }
+
+  visibleIdentities(): readonly number[] {
+    return this.identities.slice(0, this.count)
   }
 
   destroy(): void {
