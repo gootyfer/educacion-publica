@@ -11,16 +11,16 @@ export interface CompanionSlot {
 }
 
 const FORMATION: readonly CompanionSlot[] = [
-  { x: -176, y: 0, scale: 0.64, depth: 20 },
-  { x: -161, y: 0, scale: 0.64, depth: 20 },
-  { x: -146, y: 0, scale: 0.64, depth: 20 },
-  { x: -131, y: 0, scale: 0.64, depth: 20 },
-  { x: -116, y: 0, scale: 0.64, depth: 20 },
-  { x: -101, y: 0, scale: 0.64, depth: 20 },
-  { x: -86, y: 0, scale: 0.64, depth: 20 },
-  { x: -71, y: 0, scale: 0.64, depth: 20 },
-  { x: -56, y: 0, scale: 0.64, depth: 20 },
-  { x: -41, y: 0, scale: 0.64, depth: 20 },
+  { x: -62, y: -16, scale: 0.76, depth: 10 },
+  { x: -98, y: -16, scale: 0.76, depth: 10 },
+  { x: -134, y: -16, scale: 0.76, depth: 10 },
+  { x: -170, y: -16, scale: 0.76, depth: 10 },
+  { x: -70, y: -8, scale: 0.82, depth: 20 },
+  { x: -112, y: -8, scale: 0.82, depth: 20 },
+  { x: -154, y: -8, scale: 0.82, depth: 20 },
+  { x: -62, y: 0, scale: 0.88, depth: 30 },
+  { x: -108, y: 0, scale: 0.88, depth: 30 },
+  { x: -154, y: 0, scale: 0.88, depth: 30 },
 ]
 
 const BABY_SLOT = 1

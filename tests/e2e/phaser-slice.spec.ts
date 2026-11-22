@@ -79,7 +79,12 @@ for (const viewport of [
           return Boolean(
             state &&
               state.teacherY < state.groundY &&
-              state.companionYs.every((y) => y === state.groundY),
+              state.companionYs.every(
+                (y) =>
+                  y === state.groundY ||
+                  y === state.groundY - 8 ||
+                  y === state.groundY - 16,
+              ),
           )
         }),
       )

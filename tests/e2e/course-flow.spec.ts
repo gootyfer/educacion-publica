@@ -144,7 +144,12 @@ test("deterministic impacts are recoverable and followers stay grounded", async 
   expect(state?.energy).toBeLessThan(100)
   expect(state?.phase).toBe("running")
   expect(
-    state?.companionYs.every((y) => y === state.groundY),
+    state?.companionYs.every(
+      (y) =>
+        y === state.groundY ||
+        y === state.groundY - 8 ||
+        y === state.groundY - 16,
+    ),
   ).toBe(true)
 })
 

@@ -6,24 +6,31 @@ import {
 } from "../../src/phaser/entities/CompanionGroup"
 
 describe("companion formation", () => {
-  it("reveals the farthest followers first without moving existing students", () => {
+  it("reveals the back row before the middle and front rows", () => {
     const slots = companionFormation(10)
 
     expect(slots).toHaveLength(10)
-    expect(slots.every(({ y }) => y === 0)).toBe(true)
-    expect(slots.map(({ x }) => x)).toEqual([
-      -176, -161, -146, -131, -116, -101, -86, -71, -56, -41,
-    ])
+    expect(slots.slice(0, 4).map(({ y }) => y)).toEqual([-16, -16, -16, -16])
+    expect(slots.slice(4, 7).map(({ y }) => y)).toEqual([-8, -8, -8])
+    expect(slots.slice(7).map(({ y }) => y)).toEqual([0, 0, 0])
     expect(companionFormation(5)).toEqual(slots.slice(0, 5))
   })
 
-  it("keeps every pair of feet on the floor and spaces the group horizontally", () => {
+  it("keeps three low perspective rows with modest horizontal spacing", () => {
     const slots = companionFormation(10)
-    const gaps = slots.slice(1).map((slot, index) => slot.x - slots[index]!.x)
+    const rows = [...new Set(slots.map(({ y }) => y))]
 
-    expect(slots.every(({ y }) => y === 0)).toBe(true)
-    expect(gaps.every((gap) => gap >= 15)).toBe(true)
-    expect(slots.every(({ scale }) => scale === 0.64)).toBe(true)
+    expect(rows).toEqual([-16, -8, 0])
+    for (const row of rows) {
+      const xs = slots.filter(({ y }) => y === row).map(({ x }) => x)
+      const gaps = xs
+        .slice(1)
+        .map((x, index) => Math.abs(x - xs[index]!))
+      expect(gaps.every((gap) => gap >= 36)).toBe(true)
+    }
+    expect(slots.slice(0, 4).every(({ scale }) => scale === 0.76)).toBe(true)
+    expect(slots.slice(4, 7).every(({ scale }) => scale === 0.82)).toBe(true)
+    expect(slots.slice(7).every(({ scale }) => scale === 0.88)).toBe(true)
   })
 
   it("keeps the baby early and reserves a roomy non-final slot for the wheelchair", () => {
@@ -48,10 +55,12 @@ describe("companion formation", () => {
     )
   })
 
-  it("keeps a stable formation for partial groups", () => {
+  it("keeps perspective depth and a stable formation for partial groups", () => {
     const slots = companionFormation(10)
 
-    expect(slots.every(({ depth }) => depth === 20)).toBe(true)
+    expect(slots.slice(0, 4).every(({ depth }) => depth === 10)).toBe(true)
+    expect(slots.slice(4, 7).every(({ depth }) => depth === 20)).toBe(true)
+    expect(slots.slice(7).every(({ depth }) => depth === 30)).toBe(true)
     expect(companionFormation(5)).toEqual(companionFormation(5))
   })
 })
