@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest"
 
 import {
+  AUDIO_GATE_CONTROL,
   CONTROLS_BY_SCREEN,
   MOTIVATION_SECTIONS,
   announcementFor,
+  singleUseAction,
 } from "../../src/ui/GameShell"
 import { SCREEN_LAYOUTS } from "../../src/phaser/ui/ScreenLayout"
 
@@ -45,5 +47,23 @@ describe("accessible Phaser shell contracts", () => {
     expect(announcementFor("companions", 7)).toContain("7 estudiantes")
     expect(announcementFor("impact")).toContain("energía")
     expect(announcementFor("term", 3)).toContain("Tercer trimestre")
+  })
+
+  it("defines the iPhone audio gate as a real continue button", () => {
+    expect(AUDIO_GATE_CONTROL).toEqual({
+      tagName: "button",
+      label: "Toca para continuar",
+    })
+  })
+
+  it("activates and removes the audio gate only once", () => {
+    let activationCount = 0
+    const activate = singleUseAction(() => {
+      activationCount += 1
+    })
+
+    expect(activate()).toBe(true)
+    expect(activate()).toBe(false)
+    expect(activationCount).toBe(1)
   })
 })

@@ -13,6 +13,21 @@ import {
 
 export { MOTIVATION_SECTIONS }
 
+export const AUDIO_GATE_CONTROL = {
+  tagName: "button",
+  label: "Toca para continuar",
+} as const
+
+export function singleUseAction(action: () => void): () => boolean {
+  let available = true
+  return () => {
+    if (!available) return false
+    available = false
+    action()
+    return true
+  }
+}
+
 export type ShellScreen =
   | "loading"
   | "title"
@@ -72,6 +87,8 @@ export interface GameShellHandle {
   announce(message: string): void
   setMuted(muted: boolean): void
   setAudioReady(): void
+  showAudioGate(onActivate: () => void): void
+  hideAudioGate(): void
   setContinueReady(ready: boolean): void
   setEnergy(energy: number): void
   setResults(state: CourseState): void
@@ -90,6 +107,9 @@ export class GameShell implements GameShellHandle {
   private readonly information: MotivationPanel
   private readonly energyStatus: HTMLElement
   private readonly resultsSummary: HTMLElement
+  private readonly audioGate: HTMLElement
+  private readonly audioGateButton: HTMLButtonElement
+  private audioGateAction: (() => boolean) | null = null
   private readonly actionListeners = new Set<
     (action: ShellAction, invoker: HTMLElement) => void
   >()
@@ -114,6 +134,13 @@ export class GameShell implements GameShellHandle {
         <button type="button" data-portrait-motivation>Por qué este juego</button>
         <button type="button" data-portrait-sources>Datos y fuentes</button>
       </aside>
+      <section class="audio-gate" data-audio-gate aria-labelledby="audio-gate-title" hidden>
+        <div class="audio-gate-card">
+          <h1 id="audio-gate-title">Una jornada decente</h1>
+          <p>Activa la música antes de entrar.</p>
+          <button type="button">${AUDIO_GATE_CONTROL.label}</button>
+        </div>
+      </section>
       <button class="sound-toggle" type="button" data-shell-action="mute" aria-label="Silenciar sonido" disabled><span aria-hidden="true">🔊</span></button>
       <p class="visually-hidden" data-energy-status>Energía: 100 de 100.</p>
       <section class="visually-hidden" data-results-summary aria-label="Resultado del curso"></section>
@@ -124,6 +151,8 @@ export class GameShell implements GameShellHandle {
     this.loading = root.querySelector<HTMLProgressElement>("progress")!
     this.energyStatus = root.querySelector<HTMLElement>("[data-energy-status]")!
     this.resultsSummary = root.querySelector<HTMLElement>("[data-results-summary]")!
+    this.audioGate = root.querySelector<HTMLElement>("[data-audio-gate]")!
+    this.audioGateButton = this.audioGate.querySelector<HTMLButtonElement>("button")!
     this.status = new AccessibleStatus(root)
     this.information = new MotivationPanel(root)
 
@@ -140,6 +169,7 @@ export class GameShell implements GameShellHandle {
     root
       .querySelector<HTMLElement>("[data-shell-action='mute']")
       ?.addEventListener("click", this.handleAction)
+    this.audioGateButton.addEventListener("click", this.handleAudioGate)
     this.setScreen("loading")
   }
 
@@ -199,6 +229,17 @@ export class GameShell implements GameShellHandle {
     if (button) button.disabled = false
   }
 
+  showAudioGate(onActivate: () => void): void {
+    this.audioGateAction = singleUseAction(onActivate)
+    this.audioGate.hidden = false
+    window.requestAnimationFrame(() => this.audioGateButton.focus())
+  }
+
+  hideAudioGate(): void {
+    this.audioGate.hidden = true
+    this.audioGateAction = null
+  }
+
   setContinueReady(ready: boolean): void {
     const button = this.controls.querySelector<HTMLButtonElement>(
       "[data-shell-action='continue']",
@@ -232,6 +273,8 @@ export class GameShell implements GameShellHandle {
   }
 
   destroy(): void {
+    this.audioGateButton.removeEventListener("click", this.handleAudioGate)
+    this.audioGateAction = null
     this.actionListeners.clear()
     this.status.destroy()
     this.information.destroy()
@@ -243,6 +286,10 @@ export class GameShell implements GameShellHandle {
     const action = invoker.dataset.shellAction as ShellAction | undefined
     if (!action) return
     for (const listener of this.actionListeners) listener(action, invoker)
+  }
+
+  private readonly handleAudioGate = (): void => {
+    if (this.audioGateAction?.()) this.hideAudioGate()
   }
 }
 
