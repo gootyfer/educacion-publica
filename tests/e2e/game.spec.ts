@@ -52,6 +52,28 @@ for (const viewport of [
   })
 }
 
+test("keeps the whole game inside iPhone landscape safe areas", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/")
+  await page.locator(".app-shell").evaluate((shell) => {
+    shell.style.setProperty("--safe-top", "6px")
+    shell.style.setProperty("--safe-right", "47px")
+    shell.style.setProperty("--safe-bottom", "21px")
+    shell.style.setProperty("--safe-left", "47px")
+    shell.style.padding = "var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)"
+  })
+
+  const stageBox = await page.locator(".game-stage").boundingBox()
+  if (!stageBox) throw new Error("Game stage without bounds")
+
+  expect(stageBox.x).toBeGreaterThanOrEqual(47)
+  expect(stageBox.x + stageBox.width).toBeLessThanOrEqual(844 - 47)
+  expect(stageBox.y).toBeGreaterThanOrEqual(6)
+  expect(stageBox.y + stageBox.height).toBeLessThanOrEqual(390 - 21)
+})
+
 test("completes three terms, both refills and ten grounded followers", async ({
   page,
 }) => {
