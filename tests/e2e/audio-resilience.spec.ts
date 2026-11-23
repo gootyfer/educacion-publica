@@ -48,6 +48,58 @@ test("reproduce el tema y el salto después de la interacción", async ({
     .toBeGreaterThan(afterTheme)
 })
 
+test("desbloquea la música inicial con un toque en la PWA de iPhone", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const NativeAudioContext = window.AudioContext
+    class InitiallyLockedAudioContext extends NativeAudioContext {
+      private initiallyLocked = true
+
+      get state(): AudioContextState {
+        return this.initiallyLocked ? "suspended" : super.state
+      }
+
+      resume(): Promise<void> {
+        this.initiallyLocked = false
+        return super.resume()
+      }
+    }
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: InitiallyLockedAudioContext,
+    })
+    Object.defineProperty(navigator, "userAgent", {
+      configurable: true,
+      value:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+    })
+    Object.defineProperty(navigator, "standalone", {
+      configurable: true,
+      value: true,
+    })
+    window.__audioStarts = 0
+    const original = AudioBufferSourceNode.prototype.start
+    AudioBufferSourceNode.prototype.start = function (...args) {
+      window.__audioStarts = (window.__audioStarts ?? 0) + 1
+      return original.apply(this, args as Parameters<AudioBufferSourceNode["start"]>)
+    }
+  })
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/")
+
+  const gate = page.getByRole("button", { name: "Toca para continuar" })
+  await expect(gate).toBeVisible()
+  await gate.click()
+  await expect(gate).toBeHidden()
+  await expect
+    .poll(() => page.evaluate(() => window.__audioStarts ?? 0))
+    .toBeGreaterThan(0)
+
+  await page.getByRole("button", { name: "Empezar" }).click()
+  await expect(page.locator("#phaser-root")).toBeFocused()
+})
+
 test("el juego funciona sin audio aunque fallen todos los mp3", async ({
   page,
 }) => {

@@ -37,6 +37,7 @@ function setup(missing = new Set<string>()) {
   const sounds = new Map<string, FakeSound>()
   const manager = {
     mute: false,
+    locked: false,
     add: vi.fn((key: string) => {
       if (missing.has(key)) throw new Error("missing")
       const sound = new FakeSound()
@@ -96,6 +97,19 @@ describe("Phaser audio lifecycle", () => {
     audio.startTerm(2)
     audio.startTerm(2)
     expect(sounds.get("audio-theme")?.playCount).toBe(1)
+  })
+
+  it("waits for the sound manager to confirm its unlock", () => {
+    const { audio, manager, sounds } = setup()
+    manager.locked = true
+    audio.playTitle()
+
+    audio.unlock()
+    expect(sounds.has("audio-title")).toBe(false)
+
+    manager.locked = false
+    audio.unlock()
+    expect(sounds.get("audio-title")?.playCount).toBe(1)
   })
 
   it("switches between looping title, gameplay, and results music", () => {

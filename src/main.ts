@@ -21,6 +21,10 @@ import {
 import { shareResult } from "./ui/share"
 import { waitForPixelFont } from "./phaser/ui/ScreenLayout"
 import { registerPwa } from "./pwa/register"
+import {
+  isInstalledIphone,
+  shouldOfferIphoneAudioGate,
+} from "./pwa/ios-audio-gate"
 
 declare global {
   interface Window {
@@ -148,10 +152,41 @@ async function startApplication(): Promise<void> {
 
     if (import.meta.env.DEV) attachDiagnostics(game)
 
+    let audioUnlockPending = false
+    const requestAudioUnlock = () => {
+      if (!game.sound.locked) {
+        audio.unlock()
+        return
+      }
+      if (audioUnlockPending) return
+      audioUnlockPending = true
+      game.sound.once("unlocked", () => {
+        audioUnlockPending = false
+        audio.unlock()
+      })
+    }
+
     shell.onAction((action, invoker) => {
-      audio.unlock()
+      requestAudioUnlock()
       void handleAction(action, invoker, game, audio, shell)
     })
+    const iosNavigator = navigator as Navigator & { readonly standalone?: boolean }
+    const installedIphone = isInstalledIphone(
+      {
+        userAgent: iosNavigator.userAgent,
+        standalone: iosNavigator.standalone,
+      },
+      window.matchMedia("(display-mode: standalone)").matches,
+    )
+    if (
+      shouldOfferIphoneAudioGate({
+        installedIphone,
+        soundLocked: game.sound.locked,
+        muted: audio.isMuted(),
+      })
+    ) {
+      shell.showAudioGate(requestAudioUnlock)
+    }
     shell.setAudioReady()
   } catch {
     shell.destroy()

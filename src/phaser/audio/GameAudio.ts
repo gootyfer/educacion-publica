@@ -30,6 +30,7 @@ interface SoundLike {
 
 interface SoundManagerLike {
   mute: boolean
+  readonly locked?: boolean
   add(key: string, config?: Record<string, unknown>): SoundLike
 }
 
@@ -59,7 +60,7 @@ export class GameAudio {
   }
 
   unlock(): void {
-    if (this.destroyed || this.unlocked) return
+    if (this.destroyed || this.unlocked || this.manager.locked === true) return
     this.unlocked = true
     this.resumeMusic()
   }
