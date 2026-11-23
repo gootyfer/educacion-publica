@@ -20,6 +20,7 @@ import {
 } from "./ui/GameShell"
 import { shareResult } from "./ui/share"
 import { waitForPixelFont } from "./phaser/ui/ScreenLayout"
+import { registerPwa } from "./pwa/register"
 
 declare global {
   interface Window {
@@ -49,6 +50,10 @@ declare global {
 
 const app = document.querySelector<HTMLElement>("#app")
 if (!app) throw new Error("No se encontró el contenedor de la aplicación")
+
+if (import.meta.env.PROD) {
+  void registerPwa(navigator, import.meta.env.BASE_URL)
+}
 
 let resultState: CourseState | null = null
 void startApplication()

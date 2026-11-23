@@ -8,14 +8,18 @@
   },
   "scripts": {
     "dev": "vite",
+    "preview": "vite preview",
+    "preview:pages": "node scripts/serve-pages-preview.mjs dist 4174",
     "art:companions": "node scripts/prepare-companions.mjs",
     "art:panoramas": "node scripts/prepare-panoramas.mjs",
-    "build": "tsc --noEmit && vite build",
+    "art:pwa-icons": "node scripts/prepare-pwa-icons.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/generate-service-worker.mjs dist",
     "budget": "node scripts/check-game-budget.mjs dist",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "ci": "npm run typecheck && npm test && npm run build && npm run budget && npm run test:e2e"
+    "test:pwa": "playwright test --config=playwright.pwa.config.ts",
+    "ci": "npm run typecheck && npm test && npm run build && npm run budget && npm run test:e2e && npm run test:pwa"
   },
   "devDependencies": {
     "@axe-core/playwright": "latest",
