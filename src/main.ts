@@ -178,14 +178,15 @@ async function startApplication(): Promise<void> {
       },
       window.matchMedia("(display-mode: standalone)").matches,
     )
-    if (
-      shouldOfferIphoneAudioGate({
-        installedIphone,
-        soundLocked: game.sound.locked,
-        muted: audio.isMuted(),
-      })
-    ) {
+    const offerAudioGate = shouldOfferIphoneAudioGate({
+      installedIphone,
+      soundLocked: game.sound.locked,
+      muted: audio.isMuted(),
+    })
+    if (offerAudioGate) {
       shell.showAudioGate(requestAudioUnlock)
+    } else if (installedIphone && !audio.isMuted()) {
+      requestAudioUnlock()
     }
     shell.setAudioReady()
   } catch {

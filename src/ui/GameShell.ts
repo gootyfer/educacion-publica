@@ -107,6 +107,8 @@ export class GameShell implements GameShellHandle {
   private readonly information: MotivationPanel
   private readonly energyStatus: HTMLElement
   private readonly resultsSummary: HTMLElement
+  private readonly portraitGuidance: HTMLElement
+  private readonly soundToggle: HTMLButtonElement
   private readonly audioGate: HTMLElement
   private readonly audioGateButton: HTMLButtonElement
   private audioGateAction: (() => boolean) | null = null
@@ -151,6 +153,8 @@ export class GameShell implements GameShellHandle {
     this.loading = root.querySelector<HTMLProgressElement>("progress")!
     this.energyStatus = root.querySelector<HTMLElement>("[data-energy-status]")!
     this.resultsSummary = root.querySelector<HTMLElement>("[data-results-summary]")!
+    this.portraitGuidance = root.querySelector<HTMLElement>(".portrait-guidance")!
+    this.soundToggle = root.querySelector<HTMLButtonElement>(".sound-toggle")!
     this.audioGate = root.querySelector<HTMLElement>("[data-audio-gate]")!
     this.audioGateButton = this.audioGate.querySelector<HTMLButtonElement>("button")!
     this.status = new AccessibleStatus(root)
@@ -198,11 +202,7 @@ export class GameShell implements GameShellHandle {
       this.controls.append(button)
     }
 
-    if (screen === "game") {
-      window.requestAnimationFrame(() => this.gameRoot.focus())
-    } else if (screen !== "loading") {
-      window.requestAnimationFrame(() => title.focus())
-    }
+    this.focusCurrentScreen()
   }
 
   setLoading(progress: number): void {
@@ -231,13 +231,17 @@ export class GameShell implements GameShellHandle {
 
   showAudioGate(onActivate: () => void): void {
     this.audioGateAction = singleUseAction(onActivate)
+    this.setBackgroundInert(true)
     this.audioGate.hidden = false
     window.requestAnimationFrame(() => this.audioGateButton.focus())
   }
 
   hideAudioGate(): void {
+    if (this.audioGate.hidden) return
     this.audioGate.hidden = true
     this.audioGateAction = null
+    this.setBackgroundInert(false)
+    this.focusCurrentScreen()
   }
 
   setContinueReady(ready: boolean): void {
@@ -290,6 +294,26 @@ export class GameShell implements GameShellHandle {
 
   private readonly handleAudioGate = (): void => {
     if (this.audioGateAction?.()) this.hideAudioGate()
+  }
+
+  private setBackgroundInert(inert: boolean): void {
+    this.stage.inert = inert
+    this.portraitGuidance.inert = inert
+    this.soundToggle.inert = inert
+  }
+
+  private focusCurrentScreen(): void {
+    if (!this.audioGate.hidden) {
+      window.requestAnimationFrame(() => this.audioGateButton.focus())
+      return
+    }
+    const screen = this.root.dataset.screen as ShellScreen | undefined
+    if (screen === "game") {
+      window.requestAnimationFrame(() => this.gameRoot.focus())
+    } else if (screen && screen !== "loading") {
+      const title = this.controls.querySelector<HTMLElement>("h1")
+      window.requestAnimationFrame(() => title?.focus())
+    }
   }
 }
 
