@@ -74,6 +74,32 @@ test("keeps the whole game inside iPhone landscape safe areas", async ({
   expect(stageBox.y + stageBox.height).toBeLessThanOrEqual(390 - 21)
 })
 
+test("contains an oversized Phaser canvas inside the game frame", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 844, height: 390 })
+  await page.goto("/")
+  const canvas = page.locator("canvas")
+  await expect(canvas).toBeVisible()
+  await canvas.evaluate((element) => {
+    element.style.width = "900px"
+    element.style.height = "506.25px"
+  })
+
+  const rootBox = await page.locator(".phaser-root").boundingBox()
+  const canvasBox = await canvas.boundingBox()
+  if (!rootBox || !canvasBox) throw new Error("Missing Phaser bounds")
+
+  expect(canvasBox.x).toBeGreaterThanOrEqual(rootBox.x)
+  expect(canvasBox.y).toBeGreaterThanOrEqual(rootBox.y)
+  expect(canvasBox.x + canvasBox.width).toBeLessThanOrEqual(
+    rootBox.x + rootBox.width,
+  )
+  expect(canvasBox.y + canvasBox.height).toBeLessThanOrEqual(
+    rootBox.y + rootBox.height,
+  )
+})
+
 test("completes three terms, both refills and ten grounded followers", async ({
   page,
 }) => {
